@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Manajemen Pesanan — Admin LaraShop')
+@section('title', 'Manajemen Pesanan — Admin BladeStore')
 @section('page-title', 'Manajemen Pesanan')
 
 @section('content')

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Tambah Produk Baru — Admin LaraShop')
+@section('title', 'Tambah Produk Baru — Admin BladeStore')
 @section('page-title', 'Tambah Produk Baru')
 
 @section('content')
@@ -20,7 +20,7 @@
                 </span>
                 <div>
                     <h5 class="fw-bold text-dark mb-0">Formulir Tambah Produk Baru</h5>
-                    <p class="text-muted small mb-0">Masukkan detail informasi busana atau aksesoris untuk etalase LaraShop.</p>
+                    <p class="text-muted small mb-0">Masukkan detail informasi produk untuk etalase BladeStore.</p>
                 </div>
             </div>
 

@@ -113,7 +113,7 @@ class AuthController extends Controller
         $user = User::firstOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name' => 'Admin LaraShop',
+                'name' => 'Admin BladeStore',
                 'password' => Hash::make('password'),
                 'role' => 'admin',
             ]

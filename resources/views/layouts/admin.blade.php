@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>@yield('title', 'Admin Dashboard') — LaraShop Management Suite</title>
+    <title>@yield('title', 'Admin Dashboard') — BladeStore Management Suite</title>
 
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -288,7 +288,7 @@
                 <i class="bi bi-shield-lock-fill"></i>
             </span>
             <div>
-                <div class="admin-brand-title">LARA<span style="color: #60A5FA;">SHOP</span></div>
+                <div class="admin-brand-title">BLADE<span style="color: #60A5FA;">STORE</span></div>
                 <div class="admin-brand-subtitle">Management Suite</div>
             </div>
         </a>
@@ -367,7 +367,7 @@
                     </div>
                     <div class="overflow-hidden" style="max-width: 130px;">
                         <div class="small fw-bold text-white text-truncate">{{ auth()->user()?->name ?? 'Admin' }}</div>
-                        <div class="x-small text-muted text-truncate">{{ auth()->user()?->email ?? 'admin@larashop.id' }}</div>
+                        <div class="x-small text-muted text-truncate">{{ auth()->user()?->email ?? 'admin@bladestore.id' }}</div>
                     </div>
                 </div>
                 <form action="{{ route('logout') }}" method="POST">
@@ -390,7 +390,7 @@
                 </button>
                 <div>
                     <h5 class="fw-bold text-dark mb-0">@yield('page-title', 'Dashboard')</h5>
-                    <div class="text-muted x-small">LaraShop Store Administration Suite</div>
+                    <div class="text-muted x-small">BladeStore Store Administration Suite</div>
                 </div>
             </div>
 

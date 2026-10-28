@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Penyelesaian Pesanan (Checkout) — LaraShop')
+@section('title', 'Penyelesaian Pesanan (Checkout) — BladeStore')
 
 @push('styles')
 <style>

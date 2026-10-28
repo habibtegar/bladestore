@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Pesanan Berhasil #' . $order->order_code . ' — LaraShop')
+@section('title', 'Pesanan Berhasil #' . $order->order_code . ' — BladeStore')
 
 @section('content')
 <div class="row justify-content-center mb-5">
@@ -14,7 +14,7 @@
             </div>
             
             <h3 class="fw-bold text-dark mb-1">Pesanan Anda Berhasil Dibuat</h3>
-            <p class="text-muted small mb-3">Terima kasih atas kepercayaan Anda berbelanja di LaraShop. Data transaksi telah tercatat rapi di sistem kami.</p>
+            <p class="text-muted small mb-3">Terima kasih atas kepercayaan Anda berbelanja di BladeStore. Data transaksi telah tercatat rapi di sistem kami.</p>
 
             <div class="d-inline-flex align-items-center justify-content-center gap-2 p-2 px-3 rounded-pill bg-light border mx-auto mb-3">
                 <span class="text-muted x-small">Kode Pesanan:</span>
@@ -55,7 +55,7 @@
                         <div class="p-3 rounded-3 bg-white border h-100 position-relative shadow-sm">
                             <span class="badge bg-primary mb-2">BCA</span>
                             <div class="fw-bold font-monospace fs-6 text-dark">123-456-7890</div>
-                            <div class="x-small text-muted mb-2">a.n. PT LaraShop Indonesia</div>
+                            <div class="x-small text-muted mb-2">a.n. PT BladeStore Indonesia</div>
                             <button class="btn btn-sm btn-outline-secondary py-0 px-2 x-small" onclick="navigator.clipboard.writeText('1234567890'); alert('Nomor rekening BCA berhasil disalin!');">
                                 <i class="bi bi-copy me-1"></i> Salin No. Rek
                             </button>
@@ -66,7 +66,7 @@
                         <div class="p-3 rounded-3 bg-white border h-100 position-relative shadow-sm">
                             <span class="badge bg-primary mb-2">MANDIRI</span>
                             <div class="fw-bold font-monospace fs-6 text-dark">987-654-3210</div>
-                            <div class="x-small text-muted mb-2">a.n. PT LaraShop Indonesia</div>
+                            <div class="x-small text-muted mb-2">a.n. PT BladeStore Indonesia</div>
                             <button class="btn btn-sm btn-outline-secondary py-0 px-2 x-small" onclick="navigator.clipboard.writeText('9876543210'); alert('Nomor rekening Mandiri berhasil disalin!');">
                                 <i class="bi bi-copy me-1"></i> Salin No. Rek
                             </button>
@@ -77,7 +77,7 @@
                         <div class="p-3 rounded-3 bg-white border h-100 position-relative shadow-sm">
                             <span class="badge bg-primary mb-2">BRI</span>
                             <div class="fw-bold font-monospace fs-6 text-dark">0123-01-0001-501</div>
-                            <div class="x-small text-muted mb-2">a.n. PT LaraShop Indonesia</div>
+                            <div class="x-small text-muted mb-2">a.n. PT BladeStore Indonesia</div>
                             <button class="btn btn-sm btn-outline-secondary py-0 px-2 x-small" onclick="navigator.clipboard.writeText('0123010001501'); alert('Nomor rekening BRI berhasil disalin!');">
                                 <i class="bi bi-copy me-1"></i> Salin No. Rek
                             </button>
@@ -90,7 +90,7 @@
                         <div class="fw-bold text-dark small">Sudah Melakukan Transfer?</div>
                         <div class="x-small text-muted">Kirimkan foto atau screenshot bukti transfer beserta kode pesanan Anda untuk verifikasi instan.</div>
                     </div>
-                    <a href="https://wa.me/6281234567890?text={{ urlencode('Halo Admin LaraShop, saya ingin konfirmasi pembayaran untuk pesanan ' . $order->order_code . ' sebesar ' . $order->formatted_total_price) }}" 
+                    <a href="https://wa.me/6281234567890?text={{ urlencode('Halo Admin BladeStore, saya ingin konfirmasi pembayaran untuk pesanan ' . $order->order_code . ' sebesar ' . $order->formatted_total_price) }}" 
                        target="_blank" 
                        rel="noopener noreferrer"
                        class="btn btn-success btn-sm d-flex align-items-center gap-2 text-nowrap px-3 py-2 fw-semibold">

@@ -1255,16 +1255,16 @@
         <div class="container">
             <div class="row g-4 g-lg-5 mb-4">
                 
-                <!-- Col 1: About LaraShop -->
+                <!-- Col 1: About BladeStore -->
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="d-flex align-items-center gap-2 mb-3">
                         <div class="brand-logo-icon" style="width: 32px; height: 32px; font-size: 1rem; border-radius: 6px;">
                             <i class="bi bi-shop-window"></i>
                         </div>
-                        <span class="fs-4 fw-bold text-white tracking-tight">LARA<span style="color: var(--primary);">SHOP</span></span>
+                        <span class="fs-4 fw-bold text-white tracking-tight">BLADESTORE</span>
                     </div>
                     <p class="small text-light text-opacity-75 leading-relaxed mb-0">
-                        LaraShop adalah marketplace terpercaya di Indonesia. Temukan beragam produk pilihan berkualitas dengan transaksi yang mudah, aman, dan nyaman.
+                        BladeStore adalah marketplace terpercaya di Indonesia. Temukan beragam produk pilihan berkualitas dengan transaksi yang mudah, aman, dan nyaman.
                     </p>
                 </div>
 
@@ -1332,7 +1332,7 @@
             <!-- Bottom Copyright -->
             <div class="pt-4 border-top border-secondary border-opacity-25 small text-secondary">
                 <div>
-                    &copy; {{ date('Y') }} <strong>LaraShop</strong>.
+                    &copy; 2026 <strong>BladeStore</strong>.
                 </div>
             </div>
         </div>

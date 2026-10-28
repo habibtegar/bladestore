@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Riwayat Pesanan — LaraShop')
+@section('title', 'Riwayat Pesanan — BladeStore')
 
 @push('styles')
 <style>
@@ -177,7 +177,7 @@
                 @if(!empty($currentStatus) && $currentStatus !== 'all')
                     Tidak ada transaksi dengan status <strong>"{{ ucfirst($currentStatus) }}"</strong> saat ini.
                 @else
-                    Anda belum pernah membuat transaksi pembelian di LaraShop. Jelajahi berbagai kategori produk berkualitas kami sekarang.
+                    Anda belum pernah membuat transaksi pembelian di BladeStore. Jelajahi berbagai kategori produk berkualitas kami sekarang.
                 @endif
             </p>
             <div>
@@ -197,7 +197,7 @@
                             <!-- Nama Toko -->
                             <span class="d-inline-flex align-items-center gap-1.5 fw-bold text-dark small">
                                 <i class="bi bi-shop text-blue-600" style="color: #2563EB;"></i>
-                                <span>LaraShop Official Store</span>
+                                <span>BladeStore Official Store</span>
                             </span>
                             <span class="text-muted opacity-50">&bull;</span>
                             <!-- Nomor Resi / Order -->

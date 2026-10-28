@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Pesanan #' . $order->order_code . ' — LaraShop')
+@section('title', 'Detail Pesanan #' . $order->order_code . ' — BladeStore')
 
 @section('content')
 <!-- Breadcrumbs -->
@@ -107,7 +107,7 @@
                         <span class="fw-bold text-dark d-block">Konfirmasi Pembayaran Transfer</span>
                         <span class="text-muted">Sudah transfer ke rekening BCA, Mandiri, atau BRI? Kirimkan bukti bayar agar paket segera dikirim.</span>
                     </div>
-                    <a href="https://wa.me/6281234567890?text={{ urlencode('Halo Admin LaraShop, saya ingin konfirmasi pembayaran untuk pesanan: ' . $order->order_code . ' sebesar ' . $order->formatted_total_price) }}" 
+                    <a href="https://wa.me/6281234567890?text={{ urlencode('Halo Admin BladeStore, saya ingin konfirmasi pembayaran untuk pesanan: ' . $order->order_code . ' sebesar ' . $order->formatted_total_price) }}" 
                        target="_blank" 
                        rel="noopener noreferrer"
                        class="btn btn-success btn-sm d-flex align-items-center gap-1 text-nowrap px-3 py-2 fw-semibold">

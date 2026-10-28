@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Keranjang Belanja — LaraShop')
+@section('title', 'Keranjang Belanja — BladeStore')
 
 @section('content')
 <!-- Page Header (Primary Blue Theme) -->
@@ -37,7 +37,7 @@
         </div>
         <h4 class="fw-bold text-dark mb-1">Keranjang Belanja Anda Kosong</h4>
         <p class="text-muted small mb-4 col-md-6 mx-auto">
-            Anda belum memilih produk untuk dimasukkan ke dalam keranjang. Jelajahi katalog produk pilihan LaraShop sekarang.
+            Anda belum memilih produk untuk dimasukkan ke dalam keranjang. Jelajahi katalog produk pilihan BladeStore sekarang.
         </p>
         <div>
             <a href="{{ route('products.index') }}" class="btn btn-primary bg-blue-600 border-blue-600 px-4 py-2.5 fw-bold text-white shadow-sm rounded-3 hover:bg-blue-700">
@@ -55,7 +55,7 @@
                 <div class="card border-0 bg-white overflow-hidden rounded-3 shadow-sm mb-4">
                     <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-slate-50" style="background-color: #F8FAFC;">
                         <span class="fw-bold text-dark small">Daftar Produk Terpilih ({{ $cartItems->sum('quantity') }} Item)</span>
-                        <span class="text-muted x-small">LaraShop Official Checkout</span>
+                        <span class="text-muted x-small">BladeStore Official Checkout</span>
                     </div>
                     <div class="table-responsive">
                         <table class="table align-middle mb-0">

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Daftar Akun Baru — LaraShop Marketplace')
+@section('title', 'Daftar Akun Baru — BladeStore Marketplace')
 
 @push('styles')
 <style>
@@ -168,7 +168,7 @@
                 </div>
                 <div>
                     <div class="fs-4 fw-bold text-white tracking-tight leading-none">
-                        LARA<span style="color: #93C5FD;">SHOP</span>
+                        BLADE<span style="color: #93C5FD;">STORE</span>
                     </div>
                     <span class="badge bg-white bg-opacity-20 text-white x-small rounded-pill mt-1">Registrasi Pembeli</span>
                 </div>
@@ -223,7 +223,7 @@
 
         <!-- Bottom Quote -->
         <div class="position-relative z-1 pt-3 border-top border-white border-opacity-15 d-none d-md-block text-white text-opacity-70 x-small">
-            &copy; {{ date('Y') }} LaraShop Marketplace. Belanja cerdas, aman, dan nyaman.
+            &copy; 2026 BladeStore Marketplace. Belanja cerdas, aman, dan nyaman.
         </div>
     </div>
 
