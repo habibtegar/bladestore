@@ -610,6 +610,22 @@
             margin-top: 1.25rem !important;
         }
 
+        .space-y-6 > * + * {
+            margin-top: 1.5rem !important;
+        }
+
+        .sticky {
+            position: sticky !important;
+        }
+
+        .top-24 {
+            top: 6rem !important;
+        }
+
+        .top-28 {
+            top: 7rem !important;
+        }
+
         .cart-sidepanel {
             box-shadow: -4px 0 24px rgba(15, 23, 42, 0.15) !important;
         }

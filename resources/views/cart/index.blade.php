@@ -3,26 +3,15 @@
 @section('title', 'Keranjang Belanja — BladeStore')
 
 @section('content')
-<!-- Page Header (Primary Blue Theme) -->
-<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-4">
+<!-- Page Header -->
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
     <div>
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge px-2.5 py-1 rounded-pill fw-bold x-small bg-blue-50 text-blue-600 border-blue-200" style="background-color: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE;">
-                <i class="bi bi-cart3 me-1"></i> Side Panel Belanja
-            </span>
-            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 x-small fw-bold">
-                <i class="bi bi-patch-check-fill me-1"></i> Akun Terverifikasi
-            </span>
-        </div>
-        <h3 class="fw-bold text-dark mt-1 mb-0">Keranjang Belanja</h3>
-        <p class="text-muted small mb-0">Kelola daftar produk Anda atau langsung selesaikan pesanan melalui panel samping.</p>
+        <h2 class="h3 fw-bold text-dark mb-1">Keranjang Belanja</h2>
+        <p class="text-muted small mb-0">Periksa kembali daftar belanjaan Anda dan selesaikan pesanan dengan mudah.</p>
     </div>
-    <div class="d-flex align-items-center gap-2">
-        <button class="btn text-white btn-sm px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm btn-primary bg-blue-600 border-blue-600 hover:bg-blue-700" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
-            <i class="bi bi-layout-sidebar-reverse"></i> Buka Side Panel Keranjang
-        </button>
-        <a href="{{ route('products.index') }}" class="btn btn-outline-secondary btn-sm px-3 py-2">
-            <i class="bi bi-arrow-left me-1"></i> Belanja Lainnya
+    <div>
+        <a href="{{ route('products.index') }}" class="btn btn-outline-secondary btn-sm px-3 py-2 d-inline-flex align-items-center gap-1.5 text-nowrap rounded-2">
+            <i class="bi bi-arrow-left"></i> Belanja Lainnya
         </a>
     </div>
 </div>
@@ -48,11 +37,11 @@
 @else
     <form action="{{ route('checkout.process') }}" method="POST">
         @csrf
-        <div class="row g-4">
+        <div class="row g-4 lg:grid lg:grid-cols-12 lg:gap-6">
             
             <!-- Cart Items List (Left Column) -->
-            <div class="col-12 col-lg-8">
-                <div class="card border-0 bg-white overflow-hidden rounded-3 shadow-sm mb-4">
+            <div class="col-12 col-lg-8 lg:col-span-8 space-y-6">
+                <div class="card border-0 bg-white overflow-hidden rounded-3 shadow-sm">
                     <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-slate-50" style="background-color: #F8FAFC;">
                         <span class="fw-bold text-dark small">Daftar Produk Terpilih ({{ $cartItems->sum('quantity') }} Item)</span>
                         <span class="text-muted x-small">BladeStore Official Checkout</span>
@@ -136,7 +125,7 @@
                 </div>
 
                 <!-- Form Input Catatan & Pengiriman -->
-                <div class="card border-0 bg-white rounded-3 shadow-sm p-4 mb-4">
+                <div class="card border-0 bg-white rounded-3 shadow-sm p-4">
                     <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
                         <i class="bi bi-pencil-square text-blue-600" style="color: #2563EB;"></i>
                         <span>Informasi Pengiriman & Catatan</span>
@@ -159,7 +148,7 @@
                 </div>
 
                 <!-- Card-like Radio Button Pilihan Metode Pembayaran -->
-                <div class="card border-0 bg-white rounded-3 shadow-sm p-4 mb-4">
+                <div class="card border-0 bg-white rounded-3 shadow-sm p-4">
                     <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
                         <i class="bi bi-credit-card-2-front-fill text-blue-600" style="color: #2563EB;"></i>
                         <span>Pilihan Metode Pembayaran</span>
@@ -228,8 +217,8 @@
             </div>
 
             <!-- Order Summary (Right Column) -->
-            <div class="col-12 col-lg-4">
-                <div class="card border-0 bg-white p-4 sticky-top rounded-3 shadow-sm" style="top: 85px;">
+            <div class="col-12 col-lg-4 lg:col-span-4">
+                <div class="card border-0 bg-white p-4 sticky sticky-top top-24 rounded-3 shadow-sm" style="top: 90px; z-index: 10;">
                     
                     <!-- Header Ringkasan & Data Pemesan -->
                     <div class="pb-3 mb-3 border-bottom">
@@ -264,13 +253,9 @@
                     </div>
 
                     <!-- Tombol Bayar Sekarang Solid Biru -->
-                    <button type="submit" class="btn btn-primary bg-blue-600 border-blue-600 w-100 py-3 d-flex align-items-center justify-content-center gap-2 fw-bold mb-3 shadow-sm rounded-3 hover:bg-blue-700">
+                    <button type="submit" class="btn btn-primary bg-blue-600 border-blue-600 w-100 py-3 d-flex align-items-center justify-content-center gap-2 fw-bold shadow-sm rounded-3 hover:bg-blue-700">
                         <span>Bayar Sekarang</span>
                         <i class="bi bi-arrow-right fs-5"></i>
-                    </button>
-
-                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 py-2 d-flex align-items-center justify-content-center gap-1.5" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
-                        <i class="bi bi-layout-sidebar-reverse"></i> Buka Side Panel (Offcanvas)
                     </button>
                 </div>
             </div>
@@ -297,20 +282,4 @@
     @endforeach
 
 @endif
-
-@push('scripts')
-<script>
-    // Buka otomatis side panel saat halaman keranjang dibuka jika terdapat parameter open=panel atau default
-    document.addEventListener('DOMContentLoaded', function () {
-        var urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('panel') === '1') {
-            var cartEl = document.getElementById('cartOffcanvas');
-            if (cartEl) {
-                var cartOffcanvas = new bootstrap.Offcanvas(cartEl);
-                cartOffcanvas.show();
-            }
-        }
-    });
-</script>
-@endpush
 @endsection
