@@ -52,7 +52,7 @@
                                 <tr>
                                     <th scope="col" style="min-width: 250px;" class="ps-4">Produk</th>
                                     <th scope="col" class="text-center">Harga</th>
-                                    <th scope="col" class="text-center" style="width: 140px;">Kuantitas</th>
+                                    <th scope="col" class="text-center" style="width: 160px;">Kuantitas</th>
                                     <th scope="col" class="text-end">Subtotal</th>
                                     <th scope="col" class="text-center pe-4" style="width: 60px;">Hapus</th>
                                 </tr>
@@ -95,13 +95,25 @@
 
                                         <!-- Quantity Stepper Form -->
                                         <td class="text-center">
-                                            <div class="d-inline-flex align-items-center">
-                                                <button class="btn btn-sm btn-outline-secondary px-2" type="button" onclick="document.getElementById('update-qty-dec-{{ $item->id }}').submit();" {{ $item->quantity <= 1 ? 'disabled' : '' }}>
-                                                    -
+                                            <div class="d-inline-flex align-items-center justify-content-center gap-2">
+                                                <button class="btn btn-sm btn-outline-secondary rounded-2 d-inline-flex align-items-center justify-content-center"
+                                                        type="button"
+                                                        style="width: 32px; height: 32px; padding: 0;"
+                                                        onclick="document.getElementById('update-qty-dec-{{ $item->id }}').submit();"
+                                                        {{ $item->quantity <= 1 ? 'disabled' : '' }}
+                                                        title="Kurangi kuantitas">
+                                                    <i class="bi bi-dash-lg"></i>
                                                 </button>
-                                                <span class="px-2.5 fw-bold text-dark small">{{ $item->quantity }}</span>
-                                                <button class="btn btn-sm btn-outline-secondary px-2" type="button" onclick="document.getElementById('update-qty-inc-{{ $item->id }}').submit();" {{ $item->quantity >= $item->product->stock ? 'disabled' : '' }}>
-                                                    +
+                                                <span class="fw-bold text-dark text-center px-2" style="min-width: 38px; font-size: 0.95rem; display: inline-block;">
+                                                    {{ $item->quantity }}
+                                                </span>
+                                                <button class="btn btn-sm btn-outline-secondary rounded-2 d-inline-flex align-items-center justify-content-center"
+                                                        type="button"
+                                                        style="width: 32px; height: 32px; padding: 0;"
+                                                        onclick="document.getElementById('update-qty-inc-{{ $item->id }}').submit();"
+                                                        {{ $item->quantity >= $item->product->stock ? 'disabled' : '' }}
+                                                        title="Tambah kuantitas">
+                                                    <i class="bi bi-plus-lg"></i>
                                                 </button>
                                             </div>
                                         </td>
