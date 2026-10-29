@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\AdminProductController;
+use App\Http\Controllers\AdminRevenueController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
@@ -68,6 +69,8 @@ Route::middleware('auth')->group(function (): void {
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function (): void {
         Route::redirect('/', '/admin/orders');
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+        Route::get('/revenue', [AdminRevenueController::class, 'index'])->name('revenue.index');
+        Route::get('/revenue/export', [AdminRevenueController::class, 'exportCsv'])->name('revenue.export');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::match(['patch', 'put', 'post'], '/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.update-status');
         Route::match(['patch', 'put', 'post'], '/orders/{order}/tracking', [AdminOrderController::class, 'updateTracking'])->name('orders.update-tracking');

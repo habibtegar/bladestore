@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\OrderFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -124,6 +125,46 @@ class Order extends Model
         }
 
         return in_array($this->status, ['pending', 'belum_bayar']) && ! $this->isExpired();
+    }
+
+    /**
+     * Scope a query to only include paid orders (revenue-eligible).
+     *
+     * @param  Builder<Order>  $query
+     * @return Builder<Order>
+     */
+    public function scopePaid($query)
+    {
+        return $query->where(function ($q): void {
+            $q->whereIn('status', ['completed', 'selesai'])
+                ->orWhere(function ($sub): void {
+                    $sub->whereIn('status', ['processing', 'dikemas', 'shipped', 'dikirim'])
+                        ->where(function ($m): void {
+                            $m->whereNull('payment_method')
+                                ->orWhere(function ($p): void {
+                                    $p->whereRaw('LOWER(payment_method) NOT LIKE ?', ['%cod%'])
+                                        ->whereRaw('LOWER(payment_method) NOT LIKE ?', ['%cash on delivery%'])
+                                        ->whereRaw('LOWER(payment_method) NOT LIKE ?', ['%bayar di tempat%']);
+                                });
+                        });
+                });
+        });
+    }
+
+    /**
+     * Check if this order is verified as paid / legitimate revenue.
+     */
+    public function isPaid(): bool
+    {
+        if (in_array($this->status, ['completed', 'selesai'], true)) {
+            return true;
+        }
+
+        if (in_array($this->status, ['processing', 'dikemas', 'shipped', 'dikirim'], true)) {
+            return ! $this->isCod();
+        }
+
+        return false;
     }
 
     /**

@@ -320,6 +320,16 @@
                 </a>
             </li>
 
+            <!-- Omset & Keuangan -->
+            <li>
+                <a href="{{ route('admin.revenue.index') }}" class="sidebar-nav-link {{ request()->routeIs('admin.revenue.*') ? 'active' : '' }}">
+                    <div class="sidebar-nav-content">
+                        <i class="bi bi-wallet2 sidebar-nav-icon"></i>
+                        <span>Omset & Keuangan</span>
+                    </div>
+                </a>
+            </li>
+
             <!-- Kelola Produk -->
             @php
                 $totalProductsCount = \App\Models\Product::count();

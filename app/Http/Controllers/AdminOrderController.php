@@ -69,7 +69,7 @@ class AdminOrderController extends Controller
             'cancelled' => Order::whereIn('status', ['cancelled', 'dibatalkan'])->count(),
         ];
 
-        $totalRevenue = Order::whereIn('status', ['completed', 'selesai'])->sum('total_price');
+        $totalRevenue = Order::paid()->sum('total_price');
 
         return view('admin.orders.index', compact('orders', 'status', 'search', 'period', 'statusCounts', 'totalRevenue'));
     }
