@@ -246,21 +246,37 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const snapToken = @json($order->snap_token);
+            const orderId = @json($order->id);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            function syncAndReload() {
+                fetch('/orders/' + orderId + '/sync-status', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(function(res) { return res.json(); })
+                .finally(function() {
+                    window.location.reload();
+                });
+            }
 
             function triggerSnapPayment() {
                 if (snapToken) {
                     window.snap.pay(snapToken, {
                         onSuccess: function(result) {
-                            window.location.reload();
+                            syncAndReload();
                         },
                         onPending: function(result) {
-                            window.location.reload();
+                            syncAndReload();
                         },
                         onError: function(result) {
                             alert('Pembayaran gagal atau terjadi kesalahan.');
                         },
                         onClose: function() {
-                            console.log('Customer menutup popup Snap tanpa menyelesaikan pembayaran');
+                            syncAndReload();
                         }
                     });
                 } else {
@@ -275,9 +291,10 @@
                     .then(function(data) {
                         if (data.success && data.snap_token) {
                             window.snap.pay(data.snap_token, {
-                                onSuccess: function() { window.location.reload(); },
-                                onPending: function() { window.location.reload(); },
-                                onError: function() { alert('Pembayaran gagal.'); }
+                                onSuccess: function() { syncAndReload(); },
+                                onPending: function() { syncAndReload(); },
+                                onError: function() { alert('Pembayaran gagal.'); },
+                                onClose: function() { syncAndReload(); }
                             });
                         } else {
                             alert(data.message || 'Gagal memuat popup pembayaran Midtrans.');

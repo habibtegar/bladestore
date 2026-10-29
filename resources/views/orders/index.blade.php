@@ -298,6 +298,13 @@
                             </div>
                             @if($order->canBePaid())
                                 <button type="button" 
+                                        class="btn btn-sm btn-outline-secondary px-2.5 py-1.5 fw-semibold rounded-2 shadow-sm d-inline-flex align-items-center gap-1 btn-check-status"
+                                        data-order-id="{{ $order->id }}"
+                                        title="Sinkronkan status jika baru saja melakukan pembayaran di simulator">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                    <span>Cek Status</span>
+                                </button>
+                                <button type="button" 
                                         class="btn btn-sm btn-primary bg-blue-600 border-blue-600 px-3.5 py-1.5 fw-bold rounded-2 shadow-sm d-inline-flex align-items-center gap-1.5 btn-pay-snap"
                                         data-order-id="{{ $order->id }}"
                                         data-snap-token="{{ $order->snap_token ?? '' }}">
@@ -328,19 +335,57 @@
 <script src="{{ config('midtrans.snap_url', 'https://app.sandbox.midtrans.com/snap/snap.js') }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+        function syncAndReload(orderId, btn) {
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengonfirmasi...';
+            }
+
+            fetch('/orders/' + orderId + '/sync-status', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(function(res) { return res.json(); })
+            .finally(function() {
+                window.location.reload();
+            });
+        }
+
+        // Handler tombol manual 'Cek Status'
+        document.querySelectorAll('.btn-check-status').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const orderId = this.getAttribute('data-order-id');
+                syncAndReload(orderId, this);
+            });
+        });
+
+        // Handler tombol pembayaran Snap
         document.querySelectorAll('.btn-pay-snap').forEach(function(btn) {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 const snapToken = this.getAttribute('data-snap-token');
                 const orderId = this.getAttribute('data-order-id');
 
-                if (snapToken && snapToken.trim() !== '') {
-                    window.snap.pay(snapToken, {
-                        onSuccess: function() { window.location.reload(); },
-                        onPending: function() { window.location.reload(); },
+                function launchSnap(token) {
+                    window.snap.pay(token, {
+                        onSuccess: function() { syncAndReload(orderId, btn); },
+                        onPending: function() { syncAndReload(orderId, btn); },
                         onError: function() { alert('Pembayaran gagal atau dibatalkan.'); },
-                        onClose: function() { console.log('Popup ditutup oleh pembeli'); }
+                        onClose: function() {
+                            // Cek jika pembayaran sebenarnya sudah diselesaikan di simulator
+                            syncAndReload(orderId, btn);
+                        }
                     });
+                }
+
+                if (snapToken && snapToken.trim() !== '') {
+                    launchSnap(snapToken);
                 } else {
                     const originalHtml = btn.innerHTML;
                     btn.disabled = true;
@@ -356,11 +401,7 @@
                     .then(function(data) {
                         if (data.success && data.snap_token) {
                             btn.setAttribute('data-snap-token', data.snap_token);
-                            window.snap.pay(data.snap_token, {
-                                onSuccess: function() { window.location.reload(); },
-                                onPending: function() { window.location.reload(); },
-                                onError: function() { alert('Pembayaran gagal.'); }
-                            });
+                            launchSnap(data.snap_token);
                         } else {
                             alert(data.message || 'Gagal memuat popup pembayaran Midtrans.');
                         }

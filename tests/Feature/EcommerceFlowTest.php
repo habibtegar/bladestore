@@ -718,6 +718,80 @@ class EcommerceFlowTest extends TestCase
         $this->assertEquals('cancelled', $order->fresh()->status);
     }
 
+    public function test_midtrans_webhook_callback_verifies_signature_key_and_updates_on_capture_accept(): void
+    {
+        config(['midtrans.server_key' => 'test-server-key-12345']);
+
+        $user = User::factory()->create();
+        $order = Order::create([
+            'order_code' => 'ORD-20261029-CAPTURE01',
+            'user_id' => $user->id,
+            'total_price' => 175000,
+            'payment_method' => 'Midtrans Snap',
+            'status' => 'pending',
+            'shipping_address' => 'Jl. Pahlawan No. 45',
+            'customer_phone' => '081234567890',
+        ]);
+
+        $orderId = $order->order_code;
+        $statusCode = '200';
+        $grossAmount = '175000.00';
+        $validSignature = hash('sha512', $orderId.$statusCode.$grossAmount.'test-server-key-12345');
+
+        $response = $this->postJson('/api/midtrans/callback', [
+            'order_id' => $orderId,
+            'status_code' => $statusCode,
+            'gross_amount' => $grossAmount,
+            'signature_key' => $validSignature,
+            'transaction_status' => 'capture',
+            'fraud_status' => 'accept',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'status' => 'processing',
+        ]);
+
+        $order->refresh();
+        $this->assertEquals('processing', $order->status);
+        $this->assertEquals('Dikemas', $order->status_label);
+    }
+
+    public function test_midtrans_webhook_callback_rejects_invalid_signature_key_with_403(): void
+    {
+        config(['midtrans.server_key' => 'test-server-key-12345']);
+
+        $user = User::factory()->create();
+        $order = Order::create([
+            'order_code' => 'ORD-20261029-FORGED01',
+            'user_id' => $user->id,
+            'total_price' => 175000,
+            'payment_method' => 'Midtrans Snap',
+            'status' => 'pending',
+            'shipping_address' => 'Jl. Pahlawan No. 45',
+            'customer_phone' => '081234567890',
+        ]);
+
+        $response = $this->postJson('/api/midtrans/callback', [
+            'order_id' => $order->order_code,
+            'status_code' => '200',
+            'gross_amount' => '175000.00',
+            'signature_key' => 'invalid-fake-signature-hash',
+            'transaction_status' => 'settlement',
+            'fraud_status' => 'accept',
+        ]);
+
+        $response->assertStatus(403);
+        $response->assertJson([
+            'success' => false,
+            'message' => 'Signature key tidak valid.',
+        ]);
+
+        // Order status must remain pending
+        $this->assertEquals('pending', $order->fresh()->status);
+    }
+
     public function test_cart_page_renders_midtrans_snap_sdk_script_and_pay_button(): void
     {
         $user = User::factory()->create();
@@ -834,5 +908,45 @@ class EcommerceFlowTest extends TestCase
         // Pay button should NOT be rendered for expired/cancelled orders
         $response->assertDontSee('Bayar Sekarang');
         $response->assertDontSee('data-order-id="'.$order->id.'"', false);
+    }
+
+    public function test_customer_can_sync_order_status_directly_from_midtrans(): void
+    {
+        config(['midtrans.server_key' => 'test-server-key-sync-123']);
+
+        Http::fake([
+            'https://api.sandbox.midtrans.com/v2/ORD-SYNC-TEST/status' => Http::response([
+                'status_code' => '200',
+                'order_id' => 'ORD-SYNC-TEST',
+                'transaction_status' => 'settlement',
+                'fraud_status' => 'accept',
+            ], 200),
+        ]);
+
+        $user = User::factory()->create();
+        $order = Order::create([
+            'order_code' => 'ORD-SYNC-TEST',
+            'user_id' => $user->id,
+            'total_price' => 179000,
+            'payment_method' => 'Midtrans Snap',
+            'status' => 'pending',
+            'snap_token' => 'sync-test-snap-token',
+            'shipping_address' => 'Jl. Merdeka No. 10',
+            'customer_phone' => '08123456789',
+        ]);
+
+        $response = $this->actingAs($user)->postJson(route('orders.sync-status', $order->id));
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'order_code' => 'ORD-SYNC-TEST',
+            'status' => 'processing',
+            'status_label' => 'Dikemas',
+            'updated' => true,
+        ]);
+
+        $this->assertEquals('processing', $order->fresh()->status);
+        $this->assertEquals('Dikemas', $order->fresh()->status_label);
     }
 }

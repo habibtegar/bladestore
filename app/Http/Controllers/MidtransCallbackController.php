@@ -30,10 +30,12 @@ class MidtransCallbackController extends Controller
         }
 
         // Verifikasi keaslian webhook menggunakan signature key Midtrans
-        // Formula: SHA512(order_id + status_code + gross_amount + server_key)
-        if (! empty($serverKey) && $serverKey !== 'SB-Mid-server-demo-key' && ! empty($signatureKey)) {
+        // Formula resmi Midtrans: SHA512(order_id + status_code + gross_amount + server_key)
+        $isSignatureRequired = ! empty($serverKey) && $serverKey !== 'SB-Mid-server-demo-key' && (! app()->environment('testing') || ! empty($signatureKey));
+
+        if ($isSignatureRequired) {
             $expectedSignature = hash('sha512', $orderId.$statusCode.$grossAmount.$serverKey);
-            if (! hash_equals($expectedSignature, $signatureKey)) {
+            if (empty($signatureKey) || ! hash_equals($expectedSignature, $signatureKey)) {
                 Log::warning('Midtrans Webhook: Invalid signature key', [
                     'order_id' => $orderId,
                     'received' => $signatureKey,

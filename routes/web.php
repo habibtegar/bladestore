@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function (): void {
     Route::prefix('orders')->name('orders.')->group(function (): void {
         Route::get('/', [CheckoutController::class, 'orders'])->name('index');
         Route::match(['get', 'post'], '/{order}/snap-token', [CheckoutController::class, 'getOrderSnapToken'])->name('snap-token');
+        Route::match(['get', 'post'], '/{order}/sync-status', [CheckoutController::class, 'syncStatus'])->name('sync-status');
         Route::get('/{order}', [CheckoutController::class, 'show'])->name('show');
     });
 

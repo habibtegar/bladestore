@@ -368,6 +368,20 @@ class CheckoutController extends Controller
             ->where('created_at', '<=', now()->subHours(24))
             ->update(['status' => 'cancelled']);
 
+        // Sinkronkan status pesanan pending aktif secara real-time dari Midtrans API
+        if (! app()->environment('testing')) {
+            $pendingOrders = Order::where('user_id', Auth::id())
+                ->whereIn('status', ['pending', 'belum_bayar'])
+                ->whereNotNull('snap_token')
+                ->latest()
+                ->limit(5)
+                ->get();
+
+            foreach ($pendingOrders as $pendingOrder) {
+                $this->queryAndSyncOrderWithMidtrans($pendingOrder);
+            }
+        }
+
         $currentStatus = $request->query('status', 'all');
 
         $query = Order::with('items.product')
@@ -467,8 +481,88 @@ class CheckoutController extends Controller
             $order->update(['status' => 'cancelled']);
         }
 
+        // Sinkronkan status pesanan aktif jika masih pending
+        if (! app()->environment('testing') && in_array($order->status, ['pending', 'belum_bayar']) && ! empty($order->snap_token)) {
+            $this->queryAndSyncOrderWithMidtrans($order);
+            $order->refresh();
+        }
+
         $order->load(['items.product', 'user']);
 
         return view('orders.show', compact('order'));
+    }
+
+    /**
+     * Check and sync order status directly from Midtrans API.
+     */
+    public function syncStatus(Order $order): JsonResponse
+    {
+        if ($order->user_id !== Auth::id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses tidak diizinkan.',
+            ], 403);
+        }
+
+        $wasUpdated = $this->queryAndSyncOrderWithMidtrans($order);
+        $order->refresh();
+
+        return response()->json([
+            'success' => true,
+            'message' => $wasUpdated ? 'Status pesanan berhasil disinkronkan dengan Midtrans.' : 'Status pesanan sudah sesuai.',
+            'order_code' => $order->order_code,
+            'status' => $order->status,
+            'status_label' => $order->status_label,
+            'can_be_paid' => $order->canBePaid(),
+            'updated' => $wasUpdated,
+        ]);
+    }
+
+    /**
+     * Helper to query Midtrans Status API and update order status in DB.
+     */
+    public function queryAndSyncOrderWithMidtrans(Order $order): bool
+    {
+        $serverKey = (string) config('midtrans.server_key', '');
+        if (empty($serverKey) || $serverKey === 'SB-Mid-server-demo-key') {
+            return false;
+        }
+
+        $statusBaseUrl = config('midtrans.is_production', false)
+            ? 'https://api.midtrans.com/v2'
+            : 'https://api.sandbox.midtrans.com/v2';
+
+        try {
+            $response = Http::withBasicAuth($serverKey, '')
+                ->withHeaders(['Accept' => 'application/json'])
+                ->timeout(5)
+                ->get("{$statusBaseUrl}/{$order->order_code}/status");
+
+            if ($response->successful()) {
+                $transactionStatus = (string) $response->json('transaction_status', '');
+                $fraudStatus = (string) $response->json('fraud_status', '');
+
+                $newStatus = $order->status;
+                if ($transactionStatus === 'settlement') {
+                    $newStatus = 'processing';
+                } elseif ($transactionStatus === 'capture') {
+                    $newStatus = ($fraudStatus === 'challenge') ? 'pending' : 'processing';
+                } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'], true)) {
+                    $newStatus = 'cancelled';
+                } elseif ($transactionStatus === 'pending') {
+                    $newStatus = 'pending';
+                }
+
+                if ($newStatus !== $order->status) {
+                    $order->update(['status' => $newStatus]);
+
+                    return true;
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning("Midtrans Status Check Error for order {$order->order_code}: ".$e->getMessage());
+        }
+
+        return false;
     }
 }
