@@ -4,38 +4,61 @@
 
 @push('styles')
 <style>
-    /* Modern Marketplace Full-Width Hero */
+    /* ==========================================
+       1. HERO SECTION (CLEAN 2-COLUMN STATIC HERO)
+       ========================================== */
     .hero-fullwidth-wrapper {
         width: 100%;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 3rem 0 !important;
         overflow: hidden;
-    }
-
-    .hero-banner-fullwidth {
-        width: 100%;
-        margin: 0 !important;
-        padding: 0 !important;
-        border-radius: 0 !important;
-        border-top: none !important;
-        border-bottom: 1px solid #D6E4FF;
-        border-left: none !important;
-        border-right: none !important;
-        box-shadow: 0 4px 20px -2px rgba(8, 102, 255, 0.05);
-    }
-
-    .hero-slide-bg-1 {
-        background: linear-gradient(135deg, #FFFFFF 0%, #F4F8FF 45%, #E6EFFF 100%);
-    }
-
-    .hero-slide-bg-2 {
-        background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 50%, #DBEAFE 100%);
-    }
-
-    .hero-slide-wrapper {
         position: relative;
-        z-index: 1;
-        width: 100%;
+        background: linear-gradient(135deg, #FFFFFF 0%, #F4F8FF 45%, #E8F1FF 100%);
+        border-bottom: 1px solid #D6E4FF;
+        display: flex;
+        align-items: center;
+        min-height: 480px;
+    }
+
+    @media (min-width: 992px) {
+        .hero-fullwidth-wrapper {
+            min-height: 480px;
+            max-height: 540px;
+            padding: 3.5rem 0 !important;
+        }
+    }
+
+    @media (max-width: 991.98px) {
+        .hero-fullwidth-wrapper {
+            min-height: auto;
+            max-height: none;
+            padding: 2.5rem 0 2rem !important;
+        }
+    }
+
+    /* Soft Ambient Glowing Orbs */
+    .hero-ambient-orb-1 {
+        position: absolute;
+        top: -60px;
+        right: 10%;
+        width: 320px;
+        height: 320px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(8, 102, 255, 0.08) 0%, rgba(8, 102, 255, 0) 70%);
+        filter: blur(20px);
+        pointer-events: none;
+    }
+
+    .hero-ambient-orb-2 {
+        position: absolute;
+        bottom: -60px;
+        left: 5%;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, rgba(59, 130, 246, 0) 70%);
+        filter: blur(20px);
+        pointer-events: none;
     }
 
     /* Small Label Badge */
@@ -53,277 +76,194 @@
         letter-spacing: -0.01em;
     }
 
-    /* Typography */
+    /* Hero Typography */
     .hero-title {
-        font-size: clamp(1.65rem, 3.2vw, 2.35rem);
+        font-size: clamp(1.9rem, 3.2vw, 2.65rem);
         font-weight: 800;
-        line-height: 1.18;
-        color: var(--dark-navy);
+        line-height: 1.16;
+        color: var(--dark-navy, #0F172A);
         letter-spacing: -0.03em;
+        margin-bottom: 1.15rem !important;
     }
 
     .hero-desc {
-        color: var(--slate-600);
-        font-size: clamp(0.85rem, 1.2vw, 0.95rem);
-        line-height: 1.55;
+        color: var(--slate-600, #475569);
+        font-size: clamp(0.9rem, 1.15vw, 1rem);
+        line-height: 1.62;
         max-width: 520px;
+        margin-bottom: 1.5rem !important;
     }
 
-    /* Action Buttons */
+    /* Hero Action Buttons */
     .btn-hero-primary {
-        padding: 0.6rem 1.4rem;
-        font-size: 0.875rem;
+        padding: 0.65rem 1.45rem;
+        font-size: 0.9rem;
         font-weight: 700;
-        border-radius: 8px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #0866FF 0%, #1D4ED8 100%);
+        border: none;
+        color: #FFFFFF !important;
         box-shadow: 0 4px 14px rgba(8, 102, 255, 0.28);
         display: inline-flex;
         align-items: center;
-        gap: 0.45rem;
-        transition: all 0.2s ease;
+        gap: 0.5rem;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        text-decoration: none;
     }
 
     .btn-hero-primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(8, 102, 255, 0.35);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(8, 102, 255, 0.38);
+        color: #FFFFFF !important;
     }
 
     .btn-hero-secondary {
-        padding: 0.6rem 1.35rem;
-        font-size: 0.875rem;
+        padding: 0.65rem 1.4rem;
+        font-size: 0.9rem;
         font-weight: 600;
-        border-radius: 8px;
+        border-radius: 10px;
         background-color: #FFFFFF;
-        border-color: #CBD5E1;
-        color: var(--slate-700);
+        border: 1px solid #CBD5E1;
+        color: var(--slate-700, #334155) !important;
         display: inline-flex;
         align-items: center;
-        gap: 0.45rem;
-        transition: all 0.2s ease;
+        gap: 0.5rem;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        text-decoration: none;
     }
 
     .btn-hero-secondary:hover {
         background-color: var(--primary-subtle);
         border-color: var(--primary);
-        color: var(--primary);
-        transform: translateY(-1px);
+        color: var(--primary) !important;
+        transform: translateY(-2px);
     }
 
     .hero-trust-row {
-        font-size: 0.75rem;
+        font-size: 0.775rem;
         font-weight: 500;
     }
 
-    /* Hero 6-Category Grid (Slide 1) */
-    .hero-category-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.85rem;
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-    }
-
-    @media (min-width: 768px) {
-        .hero-category-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 1.15rem;
-        }
-    }
-
-    .hero-cat-card {
-        background-color: #FFFFFF;
-        border-radius: 0.75rem; /* rounded-xl (12px) */
-        box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04); /* shadow-sm */
-        border: 1px solid rgba(226, 232, 240, 0.85);
-        padding: 1rem; /* p-4 */
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-decoration: none;
-        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
-    }
-
-    @media (max-width: 575.98px) {
-        .hero-cat-card {
-            padding: 0.75rem;
-            border-radius: 0.75rem;
-        }
-    }
-
-    .hero-cat-card:hover {
-        transform: translateY(-4px); /* hover:-translate-y-1 */
-        box-shadow: 0 10px 20px -3px rgba(8, 102, 255, 0.14), 0 4px 6px -2px rgba(15, 23, 42, 0.05); /* hover:shadow-md */
-        border-color: var(--primary-border);
-    }
-
-    .hero-cat-img-wrap {
+    /* Hero Static Image Showcase (35-40% Area, KantinSkanic Style) */
+    .hero-image-showcase {
+        max-width: 380px;
         width: 100%;
-        aspect-ratio: 1 / 1; /* aspect-square */
-        border-radius: 0.75rem; /* rounded-xl (12px) */
-        overflow: hidden;
-        background-color: #F8FAFC;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .hero-cat-img {
-        width: 100%;
-        height: 100%;
-        aspect-ratio: 1 / 1;
-        object-fit: cover;
-        border-radius: 0.75rem; /* rounded-xl (12px) */
-        display: block;
-        transition: transform 0.35s ease;
-    }
-
-    .hero-cat-card:hover .hero-cat-img {
-        transform: scale(1.06);
-    }
-
-    .hero-cat-label {
-        font-size: 0.875rem; /* text-sm (14px) */
-        font-weight: 600; /* font-semibold */
-        color: #1E293B;
-        text-align: center;
-        display: block;
-        transition: color 0.2s ease;
-        line-height: 1.3;
-        margin-top: 0.85rem; /* mt-3 to mt-4 */
-    }
-
-    .hero-cat-card:hover .hero-cat-label {
-        color: var(--primary);
-    }
-
-    @media (max-width: 575.98px) {
-        .hero-cat-label {
-            font-size: 0.775rem;
-            margin-top: 0.65rem;
-        }
-    }
-
-    /* Multi-Category Collage */
-    .hero-collage-container {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-    }
-
-    .hero-collage-card {
-        background: #FFFFFF;
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
-        overflow: hidden;
-        padding: 0.4rem;
-        display: flex;
-        flex-direction: column;
-        text-decoration: none;
-        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    }
-
-    .hero-collage-card:hover {
-        transform: translateY(-3px);
-        border-color: var(--primary-border);
-        box-shadow: 0 8px 18px rgba(8, 102, 255, 0.14);
-    }
-
-    .hero-collage-img-wrap {
-        aspect-ratio: 1 / 1;
-        border-radius: 8px;
-        overflow: hidden;
-        background-color: #F8FAFC;
         position: relative;
+        margin: 0 auto;
     }
 
-    .hero-collage-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
+    @media (min-width: 992px) {
+        .hero-image-showcase {
+            max-width: 390px;
+            margin-left: auto;
+            margin-right: 0;
+        }
     }
 
-    .hero-collage-card:hover .hero-collage-img {
-        transform: scale(1.08);
-    }
-
-    .hero-collage-info {
-        padding: 0.35rem 0.15rem 0.15rem 0.15rem;
-        text-align: center;
-    }
-
-    .hero-collage-cat {
-        font-size: 0.625rem;
-        color: var(--slate-500);
-        text-transform: uppercase;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        display: block;
-        line-height: 1;
-        margin-bottom: 2px;
-    }
-
-    .hero-collage-title {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: var(--dark-navy);
-        display: block;
-        white-space: nowrap;
+    .hero-image-card {
+        position: relative;
+        background: #FFFFFF;
+        border-radius: 20px;
+        padding: 0.65rem;
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        box-shadow: 0 20px 40px -15px rgba(8, 102, 255, 0.12),
+                    0 8px 16px -8px rgba(15, 23, 42, 0.05);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
         overflow: hidden;
-        text-overflow: ellipsis;
-        line-height: 1.2;
     }
 
-    /* Minimalist Carousel Controls */
-    .hero-carousel-btn {
-        width: 44px;
-        opacity: 0.6;
-        transition: opacity 0.2s ease;
+    .hero-image-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 25px 50px -15px rgba(8, 102, 255, 0.18),
+                    0 10px 20px -8px rgba(15, 23, 42, 0.07);
     }
 
-    .hero-carousel-btn:hover {
-        opacity: 1;
+    .hero-static-img {
+        width: 100%;
+        height: 310px;
+        object-fit: cover;
+        object-position: center;
+        border-radius: 14px;
+        display: block;
+        transition: transform 0.4s ease;
     }
 
-    .hero-carousel-arrow {
+    .hero-image-card:hover .hero-static-img {
+        transform: scale(1.03);
+    }
+
+    @media (max-width: 575.98px) {
+        .hero-static-img {
+            height: 230px;
+        }
+    }
+
+    /* Floating Polish Badges (KantinSkanic Inspiration) */
+    .hero-floating-badge {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        border-radius: 12px;
+        padding: 0.45rem 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1),
+                    0 4px 6px -2px rgba(15, 23, 42, 0.05);
+        z-index: 2;
+        animation: floatSlow 4s ease-in-out infinite alternate;
+    }
+
+    .hero-float-top-left {
+        top: -12px;
+        left: -12px;
+    }
+
+    .hero-float-bottom-right {
+        bottom: -12px;
+        right: -12px;
+        animation-delay: 2s;
+    }
+
+    @media (max-width: 767.98px) {
+        .hero-float-top-left {
+            top: -8px;
+            left: -4px;
+        }
+        .hero-float-bottom-right {
+            bottom: -8px;
+            right: -4px;
+        }
+    }
+
+    .hero-float-icon {
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background-color: #FFFFFF;
-        color: var(--dark-navy);
-        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.85rem;
-        border: 1px solid var(--border-color);
-        transition: all 0.15s ease;
+        font-size: 0.95rem;
+        flex-shrink: 0;
     }
 
-    .hero-carousel-btn:hover .hero-carousel-arrow {
-        background-color: var(--primary);
-        color: #FFFFFF;
-        border-color: var(--primary);
-        transform: scale(1.08);
+    .hero-float-title {
+        font-size: 0.775rem;
+        font-weight: 700;
+        color: #0F172A;
+        line-height: 1.2;
     }
 
-    /* Minimalist Indicators */
-    .carousel-indicators [data-bs-target] {
-        width: 22px;
-        height: 4px;
-        border-radius: 9999px;
-        border: none;
-        background-color: #CBD5E1;
-        opacity: 0.6;
-        transition: all 0.25s ease;
+    .hero-float-sub {
+        font-size: 0.675rem;
+        color: #64748B;
+        line-height: 1.2;
     }
 
-    .carousel-indicators .active {
-        width: 34px;
-        background-color: var(--primary);
-        opacity: 1;
+    @keyframes floatSlow {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-5px); }
     }
 
     /* Solid CTA Add to Cart Button */
@@ -704,310 +644,97 @@
 
 @section('hero')
 <!-- ==========================================
-     1. MODERN MARKETPLACE HERO BANNER (FULL WIDTH)
+     1. MODERN MARKETPLACE HERO (STATIC 2-COLUMN)
      ========================================== -->
-<div class="w-100 hero-fullwidth-wrapper position-relative">
-    <div id="heroMarketplaceCarousel" class="carousel slide carousel-fade border-0 hero-banner-fullwidth position-relative" data-bs-ride="carousel" data-bs-interval="8000">
-        
-        <!-- Slide Indicators (Minimalist & Sleek) -->
-        <div class="carousel-indicators mb-2 mb-md-3">
-            <button type="button" data-bs-target="#heroMarketplaceCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-            <button type="button" data-bs-target="#heroMarketplaceCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-        </div>
+<div class="w-100 hero-fullwidth-wrapper">
+    <!-- Ambient Background Orbs -->
+    <div class="hero-ambient-orb-1"></div>
+    <div class="hero-ambient-orb-2"></div>
 
-        <div class="carousel-inner">
+    <div class="container position-relative z-1" style="max-width: 1240px;">
+        <div class="row align-items-center g-4 g-lg-5">
             
-            <!-- SLIDE 1: PRIMARY MULTI-CATEGORY SHOWCASE -->
-            <div class="carousel-item active">
-                <div class="hero-slide-wrapper hero-slide-bg-1">
-                    <div class="container py-4 py-lg-5" style="max-width: 1280px;">
-                        <div class="row align-items-center g-4 g-lg-5">
-                        
-                        <!-- Left Column: Headline, Description & Action Buttons -->
-                        <div class="col-12 col-lg-6">
-                            <div class="hero-content pe-lg-2">
-                                
-                                <!-- Small Clean Label Badge -->
-                                <div class="mb-2 mb-md-3">
-                                    <span class="hero-pill-badge">
-                                        <i class="bi bi-patch-check-fill text-primary"></i> Pilihan Produk Terbaik
-                                    </span>
-                                </div>
-
-                                <!-- Main Headline -->
-                                <h1 class="hero-title mb-2 mb-md-3">
-                                    Semua Kebutuhan, <br class="d-none d-sm-inline">
-                                    <span class="text-primary">Satu Tempat.</span>
-                                </h1>
-
-                                <!-- Short Description -->
-                                <p class="hero-desc mb-3 mb-md-4">
-                                    Temukan produk pilihan dari berbagai kategori dengan pengalaman belanja yang mudah, aman, dan nyaman.
-                                </p>
-
-                                <!-- Action Buttons -->
-                                <div class="d-flex flex-wrap align-items-center gap-2 gap-sm-3 mb-3 mb-md-4">
-                                    <a href="#katalog-produk" class="btn btn-primary btn-hero-primary">
-                                        <i class="bi bi-bag-check-fill"></i> Mulai Belanja
-                                    </a>
-                                    <a href="#kategori-marketplace" class="btn btn-outline-primary btn-hero-secondary">
-                                        <i class="bi bi-grid-3x3-gap"></i> Jelajahi Kategori
-                                    </a>
-                                </div>
-
-                                <!-- Discreet Trust Notes -->
-                                <div class="hero-trust-row d-flex flex-wrap align-items-center gap-2 gap-sm-3 text-muted">
-                                    <span><i class="bi bi-shield-check text-primary me-1"></i> 100% Produk Terverifikasi</span>
-                                    <span class="d-none d-sm-inline opacity-50">&bull;</span>
-                                    <span><i class="bi bi-truck text-primary me-1"></i> Layanan COD</span>
-                                    <span class="d-none d-sm-inline opacity-50">&bull;</span>
-                                    <span><i class="bi bi-credit-card text-primary me-1"></i> Bebas Biaya Admin</span>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        <!-- Right Column: 6-Grid Category Cards -->
-                        <div class="col-12 col-lg-6">
-                            <div class="hero-category-grid grid grid-cols-2 md:grid-cols-3 gap-3 gap-md-4">
-                                <!-- 1. Elektronik -->
-                                <a href="{{ route('products.index', ['category' => 'Elektronik']) }}#katalog-produk" class="hero-cat-card bg-white rounded-xl shadow-sm p-4 transition hover:-translate-y-1 hover:shadow-md">
-                                    <div class="hero-cat-img-wrap aspect-square w-full w-100 rounded-xl overflow-hidden bg-slate-50">
-                                        <img src="https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=400&q=80"
-                                             alt="Kategori Elektronik"
-                                             class="hero-cat-img w-full w-100 h-full h-100 object-cover rounded-xl"
-                                             loading="eager"
-                                             onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
-                                    </div>
-                                    <span class="hero-cat-label text-center text-sm font-semibold text-dark mt-3 d-block">Elektronik</span>
-                                </a>
-
-                                <!-- 2. Fashion -->
-                                <a href="{{ route('products.index', ['category' => 'Fashion']) }}#katalog-produk" class="hero-cat-card bg-white rounded-xl shadow-sm p-4 transition hover:-translate-y-1 hover:shadow-md">
-                                    <div class="hero-cat-img-wrap aspect-square w-full w-100 rounded-xl overflow-hidden bg-slate-50">
-                                        <img src="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=400&q=80"
-                                             alt="Kategori Fashion"
-                                             class="hero-cat-img w-full w-100 h-full h-100 object-cover rounded-xl"
-                                             loading="eager"
-                                             onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
-                                    </div>
-                                    <span class="hero-cat-label text-center text-sm font-semibold text-dark mt-3 d-block">Fashion</span>
-                                </a>
-
-                                <!-- 3. Kecantikan -->
-                                <a href="{{ route('products.index', ['category' => 'Kecantikan']) }}#katalog-produk" class="hero-cat-card bg-white rounded-xl shadow-sm p-4 transition hover:-translate-y-1 hover:shadow-md">
-                                    <div class="hero-cat-img-wrap aspect-square w-full w-100 rounded-xl overflow-hidden bg-slate-50">
-                                        <img src="https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=400&q=80"
-                                             alt="Kategori Kecantikan"
-                                             class="hero-cat-img w-full w-100 h-full h-100 object-cover rounded-xl"
-                                             loading="eager"
-                                             onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
-                                    </div>
-                                    <span class="hero-cat-label text-center text-sm font-semibold text-dark mt-3 d-block">Kecantikan</span>
-                                </a>
-
-                                <!-- 4. Rumah Tangga -->
-                                <a href="{{ route('products.index', ['category' => 'Rumah Tangga']) }}#katalog-produk" class="hero-cat-card bg-white rounded-xl shadow-sm p-4 transition hover:-translate-y-1 hover:shadow-md">
-                                    <div class="hero-cat-img-wrap aspect-square w-full w-100 rounded-xl overflow-hidden bg-slate-50">
-                                        <img src="https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=400&q=80"
-                                             alt="Kategori Rumah Tangga"
-                                             class="hero-cat-img w-full w-100 h-full h-100 object-cover rounded-xl"
-                                             loading="eager"
-                                             onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
-                                    </div>
-                                    <span class="hero-cat-label text-center text-sm font-semibold text-dark mt-3 d-block">Rumah Tangga</span>
-                                </a>
-
-                                <!-- 5. Makanan -->
-                                <a href="{{ route('products.index', ['category' => 'Makanan Kemasan']) }}#katalog-produk" class="hero-cat-card bg-white rounded-xl shadow-sm p-4 transition hover:-translate-y-1 hover:shadow-md">
-                                    <div class="hero-cat-img-wrap aspect-square w-full w-100 rounded-xl overflow-hidden bg-slate-50">
-                                        <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=400&q=80"
-                                             alt="Kategori Makanan"
-                                             class="hero-cat-img w-full w-100 h-full h-100 object-cover rounded-xl"
-                                             loading="eager"
-                                             onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
-                                    </div>
-                                    <span class="hero-cat-label text-center text-sm font-semibold text-dark mt-3 d-block">Makanan</span>
-                                </a>
-
-                                <!-- 6. Olahraga -->
-                                <a href="{{ route('products.index', ['category' => 'Olahraga']) }}#katalog-produk" class="hero-cat-card bg-white rounded-xl shadow-sm p-4 transition hover:-translate-y-1 hover:shadow-md">
-                                    <div class="hero-cat-img-wrap aspect-square w-full w-100 rounded-xl overflow-hidden bg-slate-50">
-                                        <img src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=400&q=80"
-                                             alt="Kategori Olahraga"
-                                             class="hero-cat-img w-full w-100 h-full h-100 object-cover rounded-xl"
-                                             loading="eager"
-                                             onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
-                                    </div>
-                                    <span class="hero-cat-label text-center text-sm font-semibold text-dark mt-3 d-block">Olahraga</span>
-                                </a>
-                            </div>
-                        </div>
-
-                        </div>
+            <!-- Left Column: Headline, Description & Action Buttons (~60-65% area) -->
+            <div class="col-12 col-lg-7">
+                <div class="hero-content pe-lg-3">
+                    
+                    <!-- Small Clean Label Badge -->
+                    <div class="mb-3">
+                        <span class="hero-pill-badge">
+                            <i class="bi bi-patch-check-fill text-primary"></i> Marketplace Pilihan Terpercaya
+                        </span>
                     </div>
+
+                    <!-- Main Headline (Max 2 lines, line-height 1.1-1.2) -->
+                    <h1 class="hero-title mb-3">
+                        Belanja Cerdas & Mudah <br class="d-none d-sm-inline">
+                        <span class="text-primary">dalam Satu Platform.</span>
+                    </h1>
+
+                    <!-- Short Description (Line-height 1.5-1.7) -->
+                    <p class="hero-desc mb-4">
+                        Temukan ragam produk pilihan terbaik dengan jaminan mutu terverifikasi, kemudahan bayar di tempat (COD), dan transaksi aman tanpa biaya admin tambahan ke seluruh Indonesia.
+                    </p>
+
+                    <!-- Action Buttons (Spacing 16-24px) -->
+                    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+                        <a href="#katalog-produk" class="btn btn-hero-primary">
+                            <i class="bi bi-bag-check-fill"></i> Mulai Belanja
+                        </a>
+                        <a href="#kategori-marketplace" class="btn btn-hero-secondary">
+                            <i class="bi bi-grid-3x3-gap"></i> Jelajahi Kategori
+                        </a>
+                    </div>
+
+                    <!-- Discreet Trust Notes -->
+                    <div class="hero-trust-row d-flex flex-wrap align-items-center gap-2 gap-sm-3 text-muted">
+                        <span class="d-inline-flex align-items-center gap-1.5"><i class="bi bi-shield-check text-primary"></i> 100% Produk Terverifikasi</span>
+                        <span class="d-none d-sm-inline opacity-50">&bull;</span>
+                        <span class="d-inline-flex align-items-center gap-1.5"><i class="bi bi-truck text-primary"></i> Layanan COD</span>
+                        <span class="d-none d-sm-inline opacity-50">&bull;</span>
+                        <span class="d-inline-flex align-items-center gap-1.5"><i class="bi bi-credit-card text-primary"></i> Bebas Biaya Admin</span>
+                    </div>
+
                 </div>
             </div>
 
-            <!-- SLIDE 2: COMPLEMENTARY CURATED SHOWCASE -->
-            <div class="carousel-item">
-                <div class="hero-slide-wrapper hero-slide-bg-2">
-                    <div class="container py-4 py-lg-5" style="max-width: 1280px;">
-                        <div class="row align-items-center g-4 g-lg-5">
-                        
-                        <!-- Left Column -->
-                        <div class="col-12 col-lg-6">
-                            <div class="hero-content pe-lg-2">
-                                <div class="mb-2 mb-md-3">
-                                    <span class="hero-pill-badge">
-                                        <i class="bi bi-shield-lock-fill text-primary"></i> Belanja Fleksibel & Terpercaya
-                                    </span>
-                                </div>
-                                <h2 class="hero-title mb-2 mb-md-3">
-                                    Pilihan Lengkap, <br class="d-none d-sm-inline">
-                                    <span class="text-primary">Transaksi Nyaman.</span>
-                                </h2>
-                                <p class="hero-desc mb-3 mb-md-4">
-                                    Bebas memilih metode pembayaran Cash on Delivery (COD) atau transfer bank resmi tanpa biaya admin tambahan ke seluruh Indonesia.
-                                </p>
-                                <div class="d-flex flex-wrap align-items-center gap-2 gap-sm-3 mb-3 mb-md-4">
-                                    <a href="#katalog-produk" class="btn btn-primary btn-hero-primary">
-                                        <i class="bi bi-bag-check-fill"></i> Mulai Belanja
-                                    </a>
-                                    <a href="#kategori-marketplace" class="btn btn-outline-primary btn-hero-secondary">
-                                        <i class="bi bi-grid-3x3-gap"></i> Jelajahi Kategori
-                                    </a>
-                                </div>
-                                <div class="hero-trust-row d-flex flex-wrap align-items-center gap-2 gap-sm-3 text-muted">
-                                    <span><i class="bi bi-bank text-primary me-1"></i> Bank BCA, Mandiri, BRI, BNI</span>
-                                    <span class="d-none d-sm-inline opacity-50">&bull;</span>
-                                    <span><i class="bi bi-box-seam text-primary me-1"></i> Pengemasan Aman</span>
-                                </div>
-                            </div>
-                        </div>
+            <!-- Right Column: Single Static Hero Image (~35-40% area, KantinSkanic Style) -->
+            <div class="col-12 col-lg-5 text-center text-lg-end">
+                <div class="hero-image-showcase">
+                    <!-- Clean Card Wrapper -->
+                    <div class="hero-image-card">
+                        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=700&q=80"
+                             alt="Produk Pilihan BladeStore"
+                             class="hero-static-img"
+                             loading="eager"
+                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=700&q=80';">
+                    </div>
 
-                        <!-- Right Column: Curated Collage 2 -->
-                        <div class="col-12 col-lg-6">
-                            <div class="hero-collage-container">
-                                <div class="row g-2 g-sm-2.5">
-                                    <!-- Smartwatch -->
-                                    <div class="col-4">
-                                        <a href="{{ route('products.index', ['category' => 'Elektronik']) }}#katalog-produk" class="hero-collage-card">
-                                            <div class="hero-collage-img-wrap">
-                                                <img src="https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=400&q=80"
-                                                     alt="Smartwatch"
-                                                     loading="lazy"
-                                                     class="hero-collage-img"
-                                                     onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
-                                            </div>
-                                            <div class="hero-collage-info">
-                                                <span class="hero-collage-cat">Elektronik</span>
-                                                <span class="hero-collage-title">Smartwatch</span>
-                                            </div>
-                                        </a>
-                                    </div>
-                                    <!-- Fashion Pria -->
-                                    <div class="col-4">
-                                        <a href="{{ route('products.index', ['category' => 'Fashion']) }}#katalog-produk" class="hero-collage-card">
-                                            <div class="hero-collage-img-wrap">
-                                                <img src="https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=400&q=80"
-                                                     alt="Kemeja Casual"
-                                                     loading="lazy"
-                                                     class="hero-collage-img"
-                                                     onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
-                                            </div>
-                                            <div class="hero-collage-info">
-                                                <span class="hero-collage-cat">Fashion</span>
-                                                <span class="hero-collage-title">Kemeja</span>
-                                            </div>
-                                        </a>
-                                    </div>
-                                    <!-- Olahraga -->
-                                    <div class="col-4">
-                                        <a href="{{ route('products.index', ['category' => 'Olahraga']) }}#katalog-produk" class="hero-collage-card">
-                                            <div class="hero-collage-img-wrap">
-                                                <img src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=400&q=80"
-                                                     alt="Fitness & Matras"
-                                                     loading="lazy"
-                                                     class="hero-collage-img"
-                                                     onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
-                                            </div>
-                                            <div class="hero-collage-info">
-                                                <span class="hero-collage-cat">Olahraga</span>
-                                                <span class="hero-collage-title">Fitness</span>
-                                            </div>
-                                        </a>
-                                    </div>
-                                    <!-- Kopi & Makanan -->
-                                    <div class="col-4">
-                                        <a href="{{ route('products.index', ['category' => 'Makanan Kemasan']) }}#katalog-produk" class="hero-collage-card">
-                                            <div class="hero-collage-img-wrap">
-                                                <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=400&q=80"
-                                                     alt="Kopi Arabika"
-                                                     loading="lazy"
-                                                     class="hero-collage-img"
-                                                     onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
-                                            </div>
-                                            <div class="hero-collage-info">
-                                                <span class="hero-collage-cat">Makanan</span>
-                                                <span class="hero-collage-title">Kopi Biji</span>
-                                            </div>
-                                        </a>
-                                    </div>
-                                    <!-- Dapur & Pisau -->
-                                    <div class="col-4">
-                                        <a href="{{ route('products.index', ['category' => 'Rumah Tangga']) }}#katalog-produk" class="hero-collage-card">
-                                            <div class="hero-collage-img-wrap">
-                                                <img src="https://images.unsplash.com/photo-1593618998160-e34014e67546?auto=format&fit=crop&w=400&q=80"
-                                                     alt="Pisau Dapur"
-                                                     loading="lazy"
-                                                     class="hero-collage-img"
-                                                     onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
-                                            </div>
-                                            <div class="hero-collage-info">
-                                                <span class="hero-collage-cat">Rumah</span>
-                                                <span class="hero-collage-title">Dapur</span>
-                                            </div>
-                                        </a>
-                                    </div>
-                                    <!-- Aksesori Otomotif -->
-                                    <div class="col-4">
-                                        <a href="{{ route('products.index', ['category' => 'Otomotif']) }}#katalog-produk" class="hero-collage-card">
-                                            <div class="hero-collage-img-wrap">
-                                                <img src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=400&q=80"
-                                                     alt="Aksesori Mobil"
-                                                     loading="lazy"
-                                                     class="hero-collage-img"
-                                                     onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
-                                            </div>
-                                            <div class="hero-collage-info">
-                                                <span class="hero-collage-cat">Otomotif</span>
-                                                <span class="hero-collage-title">Aksesori</span>
-                                            </div>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Floating Badge 1 (Top Left) -->
+                    <div class="hero-floating-badge hero-float-top-left">
+                        <div class="hero-float-icon bg-primary text-white">
+                            <i class="bi bi-patch-check-fill"></i>
                         </div>
+                        <div class="text-start">
+                            <div class="hero-float-title">100% Original</div>
+                            <div class="hero-float-sub">Produk Terkurasi</div>
+                        </div>
+                    </div>
 
+                    <!-- Floating Badge 2 (Bottom Right) -->
+                    <div class="hero-floating-badge hero-float-bottom-right">
+                        <div class="hero-float-icon bg-success text-white">
+                            <i class="bi bi-shield-lock-fill"></i>
+                        </div>
+                        <div class="text-start">
+                            <div class="hero-float-title">Garansi Resmi</div>
+                            <div class="hero-float-sub">Aman & Terpercaya</div>
                         </div>
                     </div>
                 </div>
             </div>
 
         </div>
-
-        <!-- Minimalist Carousel Controls (Subtle Chevrons) -->
-        <button class="carousel-control-prev hero-carousel-btn" type="button" data-bs-target="#heroMarketplaceCarousel" data-bs-slide="prev" aria-label="Sebelumnya">
-            <span class="hero-carousel-arrow">
-                <i class="bi bi-chevron-left"></i>
-            </span>
-        </button>
-        <button class="carousel-control-next hero-carousel-btn" type="button" data-bs-target="#heroMarketplaceCarousel" data-bs-slide="next" aria-label="Selanjutnya">
-            <span class="hero-carousel-arrow">
-                <i class="bi bi-chevron-right"></i>
-            </span>
-        </button>
     </div>
 </div>
 @endsection

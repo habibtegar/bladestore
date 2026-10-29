@@ -1283,4 +1283,34 @@ class EcommerceFlowTest extends TestCase
         $response->assertSee('id="nav-wishlist-trigger"', false);
         $response->assertSee('id="wishlist-badge-count"', false);
     }
+
+    public function test_homepage_renders_clean_two_column_static_hero_without_carousel(): void
+    {
+        $response = $this->get(route('products.index'));
+
+        $response->assertStatus(200);
+
+        // Verify clean 2-column static hero layout elements
+        $response->assertSee('hero-fullwidth-wrapper', false);
+        $response->assertSee('hero-title', false);
+        $response->assertSee('Belanja Cerdas & Mudah', false);
+        $response->assertSee('Mulai Belanja');
+        $response->assertSee('Jelajahi Kategori');
+        $response->assertSee('100% Produk Terverifikasi');
+        $response->assertSee('Layanan COD');
+        $response->assertSee('Bebas Biaya Admin');
+
+        // Verify single static hero showcase & floating badges
+        $response->assertSee('hero-image-showcase', false);
+        $response->assertSee('hero-static-img', false);
+        $response->assertSee('100% Original');
+        $response->assertSee('Garansi Resmi');
+
+        // Verify carousel elements have been completely removed
+        $response->assertDontSee('heroMarketplaceCarousel', false);
+        $response->assertDontSee('carousel-indicators', false);
+        $response->assertDontSee('carousel-control-prev', false);
+        $response->assertDontSee('carousel-control-next', false);
+        $response->assertDontSee('carousel-inner', false);
+    }
 }
