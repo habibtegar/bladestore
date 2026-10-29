@@ -158,12 +158,12 @@
         .nav-menu-list {
             display: flex;
             align-items: center;
-            gap: 2.75rem; /* Wider, very airy and breathable */
+            gap: 2rem;
         }
 
         @media (min-width: 1200px) {
             .nav-menu-list {
-                gap: 3.25rem; /* Ultra spacious on large screens */
+                gap: 2.75rem;
             }
         }
 
@@ -1058,70 +1058,39 @@
                 $navCartTotal = $navCartItems->sum(fn($i) => (float)$i->subtotal);
             @endphp
 
-            <!-- Global Search Bar (Tengah: Standar Marketplace Profesional) -->
-            <form action="{{ route('products.index') }}" method="GET" class="global-search-form flex-grow-1 mx-2 mx-md-3 mx-lg-4 d-none d-md-block">
-                <div class="position-relative w-100">
-                    <i class="bi bi-search global-search-icon"></i>
-                    <input type="text" 
-                           name="search" 
-                           class="form-control global-search-input" 
-                           placeholder="Cari berbagai produk berkualitas di BladeStore..." 
-                           value="{{ request('search') }}"
-                           aria-label="Cari Produk di BladeStore">
-                    <button class="btn global-search-btn" type="submit" aria-label="Cari">
-                        <span>Cari</span>
-                    </button>
-                </div>
-            </form>
-
-            <!-- Menu Cepat (Desktop: Kategori & Beranda) -->
-            <div class="nav-menu-list d-none d-xl-flex me-1">
+            <!-- Menu Navigasi Utama (Desktop: Beranda, Kategori, Wishlist, Pesanan Saya) -->
+            <div class="nav-menu-list d-none d-lg-flex mx-auto">
                 <a href="{{ route('products.index') }}" class="nav-menu-link {{ request()->routeIs('products.index') && !request('category') ? 'active' : '' }}">
                     Beranda
                 </a>
                 <a href="{{ route('products.index') }}#kategori-marketplace" class="nav-menu-link {{ request('category') ? 'active' : '' }}">
                     Kategori
                 </a>
+                <a href="{{ route('products.index') }}#katalog-produk" id="nav-wishlist-trigger" class="nav-menu-link" title="Wishlist / Favorit">
+                    Wishlist
+                    <span class="badge bg-danger rounded-pill ms-1 d-none" id="wishlist-badge-count" style="font-size: 0.65rem; padding: 0.2em 0.5em;">0</span>
+                </a>
+                <a href="{{ route('orders.index') }}" class="nav-menu-link {{ request()->routeIs('orders.*') ? 'active' : '' }}">
+                    Pesanan Saya
+                </a>
             </div>
 
-            <!-- Grup Aksi Kanan: Ikon Interaksi & Dropdown Profil -->
+            <!-- Grup Aksi Kanan: Keranjang Belanja & Dropdown Profil -->
             <div class="d-flex align-items-center gap-2 gap-lg-3 flex-shrink-0">
                 
-                <!-- Ikon Interaksi Sejajar (Wishlist, Notifikasi, Keranjang Belanja) -->
-                <div class="d-flex align-items-center gap-1.5 gap-sm-2">
-                    <!-- Wishlist (Hati) -->
-                    <a href="{{ route('products.index') }}#katalog-produk" 
-                       class="nav-icon-btn d-none d-sm-inline-flex position-relative" 
-                       title="Favorit Saya (Wishlist)" 
-                       aria-label="Wishlist" 
-                       id="nav-wishlist-trigger">
-                        <i class="bi bi-heart" id="nav-wishlist-icon"></i>
-                        <span class="nav-icon-badge d-none" id="wishlist-badge-count">0</span>
-                    </a>
-
-                    <!-- Notifikasi (Lonceng) dengan Badge Angka Notifikasi Kecil -->
-                    <a href="{{ route('orders.index') }}" 
-                       class="nav-icon-btn position-relative" 
-                       title="Notifikasi Pembaruan Pesanan" 
-                       aria-label="Notifikasi">
-                        <i class="bi bi-bell"></i>
-                        <span class="nav-icon-badge" id="notification-badge-count">2</span>
-                    </a>
-
-                    <!-- Keranjang Belanja (Side Panel Trigger) -->
-                    <a href="#cartOffcanvas" 
-                       data-bs-toggle="offcanvas" 
-                       role="button" 
-                       aria-controls="cartOffcanvas" 
-                       class="nav-cart-btn {{ request()->routeIs('cart.*') ? 'border-primary text-primary' : '' }}" 
-                       title="Keranjang Belanja" 
-                       aria-label="Keranjang Belanja">
-                        <i class="bi bi-cart3"></i>
-                        <span id="cart-badge-count" 
-                              class="nav-cart-badge {{ $cartTotalCount > 0 ? '' : 'd-none' }}" 
-                              style="{{ $cartTotalCount > 0 ? '' : 'display: none;' }}">{{ $cartTotalCount }}</span>
-                    </a>
-                </div>
+                <!-- Keranjang Belanja (Side Panel Trigger) -->
+                <a href="#cartOffcanvas" 
+                   data-bs-toggle="offcanvas" 
+                   role="button" 
+                   aria-controls="cartOffcanvas" 
+                   class="nav-cart-btn {{ request()->routeIs('cart.*') ? 'border-primary text-primary' : '' }}" 
+                   title="Keranjang Belanja" 
+                   aria-label="Keranjang Belanja">
+                    <i class="bi bi-cart3"></i>
+                    <span id="cart-badge-count" 
+                          class="nav-cart-badge {{ $cartTotalCount > 0 ? '' : 'd-none' }}" 
+                          style="{{ $cartTotalCount > 0 ? '' : 'display: none;' }}">{{ $cartTotalCount }}</span>
+                </a>
 
                 <!-- Divider Halus Antara Ikon dan Profil -->
                 <div class="vr my-2 text-secondary opacity-25 d-none d-lg-block" style="height: 24px;"></div>
@@ -1241,25 +1210,6 @@
             </div>
 
         </div>
-
-        <!-- Mobile Global Search Bar Baris Kedua (< 768px) -->
-        <div class="container d-md-none mt-2 pt-1">
-            <form action="{{ route('products.index') }}" method="GET" class="global-search-form w-100">
-                <div class="position-relative w-100">
-                    <i class="bi bi-search global-search-icon"></i>
-                    <input type="text" 
-                           name="search" 
-                           class="form-control global-search-input" 
-                           style="height: 38px !important; font-size: 0.84rem !important;"
-                           placeholder="Cari berbagai produk di BladeStore..." 
-                           value="{{ request('search') }}"
-                           aria-label="Cari Produk">
-                    <button class="btn global-search-btn" type="submit" style="height: 30px; font-size: 0.75rem;">
-                        <span>Cari</span>
-                    </button>
-                </div>
-            </form>
-        </div>
     </nav>
 
     <!-- Mobile Offcanvas Navigation Drawer -->
@@ -1288,21 +1238,14 @@
                     </div>
                     <span id="cart-badge-count-drawer" class="badge bg-danger rounded-pill {{ $cartTotalCount > 0 ? '' : 'd-none' }}" style="{{ $cartTotalCount > 0 ? '' : 'display: none;' }}">{{ $cartTotalCount }}</span>
                 </a>
-                <a href="{{ route('orders.index') }}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between py-2.5 px-2 border-0 rounded-2 text-dark">
-                    <div class="d-flex align-items-center gap-3">
-                        <i class="bi bi-bell fs-5 text-warning"></i>
-                        <span>Notifikasi</span>
-                    </div>
-                    <span class="badge bg-danger rounded-pill">2</span>
-                </a>
                 <a href="{{ route('products.index') }}#katalog-produk" id="mobile-drawer-wishlist-trigger" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between py-2.5 px-2 border-0 rounded-2 text-dark">
                     <div class="d-flex align-items-center gap-3">
                         <i class="bi bi-heart fs-5 text-danger"></i>
-                        <span>Wishlist (Favorit)</span>
+                        <span>Wishlist</span>
                     </div>
                     <span class="badge bg-danger rounded-pill d-none" id="wishlist-badge-count-drawer">0</span>
                 </a>
-                <a href="{{ route('orders.index') }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2.5 px-2 border-0 rounded-2 text-dark">
+                <a href="{{ route('orders.index') }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2.5 px-2 border-0 rounded-2 {{ request()->routeIs('orders.*') ? 'bg-primary-subtle text-primary fw-bold' : 'text-dark' }}">
                     <i class="bi bi-receipt fs-5 text-primary"></i>
                     <span>Pesanan Saya</span>
                 </a>

@@ -5,34 +5,33 @@
 @push('styles')
 <style>
     /* ==========================================
-       1. HERO SECTION (CLEAN 2-COLUMN STATIC HERO)
+       1. HERO SECTION (1 LAYAR FULL STATIC HERO)
        ========================================== */
     .hero-fullwidth-wrapper {
         width: 100%;
         margin: 0 !important;
-        padding: 3rem 0 !important;
         overflow: hidden;
         position: relative;
-        background: linear-gradient(135deg, #FFFFFF 0%, #F4F8FF 45%, #E8F1FF 100%);
-        border-bottom: 1px solid #D6E4FF;
+        background: radial-gradient(circle at 75% 45%, rgba(8, 102, 255, 0.08) 0%, rgba(240, 246, 255, 0.55) 45%, #FFFFFF 100%);
+        border-bottom: 1px solid #DCE7F7;
         display: flex;
         align-items: center;
-        min-height: 480px;
+        justify-content: center;
+        min-height: calc(100vh - 70px);
     }
 
     @media (min-width: 992px) {
         .hero-fullwidth-wrapper {
-            min-height: 480px;
-            max-height: 540px;
-            padding: 3.5rem 0 !important;
+            min-height: calc(100vh - 70px);
+            height: calc(100vh - 70px);
+            padding: 0 !important;
         }
     }
 
     @media (max-width: 991.98px) {
         .hero-fullwidth-wrapper {
             min-height: auto;
-            max-height: none;
-            padding: 2.5rem 0 2rem !important;
+            padding: 3.5rem 0 3rem !important;
         }
     }
 
@@ -41,11 +40,11 @@
         position: absolute;
         top: -60px;
         right: 10%;
-        width: 320px;
-        height: 320px;
+        width: 360px;
+        height: 360px;
         border-radius: 50%;
         background: radial-gradient(circle, rgba(8, 102, 255, 0.08) 0%, rgba(8, 102, 255, 0) 70%);
-        filter: blur(20px);
+        filter: blur(25px);
         pointer-events: none;
     }
 
@@ -53,19 +52,19 @@
         position: absolute;
         bottom: -60px;
         left: 5%;
-        width: 280px;
-        height: 280px;
+        width: 300px;
+        height: 300px;
         border-radius: 50%;
         background: radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, rgba(59, 130, 246, 0) 70%);
-        filter: blur(20px);
+        filter: blur(25px);
         pointer-events: none;
     }
 
     /* Small Label Badge */
     .hero-pill-badge {
-        background-color: var(--primary-subtle);
-        color: var(--primary);
-        border: 1px solid var(--primary-border);
+        background-color: var(--primary-subtle, #EFF6FF);
+        color: var(--primary, #0866FF);
+        border: 1px solid var(--primary-border, #BFDBFE);
         padding: 0.35rem 0.85rem;
         border-radius: 9999px;
         font-size: 0.775rem;
@@ -78,9 +77,9 @@
 
     /* Hero Typography */
     .hero-title {
-        font-size: clamp(1.9rem, 3.2vw, 2.65rem);
+        font-size: clamp(2.1rem, 3.6vw, 3.1rem);
         font-weight: 800;
-        line-height: 1.16;
+        line-height: 1.15;
         color: var(--dark-navy, #0F172A);
         letter-spacing: -0.03em;
         margin-bottom: 1.15rem !important;
@@ -88,73 +87,73 @@
 
     .hero-desc {
         color: var(--slate-600, #475569);
-        font-size: clamp(0.9rem, 1.15vw, 1rem);
-        line-height: 1.62;
-        max-width: 520px;
-        margin-bottom: 1.5rem !important;
+        font-size: clamp(0.92rem, 1.2vw, 1.05rem);
+        line-height: 1.65;
+        max-width: 530px;
+        margin-bottom: 1.6rem !important;
     }
 
     /* Hero Action Buttons */
     .btn-hero-primary {
-        padding: 0.65rem 1.45rem;
-        font-size: 0.9rem;
+        padding: 0.75rem 1.65rem;
+        font-size: 0.95rem;
         font-weight: 700;
-        border-radius: 10px;
+        border-radius: 12px;
         background: linear-gradient(135deg, #0866FF 0%, #1D4ED8 100%);
         border: none;
         color: #FFFFFF !important;
-        box-shadow: 0 4px 14px rgba(8, 102, 255, 0.28);
+        box-shadow: 0 6px 18px rgba(8, 102, 255, 0.32);
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         text-decoration: none;
     }
 
     .btn-hero-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(8, 102, 255, 0.38);
+        box-shadow: 0 10px 24px rgba(8, 102, 255, 0.42);
         color: #FFFFFF !important;
     }
 
     .btn-hero-secondary {
-        padding: 0.65rem 1.4rem;
-        font-size: 0.9rem;
+        padding: 0.75rem 1.55rem;
+        font-size: 0.95rem;
         font-weight: 600;
-        border-radius: 10px;
+        border-radius: 12px;
         background-color: #FFFFFF;
-        border: 1px solid #CBD5E1;
+        border: 1.5px solid #CBD5E1;
         color: var(--slate-700, #334155) !important;
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         text-decoration: none;
     }
 
     .btn-hero-secondary:hover {
-        background-color: var(--primary-subtle);
-        border-color: var(--primary);
-        color: var(--primary) !important;
+        background-color: #F8FAFC;
+        border-color: #94A3B8;
+        color: var(--primary, #0866FF) !important;
         transform: translateY(-2px);
     }
 
     .hero-trust-row {
-        font-size: 0.775rem;
+        font-size: 0.8rem;
         font-weight: 500;
     }
 
-    /* Hero Static Image Showcase (35-40% Area, KantinSkanic Style) */
+    /* Hero Static Image Showcase */
     .hero-image-showcase {
-        max-width: 380px;
-        width: 100%;
         position: relative;
+        max-width: 440px;
+        width: 100%;
         margin: 0 auto;
     }
 
     @media (min-width: 992px) {
         .hero-image-showcase {
-            max-width: 390px;
+            max-width: 460px;
             margin-left: auto;
             margin-right: 0;
         }
@@ -163,27 +162,26 @@
     .hero-image-card {
         position: relative;
         background: #FFFFFF;
-        border-radius: 20px;
-        padding: 0.65rem;
+        border-radius: 24px;
+        padding: 0.75rem;
         border: 1px solid rgba(226, 232, 240, 0.9);
-        box-shadow: 0 20px 40px -15px rgba(8, 102, 255, 0.12),
-                    0 8px 16px -8px rgba(15, 23, 42, 0.05);
+        box-shadow: 0 24px 50px -15px rgba(8, 102, 255, 0.15),
+                    0 10px 24px -8px rgba(15, 23, 42, 0.06);
         transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
         overflow: hidden;
     }
 
     .hero-image-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 25px 50px -15px rgba(8, 102, 255, 0.18),
-                    0 10px 20px -8px rgba(15, 23, 42, 0.07);
+        box-shadow: 0 30px 60px -15px rgba(8, 102, 255, 0.22),
+                    0 14px 28px -8px rgba(15, 23, 42, 0.1);
     }
 
     .hero-static-img {
         width: 100%;
-        height: 310px;
+        height: 300px;
         object-fit: cover;
-        object-position: center;
-        border-radius: 14px;
+        border-radius: 18px;
         display: block;
         transition: transform 0.4s ease;
     }
@@ -192,78 +190,119 @@
         transform: scale(1.03);
     }
 
-    @media (max-width: 575.98px) {
-        .hero-static-img {
-            height: 230px;
-        }
-    }
-
-    /* Floating Polish Badges (KantinSkanic Inspiration) */
+    /* Floating Glass Trust Badges */
     .hero-floating-badge {
         position: absolute;
-        background: rgba(255, 255, 255, 0.96);
-        backdrop-filter: blur(8px);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
         border: 1px solid rgba(226, 232, 240, 0.9);
-        border-radius: 12px;
-        padding: 0.45rem 0.8rem;
+        border-radius: 16px;
+        padding: 0.6rem 0.95rem;
         display: flex;
         align-items: center;
-        gap: 0.6rem;
-        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1),
-                    0 4px 6px -2px rgba(15, 23, 42, 0.05);
-        z-index: 2;
-        animation: floatSlow 4s ease-in-out infinite alternate;
+        gap: 0.65rem;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12),
+                    0 4px 10px -2px rgba(15, 23, 42, 0.04);
+        z-index: 4;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .hero-floating-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 30px -5px rgba(8, 102, 255, 0.2);
     }
 
     .hero-float-top-left {
-        top: -12px;
-        left: -12px;
+        top: -16px;
+        left: -20px;
     }
 
     .hero-float-bottom-right {
-        bottom: -12px;
-        right: -12px;
-        animation-delay: 2s;
+        bottom: -16px;
+        right: -16px;
     }
 
-    @media (max-width: 767.98px) {
+    @media (max-width: 575.98px) {
         .hero-float-top-left {
-            top: -8px;
-            left: -4px;
+            top: -10px;
+            left: 0;
         }
         .hero-float-bottom-right {
-            bottom: -8px;
-            right: -4px;
+            bottom: -10px;
+            right: 0;
         }
     }
 
     .hero-float-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: inline-flex;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.95rem;
+        font-size: 1rem;
         flex-shrink: 0;
     }
 
     .hero-float-title {
-        font-size: 0.775rem;
+        font-size: 0.825rem;
         font-weight: 700;
-        color: #0F172A;
+        color: var(--dark-navy, #0F172A);
         line-height: 1.2;
     }
 
     .hero-float-sub {
-        font-size: 0.675rem;
-        color: #64748B;
+        font-size: 0.725rem;
+        color: var(--slate-500, #64748B);
         line-height: 1.2;
     }
 
-    @keyframes floatSlow {
-        0% { transform: translateY(0); }
-        100% { transform: translateY(-5px); }
+    /* Scroll Down Indicator on Desktop */
+    .hero-scroll-hint {
+        position: absolute;
+        bottom: 1.25rem;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 3;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.65rem;
+        color: var(--slate-500, #64748B);
+        font-size: 0.775rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: color 0.2s ease, transform 0.2s ease;
+    }
+
+    .hero-scroll-hint:hover {
+        color: var(--primary, #0866FF);
+        transform: translateX(-50%) translateY(2px);
+    }
+
+    .hero-scroll-mouse {
+        width: 18px;
+        height: 28px;
+        border: 2px solid var(--slate-400, #94A3B8);
+        border-radius: 12px;
+        position: relative;
+        display: inline-block;
+    }
+
+    .hero-scroll-wheel {
+        width: 3px;
+        height: 6px;
+        background-color: var(--primary, #0866FF);
+        border-radius: 2px;
+        position: absolute;
+        top: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        animation: scrollWheel 2s infinite;
+    }
+
+    @keyframes scrollWheel {
+        0% { transform: translate(-50%, 0); opacity: 1; }
+        100% { transform: translate(-50%, 8px); opacity: 0; }
     }
 
     /* Solid CTA Add to Cart Button */
@@ -654,17 +693,17 @@
 
 @section('hero')
 <!-- ==========================================
-     1. MODERN MARKETPLACE HERO (STATIC 2-COLUMN)
+     1. HERO SECTION (1 LAYAR FULL STATIC HERO)
      ========================================== -->
-<div class="w-100 hero-fullwidth-wrapper">
-    <!-- Ambient Background Orbs -->
-    <div class="hero-ambient-orb-1"></div>
-    <div class="hero-ambient-orb-2"></div>
+<div class="hero-fullwidth-wrapper">
+    <!-- Subtle Ambient Background Orbs -->
+    <div class="hero-ambient-orb-1" aria-hidden="true"></div>
+    <div class="hero-ambient-orb-2" aria-hidden="true"></div>
 
     <div class="container position-relative z-1" style="max-width: 1240px;">
         <div class="row align-items-center g-4 g-lg-5">
             
-            <!-- Left Column: Headline, Description & Action Buttons (~60-65% area) -->
+            <!-- Left Column: Headline, Description & CTA Buttons (~60% area) -->
             <div class="col-12 col-lg-7">
                 <div class="hero-content pe-lg-3">
                     
@@ -675,24 +714,24 @@
                         </span>
                     </div>
 
-                    <!-- Main Headline (Max 2 lines, line-height 1.1-1.2) -->
+                    <!-- Main Headline -->
                     <h1 class="hero-title mb-3">
                         Belanja Cerdas & Mudah <br class="d-none d-sm-inline">
                         <span class="text-primary">dalam Satu Platform.</span>
                     </h1>
 
-                    <!-- Short Description (Line-height 1.5-1.7) -->
+                    <!-- Short Description -->
                     <p class="hero-desc mb-4">
                         Temukan ragam produk pilihan terbaik dengan jaminan mutu terverifikasi, kemudahan bayar di tempat (COD), dan transaksi aman tanpa biaya admin tambahan ke seluruh Indonesia.
                     </p>
 
-                    <!-- Action Buttons (Spacing 16-24px) -->
+                    <!-- Action Buttons -->
                     <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
-                        <a href="#katalog-produk" class="btn btn-hero-primary">
-                            <i class="bi bi-bag-check-fill"></i> Mulai Belanja
+                        <a href="#katalog-produk" class="btn btn-hero-primary" aria-label="Mulai Belanja">
+                            <i class="bi bi-bag-check-fill me-1"></i> Belanja Sekarang
                         </a>
                         <a href="#kategori-marketplace" class="btn btn-hero-secondary">
-                            <i class="bi bi-grid-3x3-gap"></i> Jelajahi Kategori
+                            <i class="bi bi-grid me-1"></i> Jelajahi Kategori
                         </a>
                     </div>
 
@@ -708,7 +747,7 @@
                 </div>
             </div>
 
-            <!-- Right Column: Single Static Hero Image (~35-40% area, KantinSkanic Style) -->
+            <!-- Right Column: Single Static Hero Image (~40% area) -->
             <div class="col-12 col-lg-5 text-center text-lg-end">
                 <div class="hero-image-showcase">
                     <!-- Clean Card Wrapper -->
@@ -717,7 +756,7 @@
                              alt="Produk Pilihan BladeStore"
                              class="hero-static-img"
                              loading="eager"
-                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=700&q=80';">
+                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=700&q=80';">
                     </div>
 
                     <!-- Floating Badge 1 (Top Left) -->
@@ -746,6 +785,14 @@
 
         </div>
     </div>
+
+    <!-- Scroll Down Hint Indicator (Desktop) -->
+    <a href="#fitur-layanan" class="hero-scroll-hint d-none d-lg-inline-flex" title="Gulir ke Bawah">
+        <span class="hero-scroll-mouse">
+            <span class="hero-scroll-wheel"></span>
+        </span>
+        <span class="hero-scroll-text">Gulir untuk melihat katalog</span>
+    </a>
 </div>
 @endsection
 
@@ -753,7 +800,7 @@
 <!-- ==========================================
      2. STREAMLINED VALUE TRUST GRID (4 INDIVIDUAL CARDS)
      ========================================== -->
-<div class="service-trust-grid">
+<div class="service-trust-grid" id="fitur-layanan">
     <!-- Card 1: Bayar di Tempat (COD) -->
     <div class="service-trust-card">
         <div class="service-trust-icon">

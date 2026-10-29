@@ -1356,7 +1356,7 @@ class EcommerceFlowTest extends TestCase
         $ordersResponse->assertSee('<title>BladeStore - Pesanan Saya</title>', false);
     }
 
-    public function test_navbar_renders_global_search_interaction_icons_and_profile_dropdown(): void
+    public function test_navbar_renders_navigation_links_cart_and_profile_dropdown(): void
     {
         $customer = User::factory()->create(['role' => 'customer', 'name' => 'Budi Pelanggan']);
 
@@ -1364,22 +1364,20 @@ class EcommerceFlowTest extends TestCase
 
         $response->assertStatus(200);
 
-        // 1. Global Search Bar
-        $response->assertSee('global-search-form', false);
-        $response->assertSee('name="search"', false);
-        $response->assertSee('global-search-btn', false);
-        $response->assertSee(route('products.index'));
+        // 1. Text Navigation Menu Links (Beranda, Kategori, Wishlist, Pesanan Saya)
+        $response->assertSee('Beranda');
+        $response->assertSee('Kategori');
+        $response->assertSee('Wishlist');
+        $response->assertSee('Pesanan Saya');
+        $response->assertSee('id="nav-wishlist-trigger"', false);
+        $response->assertSee('id="wishlist-badge-count"', false);
 
-        // 2. Ikon Interaksi (Wishlist, Notifikasi, Keranjang)
-        $response->assertSee('bi-heart', false);
-        $response->assertSee('bi-bell', false);
-        $response->assertSee('notification-badge-count', false);
+        // 2. Action Buttons (Keranjang)
         $response->assertSee('bi-cart3', false);
         $response->assertSee('cart-badge-count', false);
 
         // 3. Dropdown Profil Pengguna (Customer)
         $response->assertSee('Pengaturan Akun');
-        $response->assertSee('Pesanan Saya');
         $response->assertSee('Keluar / Logout');
         $response->assertSee(route('logout'));
         $response->assertDontSee('Dashboard Admin');
@@ -1463,7 +1461,8 @@ class EcommerceFlowTest extends TestCase
         $response->assertSee('hero-fullwidth-wrapper', false);
         $response->assertSee('hero-title', false);
         $response->assertSee('Belanja Cerdas & Mudah', false);
-        $response->assertSee('Mulai Belanja');
+        $response->assertSee('Belanja Sekarang');
+        $response->assertSee('aria-label="Mulai Belanja"', false);
         $response->assertSee('Jelajahi Kategori');
         $response->assertSee('100% Produk Terverifikasi');
         $response->assertSee('Layanan COD');
