@@ -817,7 +817,7 @@ class EcommerceFlowTest extends TestCase
         $response->assertSee('pay-button');
         $response->assertSee('Informasi Pengiriman');
         $response->assertDontSee('Transfer Bank Manual');
-        $response->assertDontSee('COD (Bayar di Tempat)');
+        $response->assertSee('COD (Bayar di Tempat)');
     }
 
     public function test_unpaid_order_shows_bayar_sekarang_button_on_checkout_success_and_order_history(): void

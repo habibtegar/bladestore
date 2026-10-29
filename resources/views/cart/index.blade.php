@@ -2,6 +2,39 @@
 
 @section('title', 'Keranjang Belanja')
 
+@push('styles')
+<style>
+    .payment-option-card {
+        border: 2px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 1.15rem;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        background-color: #FFFFFF;
+        position: relative;
+    }
+    .payment-option-card:hover {
+        border-color: #93C5FD;
+        background-color: #F8FAFC;
+    }
+    .payment-option-card.selected {
+        border-color: #0866FF;
+        background-color: #EFF6FF;
+        box-shadow: 0 4px 12px rgba(8, 102, 255, 0.08);
+    }
+    .payment-option-card .form-check-input {
+        cursor: pointer;
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-top: 0.15rem;
+    }
+    .payment-option-card .form-check-input:checked {
+        background-color: #0866FF;
+        border-color: #0866FF;
+    }
+</style>
+@endpush
+
 @section('content')
 <!-- Page Header Breadcrumbs & Title -->
 <nav aria-label="breadcrumb" class="mb-3">
@@ -255,20 +288,64 @@
                     </div>
                 </div>
 
-                <!-- Midtrans Automatic Payment Method (Hidden Field) -->
-                <input type="hidden" name="payment_method" value="Midtrans Snap">
+                <!-- Pilihan Metode Pembayaran (Hanya 2 Pilihan Utama: Midtrans & COD) -->
+                <div class="card border-0 bg-white rounded-3 shadow-sm p-4 mb-4" id="section-payment-method">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-wallet2 text-primary"></i>
+                            <span>Metode Pembayaran</span>
+                        </h5>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill x-small fw-bold">
+                            2 Pilihan Tersedia
+                        </span>
+                    </div>
+                    <p class="text-muted small mb-3">Pilih salah satu metode pembayaran yang Anda inginkan untuk menyelesaikan pesanan.</p>
 
-                <!-- Midtrans Automated Payment Info Banner -->
-                <div class="card border-0 rounded-3 shadow-sm p-3.5" style="background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%); border: 1px solid #DBEAFE !important;">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background-color: #DBEAFE; color: #0866FF;">
-                            <i class="bi bi-shield-lock-fill fs-5"></i>
+                    <div class="row g-3">
+                        <!-- Pilihan 1: Pembayaran Online via Midtrans Snap -->
+                        <div class="col-12 col-md-6">
+                            <label class="payment-option-card selected d-flex align-items-start gap-3 h-100" for="pay_method_midtrans">
+                                <input class="form-check-input flex-shrink-0" type="radio" name="payment_method" id="pay_method_midtrans" value="Midtrans Snap" checked>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <strong class="text-dark small d-flex align-items-center gap-1.5">
+                                            <i class="bi bi-shield-lock-fill text-primary"></i>
+                                            Pembayaran Online
+                                        </strong>
+                                        <span class="badge bg-primary text-white x-small rounded-pill">Midtrans</span>
+                                    </div>
+                                    <p class="text-muted x-small mb-2 leading-relaxed">
+                                        Bayar instan via <strong>QRIS, GoPay, ShopeePay, Virtual Account BCA / Mandiri / BRI / BNI</strong>, &amp; Kartu Kredit.
+                                    </p>
+                                    <div class="d-flex align-items-center gap-1 text-primary x-small fw-semibold">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                        <span>Verifikasi Otomatis</span>
+                                    </div>
+                                </div>
+                            </label>
                         </div>
-                        <div>
-                            <span class="fw-bold text-dark d-block mb-1 small">Sistem Pembayaran Otomatis Midtrans</span>
-                            <span class="text-muted x-small d-block leading-relaxed">
-                                Pilihan pembayaran lengkap (<strong>QRIS Instant, GoPay, ShopeePay, Virtual Account BCA / Mandiri / BRI / BNI</strong>, dan <strong>Kartu Kredit</strong>) akan muncul otomatis di popup Midtrans setelah menekan tombol <em>Bayar Sekarang</em>.
-                            </span>
+
+                        <!-- Pilihan 2: COD (Bayar di Tempat) -->
+                        <div class="col-12 col-md-6">
+                            <label class="payment-option-card d-flex align-items-start gap-3 h-100" for="pay_method_cod">
+                                <input class="form-check-input flex-shrink-0" type="radio" name="payment_method" id="pay_method_cod" value="Cash on Delivery (COD)">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <strong class="text-dark small d-flex align-items-center gap-1.5">
+                                            <i class="bi bi-cash-coin text-success"></i>
+                                            COD (Bayar di Tempat)
+                                        </strong>
+                                        <span class="badge bg-success text-white x-small rounded-pill">Tunai</span>
+                                    </div>
+                                    <p class="text-muted x-small mb-2 leading-relaxed">
+                                        Bayar tunai dengan uang pas langsung kepada kurir saat barang tiba di alamat pengiriman Anda.
+                                    </p>
+                                    <div class="d-flex align-items-center gap-1 text-success x-small fw-semibold">
+                                        <i class="bi bi-truck"></i>
+                                        <span>Bayar Saat Barang Diterima</span>
+                                    </div>
+                                </div>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -309,7 +386,7 @@
 
                     <hr class="my-3">
 
-                    <div class="d-flex justify-content-between align-items-baseline mb-3.5">
+                    <div class="d-flex justify-content-between align-items-baseline mb-4 pb-1">
                         <span class="fw-bold text-dark fs-6">Total Pembayaran:</span>
                         <span class="h3 fw-bold mb-0 text-blue-600" id="cart-total-price" style="color: #0866FF;">
                             Rp {{ number_format($totalPrice, 0, ',', '.') }}
@@ -322,9 +399,9 @@
                         <i class="bi bi-arrow-right fs-5" id="pay-button-icon"></i>
                     </button>
 
-                    <div class="d-flex align-items-center justify-content-center gap-1.5 mt-3 text-muted x-small text-center">
+                    <div id="pay-secure-info" class="d-flex align-items-center justify-content-center gap-1.5 mt-3 text-muted x-small text-center">
                         <i class="bi bi-shield-check text-success fs-6"></i>
-                        <span>Pembayaran Aman & Terenkripsi via Midtrans</span>
+                        <span>Pembayaran Aman &amp; Terenkripsi via Midtrans</span>
                     </div>
                 </div>
             </div>
@@ -400,7 +477,7 @@ document.addEventListener('DOMContentLoaded', function () {
             headerCountEl.textContent = `Daftar Produk Terpilih (${totalSelectedQty} Item)`;
         }
 
-        // 2. Kontrol Tombol Bayar Sekarang (Disable jika 0 produk dicentang)
+        // 2. Kontrol Tombol Bayar Sekarang / Buat Pesanan (COD)
         if (payButton) {
             if (selectedCount === 0) {
                 payButton.disabled = true;
@@ -411,7 +488,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 payButton.disabled = false;
                 payButton.classList.remove('opacity-50');
                 payButton.style.cursor = 'pointer';
-                if (payText) payText.textContent = 'Bayar Sekarang';
+                syncPaymentMethodUI();
             }
         }
 
@@ -421,6 +498,47 @@ document.addEventListener('DOMContentLoaded', function () {
             checkAllInput.indeterminate = (selectedCount > 0 && selectedCount < currentCheckboxes.length);
         }
     }
+
+    // ==========================================
+    // 1B. SINKRONISASI PILIHAN METODE PEMBAYARAN (MIDTRANS / COD)
+    // ==========================================
+    const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
+    const paymentCards = document.querySelectorAll('.payment-option-card');
+    const paySecureInfo = document.getElementById('pay-secure-info');
+
+    function syncPaymentMethodUI() {
+        const selected = document.querySelector('input[name="payment_method"]:checked')?.value || 'Midtrans Snap';
+        const isCod = selected.includes('COD') || selected.includes('Cash on Delivery') || selected.includes('Bayar di Tempat');
+
+        paymentCards.forEach(card => {
+            const radio = card.querySelector('input[type="radio"]');
+            if (radio && radio.checked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        });
+
+        if (payButton && !payButton.disabled) {
+            if (isCod) {
+                if (payText) payText.textContent = 'Buat Pesanan (COD)';
+                if (payIcon) payIcon.className = 'bi bi-bag-check fs-5';
+                if (paySecureInfo) {
+                    paySecureInfo.innerHTML = '<i class="bi bi-cash-coin text-success fs-6"></i><span>Bayar Tunai Pas Saat Kurir Tiba di Alamat</span>';
+                }
+            } else {
+                if (payText) payText.textContent = 'Bayar Sekarang';
+                if (payIcon) payIcon.className = 'bi bi-arrow-right fs-5';
+                if (paySecureInfo) {
+                    paySecureInfo.innerHTML = '<i class="bi bi-shield-check text-success fs-6"></i><span>Pembayaran Aman &amp; Terenkripsi via Midtrans</span>';
+                }
+            }
+        }
+    }
+
+    paymentRadios.forEach(radio => {
+        radio.addEventListener('change', syncPaymentMethodUI);
+    });
 
     // Listener Checkbox Pilih Semua
     if (checkAllInput) {
@@ -656,7 +774,11 @@ document.addEventListener('DOMContentLoaded', function () {
             isSubmitting = true;
             const originalText = payText ? payText.textContent : 'Bayar Sekarang';
             payButton.disabled = true;
-            if (payText) payText.textContent = 'Menghubungkan Midtrans...';
+
+            const selectedMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'Midtrans Snap';
+            const isCodChoice = selectedMethod.includes('COD') || selectedMethod.includes('Cash on Delivery') || selectedMethod.includes('Bayar di Tempat');
+
+            if (payText) payText.textContent = isCodChoice ? 'Menyimpan Pesanan COD...' : 'Menghubungkan Midtrans...';
             if (payIcon) payIcon.className = 'spinner-border spinner-border-sm';
 
             function resetPayButton() {
@@ -692,8 +814,18 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(result => {
                 if (!result) return;
 
-                if (result.ok && result.data && result.data.snap_token) {
-                    // Panggil popup Snap Midtrans
+                if (result.ok && result.data) {
+                    // Jika metode COD atau tidak membutuhkan Snap Token, langsung arahkan ke halaman sukses
+                    if (result.data.is_cod || !result.data.snap_token) {
+                        if (result.data.redirect_url) {
+                            window.location.href = result.data.redirect_url;
+                        } else {
+                            window.location.reload();
+                        }
+                        return;
+                    }
+
+                    // Panggil popup Snap Midtrans untuk pembayaran online
                     if (typeof window.snap !== 'undefined' && typeof window.snap.pay === 'function') {
                         window.snap.pay(result.data.snap_token, {
                             onSuccess: function (res) {
@@ -726,7 +858,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     const message = (result.data && result.data.message)
                         ? result.data.message
-                        : 'Gagal membuat transaksi pembayaran Midtrans.';
+                        : 'Gagal membuat transaksi pembayaran.';
                     alert(message);
                     resetPayButton();
                 }

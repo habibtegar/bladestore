@@ -97,8 +97,24 @@ class CheckoutController extends Controller
             }
         }
 
+        $rawPayment = (string) ($validated['payment_method'] ?? 'Midtrans Snap');
+        $isCod = str_contains(strtolower($rawPayment), 'cod')
+            || str_contains(strtolower($rawPayment), 'bayar di tempat')
+            || str_contains(strtolower($rawPayment), 'cash on delivery');
+
+        if ($isCod) {
+            $paymentMethod = 'Cash on Delivery (COD)';
+            $initialStatus = 'processing';
+        } elseif (str_contains(strtolower($rawPayment), 'transfer bank')) {
+            $paymentMethod = 'Transfer Bank Manual';
+            $initialStatus = 'pending';
+        } else {
+            $paymentMethod = 'Midtrans Snap';
+            $initialStatus = 'pending';
+        }
+
         // 2. Gunakan DB::transaction untuk menjamin integritas data
-        $order = DB::transaction(function () use ($cartItems, $validated): Order {
+        $order = DB::transaction(function () use ($cartItems, $validated, $paymentMethod, $initialStatus): Order {
             // Generate nomor pesanan unik
             do {
                 $orderCode = 'ORD-'.date('Ymd').'-'.strtoupper(Str::random(6));
@@ -107,13 +123,13 @@ class CheckoutController extends Controller
             // Hitung total harga
             $totalPrice = $cartItems->sum(fn (Cart $item): float => (float) $item->subtotal);
 
-            // 3. Buat record baru di tabel orders dengan status pending
+            // 3. Buat record baru di tabel orders dengan status pending atau processing (COD)
             $order = Order::create([
                 'order_code' => $orderCode,
                 'user_id' => Auth::id(),
                 'total_price' => $totalPrice,
-                'payment_method' => $validated['payment_method'],
-                'status' => 'pending',
+                'payment_method' => $paymentMethod,
+                'status' => $initialStatus,
                 'shipping_address' => $validated['shipping_address'],
                 'customer_phone' => $validated['customer_phone'],
                 'notes' => $validated['notes'] ?? null,
@@ -140,15 +156,21 @@ class CheckoutController extends Controller
             return $order;
         });
 
-        // Request snap token jika server key tersedia
-        $snapResult = $this->requestMidtransSnapToken($order);
-        if ($snapResult['success'] && ! empty($snapResult['token'])) {
-            $order->update(['snap_token' => $snapResult['token']]);
+        // Request snap token hanya jika bukan COD dan bukan transfer manual
+        if (! $isCod && $paymentMethod === 'Midtrans Snap') {
+            $snapResult = $this->requestMidtransSnapToken($order);
+            if ($snapResult['success'] && ! empty($snapResult['token'])) {
+                $order->update(['snap_token' => $snapResult['token']]);
+            }
         }
+
+        $successMsg = $isCod
+            ? 'Pesanan Cash on Delivery (COD) berhasil dibuat! Silakan siapkan uang pas saat barang diantar kurir.'
+            : 'Pesanan Anda berhasil dibuat!';
 
         // 7. Arahkan user ke halaman sukses
         return redirect()->route('checkout.success', $order->id)
-            ->with('success', 'Pesanan Anda berhasil dibuat!');
+            ->with('success', $successMsg);
     }
 
     /**
@@ -210,7 +232,15 @@ class CheckoutController extends Controller
             }
         }
 
-        $order = DB::transaction(function () use ($cartItems, $validated): Order {
+        $rawPayment = (string) ($validated['payment_method'] ?? 'Midtrans Snap');
+        $isCod = str_contains(strtolower($rawPayment), 'cod')
+            || str_contains(strtolower($rawPayment), 'bayar di tempat')
+            || str_contains(strtolower($rawPayment), 'cash on delivery');
+
+        $paymentMethod = $isCod ? 'Cash on Delivery (COD)' : 'Midtrans Snap';
+        $initialStatus = $isCod ? 'processing' : 'pending';
+
+        $order = DB::transaction(function () use ($cartItems, $validated, $paymentMethod, $initialStatus): Order {
             do {
                 $orderCode = 'ORD-'.date('Ymd').'-'.strtoupper(Str::random(6));
             } while (Order::where('order_code', $orderCode)->exists());
@@ -221,8 +251,8 @@ class CheckoutController extends Controller
                 'order_code' => $orderCode,
                 'user_id' => Auth::id(),
                 'total_price' => $totalPrice,
-                'payment_method' => $validated['payment_method'],
-                'status' => 'pending',
+                'payment_method' => $paymentMethod,
+                'status' => $initialStatus,
                 'shipping_address' => $validated['shipping_address'],
                 'customer_phone' => $validated['customer_phone'],
                 'notes' => $validated['notes'] ?? null,
@@ -247,11 +277,25 @@ class CheckoutController extends Controller
             return $order;
         });
 
+        // Jika metode COD, simpan pesanan dan selesaikan tanpa membuat transaksi atau menghubungi Midtrans
+        if ($isCod) {
+            return response()->json([
+                'success' => true,
+                'is_cod' => true,
+                'snap_token' => null,
+                'redirect_url' => route('checkout.success', $order->id),
+                'order_id' => $order->id,
+                'order_code' => $order->order_code,
+                'message' => 'Pesanan COD berhasil dibuat! Silakan siapkan uang tunai pas saat barang diantar kurir.',
+            ]);
+        }
+
         $snapResult = $this->requestMidtransSnapToken($order);
 
         if (! $snapResult['success']) {
             return response()->json([
                 'success' => false,
+                'is_cod' => false,
                 'message' => $snapResult['message'] ?? 'Gagal membuat transaksi di Midtrans.',
                 'order_id' => $order->id,
                 'order_code' => $order->order_code,
@@ -263,6 +307,7 @@ class CheckoutController extends Controller
 
         return response()->json([
             'success' => true,
+            'is_cod' => false,
             'snap_token' => $snapResult['token'],
             'redirect_url' => route('checkout.success', $order->id),
             'order_id' => $order->id,
@@ -460,6 +505,13 @@ class CheckoutController extends Controller
             ], 403);
         }
 
+        if ($order->isCod()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesanan dengan metode Cash on Delivery (COD) tidak memerlukan pembayaran online via Midtrans.',
+            ], 422);
+        }
+
         // Cek apakah pesanan sudah kadaluarsa (lebih dari 24 jam)
         if ($order->isExpired()) {
             if (! in_array($order->status, ['cancelled', 'dibatalkan'])) {
@@ -545,6 +597,18 @@ class CheckoutController extends Controller
             ], 403);
         }
 
+        if ($order->isCod()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Pesanan Cash on Delivery (COD) diselesaikan tunai saat barang diterima kurir.',
+                'order_code' => $order->order_code,
+                'status' => $order->status,
+                'status_label' => $order->status_label,
+                'can_be_paid' => false,
+                'updated' => false,
+            ]);
+        }
+
         // Sinkronkan status pesanan secara server-to-server ke Midtrans API
         // Mencegah perubahan status menjadi lunas hanya dari callback / parameter frontend
         $wasUpdated = $this->queryAndSyncOrderWithMidtrans($order);
@@ -567,8 +631,8 @@ class CheckoutController extends Controller
      */
     public function queryAndSyncOrderWithMidtrans(Order $order): bool
     {
-        // Jangan timpa pesanan yang sudah selesai
-        if (in_array($order->status, ['completed', 'selesai'])) {
+        // Jangan sinkronkan pesanan COD atau yang sudah selesai
+        if ($order->isCod() || in_array($order->status, ['completed', 'selesai'])) {
             return false;
         }
 

@@ -5,20 +5,20 @@
 @push('styles')
 <style>
     .payment-option-card {
-        border: 2px solid var(--border-light);
+        border: 2px solid #E2E8F0;
         border-radius: 12px;
         cursor: pointer;
         transition: all 0.2s ease;
         background-color: #ffffff;
     }
     .payment-option-card:hover {
-        border-color: #9CA3AF;
+        border-color: #93C5FD;
         background-color: #FAFAFA;
     }
     .payment-radio:checked + .payment-option-card {
-        border-color: var(--primary);
-        background-color: var(--primary-subtle);
-        box-shadow: 0 4px 12px rgba(8, 102, 245, 0.1);
+        border-color: #0866FF;
+        background-color: #EFF6FF;
+        box-shadow: 0 4px 12px rgba(8, 102, 255, 0.1);
     }
 </style>
 @endpush
@@ -101,19 +101,59 @@
                 </div>
             </div>
 
-            <!-- Midtrans Automated Payment -->
-            <input type="hidden" name="payment_method" value="Midtrans Snap">
-
-            <div class="card border-0 rounded-3 shadow-sm p-4" style="background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%); border: 1px solid #DBEAFE !important;">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background-color: #DBEAFE; color: #2563EB;">
-                        <i class="bi bi-shield-lock-fill fs-5"></i>
+            <!-- 2. Pilihan Metode Pembayaran (Hanya 2 Pilihan: Midtrans & COD) -->
+            <div class="card border-0 bg-white p-4 mb-4 rounded-3 shadow-sm">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-primary rounded-circle" style="width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">2</span>
+                        <h5 class="fw-bold text-dark mb-0">Metode Pembayaran</h5>
                     </div>
-                    <div>
-                        <h6 class="fw-bold text-dark mb-1">Sistem Pembayaran Otomatis Midtrans</h6>
-                        <p class="text-muted small mb-0">
-                            Pilihan metode pembayaran (QRIS, GoPay, ShopeePay, Virtual Account Bank, dan Kartu Kredit) akan muncul otomatis melalui popup Midtrans saat Anda menekan tombol di samping.
-                        </p>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill x-small fw-bold">
+                        2 Pilihan Tersedia
+                    </span>
+                </div>
+
+                <div class="row g-3">
+                    <!-- Pilihan 1: Midtrans Snap -->
+                    <div class="col-12 col-md-6">
+                        <input type="radio" class="btn-check payment-radio" name="payment_method" id="pay_method_midtrans" value="Midtrans Snap" checked>
+                        <label class="payment-option-card p-3 d-flex flex-column h-100" for="pay_method_midtrans">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-bold text-dark small d-flex align-items-center gap-1.5">
+                                    <i class="bi bi-shield-lock-fill text-primary"></i>
+                                    Pembayaran Online
+                                </span>
+                                <span class="badge bg-primary text-white x-small rounded-pill">Midtrans</span>
+                            </div>
+                            <p class="text-muted x-small mb-2 flex-grow-1 leading-relaxed">
+                                Bayar instan via <strong>QRIS, GoPay, ShopeePay, Virtual Account BCA / Mandiri / BRI / BNI</strong>, dan Kartu Kredit.
+                            </p>
+                            <div class="d-flex align-items-center gap-1 text-primary x-small fw-semibold mt-auto">
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Verifikasi Otomatis</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Pilihan 2: COD -->
+                    <div class="col-12 col-md-6">
+                        <input type="radio" class="btn-check payment-radio" name="payment_method" id="pay_method_cod" value="Cash on Delivery (COD)">
+                        <label class="payment-option-card p-3 d-flex flex-column h-100" for="pay_method_cod">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-bold text-dark small d-flex align-items-center gap-1.5">
+                                    <i class="bi bi-cash-coin text-success"></i>
+                                    COD (Bayar di Tempat)
+                                </span>
+                                <span class="badge bg-success text-white x-small rounded-pill">Tunai</span>
+                            </div>
+                            <p class="text-muted x-small mb-2 flex-grow-1 leading-relaxed">
+                                Bayar tunai dengan uang pas langsung kepada kurir saat pesanan tiba di alamat pengiriman Anda.
+                            </p>
+                            <div class="d-flex align-items-center gap-1 text-success x-small fw-semibold mt-auto">
+                                <i class="bi bi-truck"></i>
+                                <span>Bayar Saat Barang Diterima</span>
+                            </div>
+                        </label>
                     </div>
                 </div>
             </div>

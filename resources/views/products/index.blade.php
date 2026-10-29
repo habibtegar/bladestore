@@ -290,27 +290,31 @@
         display: grid;
         grid-template-columns: repeat(1, minmax(0, 1fr));
         gap: 1rem;
-        margin-bottom: 1.5rem;
+        margin-top: 0.5rem;
+        margin-bottom: 2.75rem;
     }
 
     @media (min-width: 576px) {
         .service-trust-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 3.25rem;
         }
     }
 
     @media (min-width: 992px) {
         .service-trust-grid {
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 1.25rem;
+            gap: 1.5rem;
+            margin-bottom: 3.75rem;
         }
     }
 
     .service-trust-card {
         background-color: #FFFFFF;
-        border-radius: 12px;
-        padding: 1.15rem 1.25rem;
-        border: 1px solid #F1F5F9;
+        border-radius: 14px;
+        padding: 1.2rem 1.25rem;
+        border: 1px solid #E2E8F0;
         box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.05);
         display: flex;
         align-items: center;
@@ -323,19 +327,19 @@
     .service-trust-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 18px -4px rgba(15, 23, 42, 0.09);
-        border-color: #E2E8F0;
+        border-color: #CBD5E1;
     }
 
     .service-trust-icon {
-        width: 42px;
-        height: 42px;
+        width: 44px;
+        height: 44px;
         border-radius: 50%;
         background-color: var(--primary-subtle);
         color: var(--primary);
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.2rem;
+        font-size: 1.25rem;
         flex-shrink: 0;
         transition: all 0.2s ease;
     }
@@ -352,13 +356,19 @@
     .category-marketplace-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 0.5rem;
+        gap: 0.85rem;
     }
 
     @media (min-width: 768px) {
         .category-marketplace-grid {
             grid-template-columns: repeat(8, minmax(0, 1fr));
-            gap: 0.65rem;
+            gap: 1rem;
+        }
+    }
+
+    @media (min-width: 1200px) {
+        .category-marketplace-grid {
+            gap: 1.15rem;
         }
     }
 
@@ -368,10 +378,10 @@
         align-items: center;
         justify-content: center;
         text-align: center;
-        padding: 0.75rem 0.35rem 0.65rem;
+        padding: 1.05rem 0.5rem 0.95rem;
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
-        border-radius: 12px;
+        border-radius: 14px;
         text-decoration: none;
         aspect-ratio: 1 / 1;
         box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -392,10 +402,10 @@
     }
 
     .category-square-icon {
-        font-size: 1.65rem;
+        font-size: 1.75rem;
         line-height: 1;
         color: var(--primary, #0866FF);
-        margin-bottom: 0.35rem;
+        margin-bottom: 0.45rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -408,21 +418,21 @@
     }
 
     .category-square-name {
-        font-size: 0.775rem;
+        font-size: 0.8rem;
         font-weight: 500;
-        line-height: 1.2;
+        line-height: 1.25;
         color: var(--slate-800, #1E293B);
         text-align: center;
         width: 100%;
-        padding: 0 0.15rem;
+        padding: 0 0.2rem;
         white-space: normal;
         word-break: break-word;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        height: 1.85rem;
-        min-height: 1.85rem;
+        height: 1.95rem;
+        min-height: 1.95rem;
         transition: color 0.2s ease, font-weight 0.2s ease;
     }
 
@@ -688,11 +698,11 @@
 
                     <!-- Discreet Trust Notes -->
                     <div class="hero-trust-row d-flex flex-wrap align-items-center gap-2 gap-sm-3 text-muted">
-                        <span class="d-inline-flex align-items-center gap-1.5"><i class="bi bi-shield-check text-primary"></i> 100% Produk Terverifikasi</span>
+                        <span class="d-inline-flex align-items-center gap-2"><i class="bi bi-shield-check text-primary"></i> 100% Produk Terverifikasi</span>
                         <span class="d-none d-sm-inline opacity-50">&bull;</span>
-                        <span class="d-inline-flex align-items-center gap-1.5"><i class="bi bi-truck text-primary"></i> Layanan COD</span>
+                        <span class="d-inline-flex align-items-center gap-2"><i class="bi bi-truck text-primary"></i> Layanan COD</span>
                         <span class="d-none d-sm-inline opacity-50">&bull;</span>
-                        <span class="d-inline-flex align-items-center gap-1.5"><i class="bi bi-credit-card text-primary"></i> Bebas Biaya Admin</span>
+                        <span class="d-inline-flex align-items-center gap-2"><i class="bi bi-credit-card text-primary"></i> Bebas Biaya Admin</span>
                     </div>
 
                 </div>
@@ -750,8 +760,8 @@
             <i class="bi bi-truck"></i>
         </div>
         <div>
-            <span class="fw-bold text-dark small d-block mb-0.5" style="font-size: 0.85rem; line-height: 1.25;">Bayar di Tempat (COD)</span>
-            <span class="text-muted d-block" style="font-size: 0.725rem; line-height: 1.25;">Bayar aman saat paket tiba</span>
+            <span class="fw-bold text-dark small d-block mb-1" style="font-size: 0.875rem; line-height: 1.3;">Bayar di Tempat (COD)</span>
+            <span class="text-muted d-block" style="font-size: 0.75rem; line-height: 1.3;">Bayar aman saat paket tiba</span>
         </div>
     </div>
 
@@ -761,8 +771,8 @@
             <i class="bi bi-bank"></i>
         </div>
         <div>
-            <span class="fw-bold text-dark small d-block mb-0.5" style="font-size: 0.85rem; line-height: 1.25;">Transfer Bebas Admin</span>
-            <span class="text-muted d-block" style="font-size: 0.725rem; line-height: 1.25;">BCA, Mandiri, BRI, BNI</span>
+            <span class="fw-bold text-dark small d-block mb-1" style="font-size: 0.875rem; line-height: 1.3;">Transfer Bebas Admin</span>
+            <span class="text-muted d-block" style="font-size: 0.75rem; line-height: 1.3;">BCA, Mandiri, BRI, BNI</span>
         </div>
     </div>
 
@@ -772,8 +782,8 @@
             <i class="bi bi-patch-check"></i>
         </div>
         <div>
-            <span class="fw-bold text-dark small d-block mb-0.5" style="font-size: 0.85rem; line-height: 1.25;">100% Produk Asli</span>
-            <span class="text-muted d-block" style="font-size: 0.725rem; line-height: 1.25;">Lolos kurasi mutu terjamin</span>
+            <span class="fw-bold text-dark small d-block mb-1" style="font-size: 0.875rem; line-height: 1.3;">100% Produk Asli</span>
+            <span class="text-muted d-block" style="font-size: 0.75rem; line-height: 1.3;">Lolos kurasi mutu terjamin</span>
         </div>
     </div>
 
@@ -783,8 +793,8 @@
             <i class="bi bi-headset"></i>
         </div>
         <div>
-            <span class="fw-bold text-dark small d-block mb-0.5" style="font-size: 0.85rem; line-height: 1.25;">CS WhatsApp</span>
-            <span class="text-muted d-block" style="font-size: 0.725rem; line-height: 1.25;">Bantuan responsif setiap hari</span>
+            <span class="fw-bold text-dark small d-block mb-1" style="font-size: 0.875rem; line-height: 1.3;">CS WhatsApp</span>
+            <span class="text-muted d-block" style="font-size: 0.75rem; line-height: 1.3;">Bantuan responsif setiap hari</span>
         </div>
     </div>
 </div>
@@ -792,14 +802,14 @@
 <!-- ==========================================
      3. KATEGORI MARKETPLACE PILIHAN
      ========================================== -->
-<section id="kategori-marketplace" class="mb-3 mb-md-4">
-    <div class="d-flex justify-content-between align-items-center mb-2.5 flex-wrap gap-2">
+<section id="kategori-marketplace" class="mb-5 pb-lg-2">
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-1 flex-wrap gap-2">
         <div>
-            <h5 class="fw-bold text-dark mb-0" style="font-size: 1.05rem;">Kategori Pilihan</h5>
-            <p class="text-muted x-small mb-0">Jelajahi berbagai pilihan kategori kebutuhan Anda</p>
+            <h5 class="fw-bold text-dark mb-1" style="font-size: 1.15rem; letter-spacing: -0.01em;">Kategori Pilihan</h5>
+            <p class="text-muted small mb-0">Jelajahi berbagai pilihan kategori kebutuhan Anda</p>
         </div>
         @if($category ?? false)
-            <a href="{{ route('products.index', array_filter(['search' => $search, 'sort' => $sort])) }}#katalog-produk" class="badge bg-light text-secondary border text-decoration-none py-1.5 px-2.5 rounded-pill x-small">
+            <a href="{{ route('products.index', array_filter(['search' => $search, 'sort' => $sort])) }}#katalog-produk" class="badge bg-light text-secondary border text-decoration-none py-1.5 px-3 rounded-pill small">
                 <i class="bi bi-x-circle text-danger me-1"></i> Reset: {{ $category }}
             </a>
         @endif
@@ -918,19 +928,19 @@
 <!-- ==========================================
      4. KATALOG PRODUK & CONTROL TOOLBAR
      ========================================== -->
-<section id="katalog-produk" class="mb-5">
+<section id="katalog-produk" class="mb-5 pt-1">
     
     <!-- Control Toolbar Card -->
-    <div class="card border-0 p-3 p-md-3.5 mb-4 rounded-3 shadow-sm bg-white">
+    <div class="card border p-3 p-md-4 mb-4 pb-1 rounded-4 shadow-sm bg-white" style="border: 1px solid #E2E8F0 !important;">
         <form action="{{ route('products.index') }}#katalog-produk" method="GET" id="catalog-filter-form">
             <!-- Baris 1: Header Judul, Counter, Pencarian & Pengurutan Cepat -->
-            <div class="row g-2.5 align-items-center justify-content-between">
+            <div class="row g-3 align-items-center justify-content-between">
                 
                 <!-- Counter & Filter Information -->
                 <div class="col-12 col-md-4">
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         <h5 class="fw-bold text-dark mb-0 fs-6">Katalog Produk</h5>
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 x-small fw-semibold">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 x-small fw-semibold rounded-pill">
                             <i class="bi bi-box-seam me-1"></i>{{ $products->total() }} Produk
                         </span>
                     </div>
@@ -961,7 +971,7 @@
                         </div>
 
                         <!-- Sort Select -->
-                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
+                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
                             <select name="sort" class="form-select form-select-sm" style="min-width: 135px;" onchange="this.form.submit()" aria-label="Urutkan Produk">
                                 <option value="latest" {{ ($sort ?? 'latest') === 'latest' ? 'selected' : '' }}>Terbaru</option>
                                 <option value="price_asc" {{ ($sort ?? '') === 'price_asc' ? 'selected' : '' }}>Harga Terendah</option>
@@ -971,7 +981,7 @@
                         </div>
 
                         <!-- Button Toggle Filter Lanjutan -->
-                        <button class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1.5 flex-shrink-0 {{ ($minPrice || $maxPrice || $inStockOnly || $category) ? 'active border-primary text-primary' : '' }}" 
+                        <button class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-2 flex-shrink-0 {{ ($minPrice || $maxPrice || $inStockOnly || $category) ? 'active border-primary text-primary' : '' }}" 
                                 type="button" 
                                 data-bs-toggle="collapse" 
                                 data-bs-target="#advancedCatalogFilters" 
@@ -1057,12 +1067,12 @@
                     </div>
 
                     <!-- Action Button in Filter -->
-                    <div class="col-12 col-sm-6 col-md-2 d-flex gap-1.5">
+                    <div class="col-12 col-sm-6 col-md-2 d-flex gap-2">
                         <button type="submit" class="btn btn-sm btn-primary w-100 fw-semibold">
                             Filter
                         </button>
                         @if($search || ($category ?? false) || ($minPrice ?? false) || ($maxPrice ?? false) || $inStockOnly)
-                            <a href="{{ route('products.index') }}#katalog-produk" class="btn btn-sm btn-outline-danger px-2.5" title="Reset semua filter">
+                            <a href="{{ route('products.index') }}#katalog-produk" class="btn btn-sm btn-outline-danger px-3" title="Reset semua filter">
                                 <i class="bi bi-arrow-counterclockwise"></i>
                             </a>
                         @endif
@@ -1075,39 +1085,39 @@
 
         <!-- Active Filter Pills Bar -->
         @if($search || ($category ?? false) || ($minPrice ?? false) || ($maxPrice ?? false) || $inStockOnly)
-            <div class="d-flex align-items-center flex-wrap gap-1.5 pt-2.5 mt-2.5 border-top">
+            <div class="d-flex align-items-center flex-wrap gap-2 pt-3 mt-3 border-top">
                 <span class="text-muted x-small fw-semibold me-1">Filter Aktif:</span>
                 
                 @if($search)
-                    <span class="badge bg-light text-dark border px-2 py-1 x-small fw-normal d-inline-flex align-items-center gap-1.5">
+                    <span class="badge bg-light text-dark border px-2 py-1 x-small fw-normal d-inline-flex align-items-center gap-1">
                         <span>Kata kunci: <strong>"{{ $search }}"</strong></span>
                         <a href="{{ route('products.index', array_filter(['category' => $category, 'sort' => $sort, 'min_price' => $minPrice, 'max_price' => $maxPrice, 'in_stock' => $inStockOnly ? '1' : null])) }}#katalog-produk" class="text-secondary text-decoration-none">&times;</a>
                     </span>
                 @endif
 
                 @if($category ?? false)
-                    <span class="badge bg-light text-dark border px-2 py-1 x-small fw-normal d-inline-flex align-items-center gap-1.5">
+                    <span class="badge bg-light text-dark border px-2 py-1 x-small fw-normal d-inline-flex align-items-center gap-1">
                         <span>Kategori: <strong>{{ $category }}</strong></span>
                         <a href="{{ route('products.index', array_filter(['search' => $search, 'sort' => $sort, 'min_price' => $minPrice, 'max_price' => $maxPrice, 'in_stock' => $inStockOnly ? '1' : null])) }}#katalog-produk" class="text-secondary text-decoration-none">&times;</a>
                     </span>
                 @endif
 
                 @if($minPrice)
-                    <span class="badge bg-light text-dark border px-2 py-1 x-small fw-normal d-inline-flex align-items-center gap-1.5">
+                    <span class="badge bg-light text-dark border px-2 py-1 x-small fw-normal d-inline-flex align-items-center gap-1">
                         <span>Min: <strong>Rp {{ number_format((float)$minPrice, 0, ',', '.') }}</strong></span>
                         <a href="{{ route('products.index', array_filter(['search' => $search, 'category' => $category, 'sort' => $sort, 'max_price' => $maxPrice, 'in_stock' => $inStockOnly ? '1' : null])) }}#katalog-produk" class="text-secondary text-decoration-none">&times;</a>
                     </span>
                 @endif
 
                 @if($maxPrice)
-                    <span class="badge bg-light text-dark border px-2 py-1 x-small fw-normal d-inline-flex align-items-center gap-1.5">
+                    <span class="badge bg-light text-dark border px-2 py-1 x-small fw-normal d-inline-flex align-items-center gap-1">
                         <span>Maks: <strong>Rp {{ number_format((float)$maxPrice, 0, ',', '.') }}</strong></span>
                         <a href="{{ route('products.index', array_filter(['search' => $search, 'category' => $category, 'sort' => $sort, 'min_price' => $minPrice, 'in_stock' => $inStockOnly ? '1' : null])) }}#katalog-produk" class="text-secondary text-decoration-none">&times;</a>
                     </span>
                 @endif
 
                 @if($inStockOnly)
-                    <span class="badge bg-light text-dark border px-2 py-1 x-small fw-normal d-inline-flex align-items-center gap-1.5">
+                    <span class="badge bg-light text-dark border px-2 py-1 x-small fw-normal d-inline-flex align-items-center gap-1">
                         <span><i class="bi bi-check2 text-success me-0.5"></i> Ready Stock Saja</span>
                         <a href="{{ route('products.index', array_filter(['search' => $search, 'category' => $category, 'sort' => $sort, 'min_price' => $minPrice, 'max_price' => $maxPrice])) }}#katalog-produk" class="text-secondary text-decoration-none">&times;</a>
                     </span>
@@ -1121,7 +1131,7 @@
     </div>
 
     <!-- Product Grid (2 columns on mobile, 3 on tablet, 4 on desktop) -->
-    <div class="row g-2 g-md-3 g-lg-3.5" id="products-catalog-grid">
+    <div class="row g-3 g-md-3 g-lg-4" id="products-catalog-grid">
         @php
             $svgFallback = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20400%20400%22%20width%3D%22400%22%20height%3D%22400%22%3E%3Crect%20fill%3D%22%23F1F5F9%22%20width%3D%22400%22%20height%3D%22400%22%2F%3E%3Crect%20x%3D%22150%22%20y%3D%22140%22%20width%3D%22100%22%20height%3D%2280%22%20rx%3D%2210%22%20fill%3D%22%23CBD5E1%22%2F%3E%3Ccircle%20cx%3D%22180%22%20cy%3D%22170%22%20r%3D%2210%22%20fill%3D%22%2394A3B8%22%2F%3E%3Cpath%20d%3D%22M165%20205l20-22%2015%2015%2022-25%2018%2032z%22%20fill%3D%22%2394A3B8%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%22260%22%20text-anchor%3D%22middle%22%20fill%3D%22%2394A3B8%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20font-weight%3D%22600%22%3EBladeStore%3C%2Ftext%3E%3C%2Fsvg%3E";
         @endphp
@@ -1175,10 +1185,10 @@
                     </div>
 
                     <!-- Card Body -->
-                    <div class="card-body p-2.5 p-sm-3 d-flex flex-column">
+                    <div class="card-body p-3 d-flex flex-column">
                         
                         <!-- Rating & Sold Count -->
-                        <div class="d-flex align-items-center gap-1.5 mb-1.5 text-nowrap" style="height: 1.15rem;">
+                        <div class="d-flex align-items-center gap-1 mb-2 text-nowrap" style="height: 1.15rem;">
                             <span class="text-warning small" style="font-size: 0.75rem;">
                                 <i class="bi bi-star-fill"></i>
                             </span>
@@ -1187,7 +1197,7 @@
                         </div>
 
                         <!-- Product Title (Strict 2-lines clamp with fixed height) -->
-                        <h6 class="product-card-title mb-1.5">
+                        <h6 class="product-card-title mb-2">
                             <a href="{{ route('products.show', $product->slug) }}" class="text-decoration-none text-dark stretched-link" title="{{ $product->name }}">
                                 {{ $product->name }}
                             </a>
@@ -1207,7 +1217,7 @@
                         </div>
 
                         <!-- Price Section (Aligned at Bottom with mt-auto) -->
-                        <div class="mb-2.5 mt-auto pt-1">
+                        <div class="mb-3 mt-auto pt-1">
                             <div class="fw-bold text-primary product-card-price">
                                 @if($product->discount_percentage > 0)
                                     {{ $product->formatted_final_price }}
@@ -1237,7 +1247,7 @@
                                     <input type="hidden" name="product_id" value="{{ $product->id }}">
                                     <input type="hidden" name="quantity" value="1">
                                     <button type="submit" 
-                                            class="btn btn-primary btn-add-cart-compact w-100 py-1.5 px-2 rounded-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-1.5 text-nowrap" 
+                                            class="btn btn-primary btn-add-cart-compact w-100 py-1.5 px-2 rounded-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 text-nowrap" 
                                             aria-label="Tambah {{ $product->name }} ke Keranjang">
                                         <i class="bi bi-cart-plus-fill"></i>
                                         <span>+ Keranjang</span>
@@ -1245,7 +1255,7 @@
                                 </form>
                             @else
                                 <button type="button" 
-                                        class="btn btn-light border text-muted w-100 py-1.5 px-2 rounded-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-1.5 disabled" 
+                                        class="btn btn-light border text-muted w-100 py-1.5 px-2 rounded-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 disabled" 
                                         style="font-size: 0.775rem;" 
                                         disabled>
                                     <i class="bi bi-dash-circle"></i>
@@ -1261,7 +1271,7 @@
             <div class="col-12">
                 <div class="card border-0 p-5 text-center rounded-3 bg-white shadow-sm my-3">
                     <div class="mb-3">
-                        <span class="p-3.5 bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 68px; height: 68px;">
+                        <span class="p-3 bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 68px; height: 68px;">
                             <i class="bi bi-search fs-2"></i>
                         </span>
                     </div>

@@ -343,6 +343,158 @@
             background-color: var(--primary-subtle);
         }
 
+        /* 1. Navbar Profile Avatar Circle Button (Sesuai Referensi Gambar 2) */
+        .nav-profile-avatar-btn {
+            border: none;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            border-radius: 50%;
+            outline: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-profile-avatar-btn::after {
+            display: none !important;
+        }
+
+        .nav-profile-avatar-btn:hover,
+        .nav-profile-avatar-btn[aria-expanded="true"] {
+            transform: scale(1.06);
+        }
+
+        .nav-profile-avatar-inner {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0866FF 0%, #1D4ED8 100%);
+            color: #FFFFFF;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            box-shadow: 0 2px 8px rgba(8, 102, 255, 0.28);
+            border: 2px solid #FFFFFF;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .nav-profile-avatar-btn:hover .nav-profile-avatar-inner,
+        .nav-profile-avatar-btn[aria-expanded="true"] .nav-profile-avatar-inner {
+            border-color: #93C5FD;
+            box-shadow: 0 0 0 3px rgba(8, 102, 255, 0.35);
+        }
+
+        /* 2. Modern Dark Profile Dropdown Card (Sesuai Referensi Gambar 2) */
+        .dark-profile-dropdown {
+            background-color: #181A20 !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+            min-width: 280px !important;
+            padding: 1.15rem 1rem 1rem !important;
+            margin-top: 10px !important;
+            animation: dropdownFadeIn 0.18s ease-out;
+        }
+
+        @keyframes dropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile-dropdown-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0866FF 0%, #1D4ED8 100%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .profile-dropdown-initial {
+            color: #FFFFFF;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .dark-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0.85rem;
+            border-radius: 10px;
+            color: #CBD5E1 !important;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none !important;
+            transition: all 0.18s ease-in-out;
+            background: transparent;
+        }
+
+        .dark-dropdown-item i {
+            font-size: 1.15rem;
+            color: #94A3B8;
+            transition: color 0.18s ease;
+        }
+
+        .dark-dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #FFFFFF !important;
+            transform: translateX(3px);
+        }
+
+        .dark-dropdown-item:hover i {
+            color: #38BDF8;
+        }
+
+        .dropdown-divider-dark {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.08);
+            margin: 0.65rem 0;
+        }
+
+        .dark-dropdown-logout-btn {
+            width: 100%;
+            background-color: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #F87171;
+            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.55rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .dark-dropdown-logout-btn:hover {
+            background-color: rgba(239, 68, 68, 0.24);
+            border-color: rgba(239, 68, 68, 0.65);
+            color: #FFFFFF;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.25);
+        }
+
         /* Mobile Hamburger Button */
         .navbar-hamburger-btn {
             border: 1px solid var(--border-color);
@@ -974,78 +1126,92 @@
                 <!-- Divider Halus Antara Ikon dan Profil -->
                 <div class="vr my-2 text-secondary opacity-25 d-none d-lg-block" style="height: 24px;"></div>
 
-                <!-- Dropdown Profil Pengguna (Desktop) -->
+                <!-- Dropdown Profil Pengguna (Desktop - Sesuai Referensi Gambar 2) -->
                 @auth
                     <div class="dropdown d-none d-lg-block">
-                        <button class="nav-profile-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 26px; height: 26px; font-size: 0.75rem;">
-                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                            </span>
-                            <span class="text-truncate d-none d-xl-inline" style="max-width: 120px;">
-                                {{ auth()->user()->name }}
-                            </span>
+                        <button class="nav-profile-avatar-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ auth()->user()->name }}">
+                            <div class="nav-profile-avatar-inner">
+                                <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=0866FF&color=ffffff&bold=true&size=100" 
+                                     alt="{{ auth()->user()->name }}" 
+                                     class="w-100 h-100 rounded-circle object-fit-cover"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+                                <span class="nav-profile-initial" style="display: none;">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
+                            </div>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 py-2 mt-2" style="min-width: 240px;">
-                            <!-- Header Info Pengguna -->
-                            <li class="px-3 py-2 border-bottom mb-1 bg-light">
-                                <div class="fw-bold text-dark small text-truncate">{{ auth()->user()->name }}</div>
-                                <div class="text-muted x-small text-truncate">{{ auth()->user()->email }}</div>
-                                <span class="badge {{ auth()->user()->isAdmin() ? 'bg-danger' : 'bg-primary' }} x-small mt-1">
-                                    {{ auth()->user()->isAdmin() ? 'Administrator' : 'Pelanggan' }}
-                                </span>
-                            </li>
 
-                            <!-- 1. Pengaturan Akun -->
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2.5 py-2 small" href="#" onclick="alert('Fitur Pengaturan Akun akan segera hadir.'); return false;">
-                                    <i class="bi bi-gear text-secondary fs-6"></i>
-                                    <span>Pengaturan Akun</span>
+                        <div class="dropdown-menu dropdown-menu-end dark-profile-dropdown border-0 mt-2">
+                            <!-- 1. Header Info Pengguna (Avatar, Nama, Email) -->
+                            <div class="d-flex align-items-center gap-3 px-1 pb-3 mb-2 border-bottom border-secondary border-opacity-25">
+                                <div class="profile-dropdown-avatar flex-shrink-0">
+                                    <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=0866FF&color=ffffff&bold=true&size=120" 
+                                         alt="{{ auth()->user()->name }}" 
+                                         class="w-100 h-100 rounded-circle object-fit-cover"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+                                    <span class="profile-dropdown-initial" style="display: none;">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <div class="fw-bold text-white text-truncate" style="font-size: 0.95rem; letter-spacing: -0.01em;">
+                                        {{ auth()->user()->name }}
+                                    </div>
+                                    <div class="text-secondary text-truncate" style="font-size: 0.775rem; color: #94A3B8 !important;">
+                                        {{ auth()->user()->email }}
+                                    </div>
+                                    @if(auth()->user()->isAdmin())
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle x-small mt-1 px-2 py-0.5" style="font-size: 0.65rem;">
+                                            Administrator
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- 2. Menu Navigasi -->
+                            <div class="d-flex flex-column gap-1 my-1">
+                                <!-- My Profile / Profil Saya -->
+                                <a class="dark-dropdown-item" href="#" onclick="alert('Fitur Pengaturan Akun akan segera hadir.'); return false;">
+                                    <i class="bi bi-person"></i>
+                                    <span>My Profile</span>
+                                    <span class="visually-hidden">Pengaturan Akun</span>
                                 </a>
-                            </li>
 
-                            <!-- 2. Pesanan Saya -->
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2.5 py-2 small" href="{{ route('orders.index') }}">
-                                    <i class="bi bi-receipt text-primary fs-6"></i>
+                                <!-- Pesanan Saya -->
+                                <a class="dark-dropdown-item" href="{{ route('orders.index') }}">
+                                    <i class="bi bi-bag-check"></i>
                                     <span>Pesanan Saya</span>
                                 </a>
-                            </li>
 
-                            {{-- 3. Dashboard Admin (Hanya jika pengguna login memiliki role sebagai Admin) --}}
-                            @if(auth()->user()->isAdmin())
-                                <li><hr class="dropdown-divider my-1"></li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center justify-content-between py-2 small text-danger fw-semibold" href="{{ route('admin.dashboard') }}">
-                                        <div class="d-flex align-items-center gap-2.5">
-                                            <i class="bi bi-grid-1x2-fill fs-6 text-danger"></i>
-                                            <span>Dashboard Admin</span>
-                                        </div>
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle x-small">Utama</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center justify-content-between py-2 small text-danger fw-semibold" href="{{ route('admin.orders.index') }}">
-                                        <div class="d-flex align-items-center gap-2.5">
-                                            <i class="bi bi-receipt-cutoff fs-6 text-danger"></i>
-                                            <span>Kelola Pesanan</span>
-                                        </div>
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle x-small">Panel Administrator</span>
-                                    </a>
-                                </li>
-                            @endif
+                                <!-- Favorites -->
+                                <a class="dark-dropdown-item" href="#" onclick="alert('Fitur Favorit & Wishlist akan segera hadir.'); return false;">
+                                    <i class="bi bi-heart"></i>
+                                    <span>Favorites</span>
+                                </a>
 
-                            <!-- 4. Keluar / Logout (dengan form POST yang aman) -->
-                            <li><hr class="dropdown-divider my-1"></li>
-                            <li>
-                                <form action="{{ route('logout') }}" method="POST" class="m-0 p-0">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2.5 py-2 small text-muted">
-                                        <i class="bi bi-box-arrow-right fs-6"></i>
-                                        <span>Keluar / Logout</span>
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
+                                {{-- Khusus Administrator --}}
+                                @if(auth()->user()->isAdmin())
+                                    <div class="dropdown-divider-dark my-1.5"></div>
+                                    <a class="dark-dropdown-item" href="{{ route('admin.dashboard') }}">
+                                        <i class="bi bi-grid-1x2 text-primary"></i>
+                                        <span class="text-white">Dashboard Admin</span>
+                                        <span class="badge bg-primary text-white rounded-pill ms-auto x-small px-2" style="font-size: 0.625rem;">Utama</span>
+                                    </a>
+                                    <a class="dark-dropdown-item" href="{{ route('admin.orders.index') }}">
+                                        <i class="bi bi-receipt-cutoff text-primary"></i>
+                                        <span class="text-white">Kelola Pesanan</span>
+                                    </a>
+                                @endif
+                            </div>
+
+                            <!-- 3. Bottom Divider & Red Logout Button (Sesuai Referensi) -->
+                            <div class="dropdown-divider-dark my-2"></div>
+
+                            <form action="{{ route('logout') }}" method="POST" class="m-0 p-0">
+                                @csrf
+                                <button type="submit" class="dark-dropdown-logout-btn">
+                                    <i class="bi bi-box-arrow-right fs-5"></i>
+                                    <span>Logout / Sign Out</span>
+                                    <span class="visually-hidden">Keluar / Logout</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 @else
                     <div class="dropdown d-none d-lg-block">
@@ -1161,17 +1327,27 @@
             <!-- User Auth Footer in Mobile Drawer -->
             <div class="border-top pt-3 mt-3">
                 @auth
-                    <div class="bg-light p-2.5 rounded-3 mb-2.5">
-                        <div class="fw-bold text-dark small text-truncate">{{ auth()->user()->name }}</div>
-                        <div class="text-muted x-small text-truncate">{{ auth()->user()->email }}</div>
-                        <span class="badge {{ auth()->user()->isAdmin() ? 'bg-danger' : 'bg-primary' }} x-small mt-1">
-                            {{ auth()->user()->isAdmin() ? 'Administrator' : 'Pelanggan' }}
-                        </span>
+                    <div class="p-3 rounded-3 mb-2.5" style="background-color: #181A20; border: 1px solid rgba(255, 255, 255, 0.08);">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <div class="profile-dropdown-avatar" style="width: 40px; height: 40px;">
+                                <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=0866FF&color=ffffff&bold=true&size=100" 
+                                     alt="{{ auth()->user()->name }}" 
+                                     class="w-100 h-100 rounded-circle object-fit-cover"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+                                <span class="profile-dropdown-initial" style="display: none; font-size: 1rem;">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
+                            </div>
+                            <div class="overflow-hidden">
+                                <div class="fw-bold text-white small text-truncate">{{ auth()->user()->name }}</div>
+                                <div class="text-secondary x-small text-truncate" style="color: #94A3B8 !important;">{{ auth()->user()->email }}</div>
+                            </div>
+                        </div>
                     </div>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
-                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-1.5 py-2">
-                            <i class="bi bi-box-arrow-right"></i> Keluar Akun
+                        <button type="submit" class="dark-dropdown-logout-btn">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>Logout / Sign Out</span>
+                            <span class="visually-hidden">Keluar / Logout</span>
                         </button>
                     </form>
                 @else
