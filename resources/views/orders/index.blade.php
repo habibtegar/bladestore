@@ -220,9 +220,15 @@
                         <!-- Badge Status Pesanan -->
                         <div>
                             @if(in_array($order->status, ['pending', 'belum_bayar']))
-                                <span class="badge px-3 py-1.5 rounded-pill fw-bold x-small" style="background-color: #FEF08A; border: 1px solid #FDE047; color: #854D0E;">
-                                    <i class="bi bi-clock-history me-1"></i> Belum Bayar
-                                </span>
+                                @if($order->isCod())
+                                    <span class="badge px-3 py-1.5 rounded-pill fw-bold x-small" style="background-color: #E0F2FE; border: 1px solid #BAE6FD; color: #0284C7;">
+                                        <i class="bi bi-cash-coin me-1"></i> COD (Bayar di Tempat)
+                                    </span>
+                                @else
+                                    <span class="badge px-3 py-1.5 rounded-pill fw-bold x-small" style="background-color: #FEF08A; border: 1px solid #FDE047; color: #854D0E;">
+                                        <i class="bi bi-clock-history me-1"></i> Belum Bayar
+                                    </span>
+                                @endif
                             @elseif(in_array($order->status, ['processing', 'dikemas']))
                                 <span class="badge px-3 py-1.5 rounded-pill fw-bold x-small" style="background-color: #BAE6FD; border: 1px solid #7DD3FC; color: #0369A1;">
                                     <i class="bi bi-box-seam me-1"></i> Dikemas
@@ -337,21 +343,44 @@
     document.addEventListener('DOMContentLoaded', function() {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-        function syncAndReload(orderId, btn) {
+        function syncAndReload(orderId, btn, snapResult) {
             if (btn) {
                 btn.disabled = true;
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengonfirmasi...';
             }
 
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.backgroundColor = 'rgba(15, 23, 42, 0.75)';
+            overlay.style.zIndex = '99999';
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.color = '#fff';
+            overlay.innerHTML = '<div class="spinner-border text-light mb-3" style="width: 3rem; height: 3rem;" role="status"></div><h5 class="fw-bold text-white mb-1">Memverifikasi Pembayaran...</h5><p class="small text-light opacity-75 mb-0">Mohon tunggu sebentar, status pesanan sedang diperbarui.</p>';
+            document.body.appendChild(overlay);
+
             fetch('/orders/' + orderId + '/sync-status', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': csrfToken,
+                    'Content-Type': 'application/json',
                     'Accept': 'application/json'
-                }
+                },
+                body: JSON.stringify(snapResult || {})
             })
             .then(function(res) { return res.json(); })
-            .finally(function() {
+            .then(function() {
+                setTimeout(function() {
+                    window.location.reload();
+                }, 500);
+            })
+            .catch(function() {
                 window.location.reload();
             });
         }
@@ -361,7 +390,7 @@
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 const orderId = this.getAttribute('data-order-id');
-                syncAndReload(orderId, this);
+                syncAndReload(orderId, this, {});
             });
         });
 
@@ -374,12 +403,12 @@
 
                 function launchSnap(token) {
                     window.snap.pay(token, {
-                        onSuccess: function() { syncAndReload(orderId, btn); },
-                        onPending: function() { syncAndReload(orderId, btn); },
+                        onSuccess: function(result) { syncAndReload(orderId, btn, result); },
+                        onPending: function(result) { syncAndReload(orderId, btn, result); },
                         onError: function() { alert('Pembayaran gagal atau dibatalkan.'); },
                         onClose: function() {
                             // Cek jika pembayaran sebenarnya sudah diselesaikan di simulator
-                            syncAndReload(orderId, btn);
+                            syncAndReload(orderId, btn, {});
                         }
                     });
                 }

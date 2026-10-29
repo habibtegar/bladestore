@@ -520,7 +520,7 @@ class CheckoutController extends Controller
     /**
      * Check and sync order status directly from Midtrans API.
      */
-    public function syncStatus(Order $order): JsonResponse
+    public function syncStatus(Request $request, Order $order): JsonResponse
     {
         if ($order->user_id !== Auth::id()) {
             return response()->json([
@@ -529,7 +529,28 @@ class CheckoutController extends Controller
             ], 403);
         }
 
-        $wasUpdated = $this->queryAndSyncOrderWithMidtrans($order);
+        $wasUpdated = false;
+
+        // Cek jika client mengirimkan callback payload Snap hasil pembayaran sukses
+        $snapStatus = (string) ($request->input('transaction_status') ?? $request->input('snap_result.transaction_status') ?? '');
+        $snapStatusCode = (string) ($request->input('status_code') ?? $request->input('snap_result.status_code') ?? '');
+        $snapOrderId = (string) ($request->input('order_id') ?? $request->input('snap_result.order_id') ?? '');
+
+        if (! empty($snapOrderId) && $snapOrderId === $order->order_code) {
+            if ($snapStatus === 'settlement' || ($snapStatus === 'capture' && ($request->input('fraud_status') ?? 'accept') === 'accept') || $snapStatusCode === '200') {
+                if (in_array($order->status, ['pending', 'belum_bayar'])) {
+                    $order->update(['status' => 'processing']);
+                    $wasUpdated = true;
+                }
+            }
+        }
+
+        // Sinkronkan juga langsung dengan Midtrans API server-to-server
+        $apiUpdated = $this->queryAndSyncOrderWithMidtrans($order);
+        if ($apiUpdated) {
+            $wasUpdated = true;
+        }
+
         $order->refresh();
 
         return response()->json([

@@ -9,12 +9,20 @@
         <div class="card border-0 bg-white p-4 p-md-5 text-center mb-4 rounded-4 shadow-sm">
             @if(in_array($order->status, ['processing', 'dikemas', 'shipped', 'dikirim', 'completed', 'selesai']))
                 <div class="mb-3">
-                    <span class="p-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background-color: var(--success-subtle); color: var(--success-color);">
+                    <span class="p-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background-color: #DCFCE7; color: #15803D;">
                         <i class="bi bi-check-circle-fill display-5 text-success"></i>
                     </span>
                 </div>
                 <h3 class="fw-bold text-dark mb-1">Pembayaran Berhasil Diverifikasi</h3>
                 <p class="text-muted small mb-3">Terima kasih! Pembayaran Anda sebesar <strong>{{ $order->formatted_total_price }}</strong> telah kami terima. Pesanan Anda saat ini sedang dikemas oleh toko.</p>
+            @elseif($order->isCod())
+                <div class="mb-3">
+                    <span class="p-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background-color: #E0F2FE; color: #0284C7;">
+                        <i class="bi bi-cash-coin display-5 text-primary"></i>
+                    </span>
+                </div>
+                <h3 class="fw-bold text-dark mb-1">Pesanan Dibuat — Menunggu Pengiriman (COD)</h3>
+                <p class="text-muted small mb-3">Pesanan Anda telah dicatat dengan metode <strong class="text-primary">Cash on Delivery (Bayar di Tempat)</strong>. Pembayaran dilakukan secara tunai kepada kurir saat barang tiba.</p>
             @elseif(in_array($order->status, ['pending', 'belum_bayar']))
                 <div class="mb-3">
                     <span class="p-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background-color: #FEF3C7; color: #D97706;">
@@ -312,16 +320,44 @@
             const orderId = @json($order->id);
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-            function syncAndReload() {
+            function syncAndReload(snapResult, btn) {
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengonfirmasi...';
+                }
+
+                const overlay = document.createElement('div');
+                overlay.style.position = 'fixed';
+                overlay.style.top = '0';
+                overlay.style.left = '0';
+                overlay.style.width = '100vw';
+                overlay.style.height = '100vh';
+                overlay.style.backgroundColor = 'rgba(15, 23, 42, 0.75)';
+                overlay.style.zIndex = '99999';
+                overlay.style.display = 'flex';
+                overlay.style.flexDirection = 'column';
+                overlay.style.alignItems = 'center';
+                overlay.style.justifyContent = 'center';
+                overlay.style.color = '#fff';
+                overlay.innerHTML = '<div class="spinner-border text-light mb-3" style="width: 3rem; height: 3rem;" role="status"></div><h5 class="fw-bold text-white mb-1">Memverifikasi Pembayaran...</h5><p class="small text-light opacity-75 mb-0">Mohon tunggu sebentar, status pesanan sedang diperbarui.</p>';
+                document.body.appendChild(overlay);
+
                 fetch('/orders/' + orderId + '/sync-status', {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': csrfToken,
+                        'Content-Type': 'application/json',
                         'Accept': 'application/json'
-                    }
+                    },
+                    body: JSON.stringify(snapResult || {})
                 })
                 .then(function(res) { return res.json(); })
-                .finally(function() {
+                .then(function() {
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 500);
+                })
+                .catch(function() {
                     window.location.reload();
                 });
             }
@@ -329,9 +365,7 @@
             document.querySelectorAll('.btn-sync-status').forEach(function(btn) {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    btn.disabled = true;
-                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengecek...';
-                    syncAndReload();
+                    syncAndReload({}, this);
                 });
             });
 
@@ -339,16 +373,16 @@
                 if (snapToken) {
                     window.snap.pay(snapToken, {
                         onSuccess: function(result) {
-                            syncAndReload();
+                            syncAndReload(result);
                         },
                         onPending: function(result) {
-                            syncAndReload();
+                            syncAndReload(result);
                         },
                         onError: function(result) {
-                            alert('Pembayaran gagal atau terjadi kesalahan.');
+                            alert('Pembayaran gagal atau dibatalkan.');
                         },
                         onClose: function() {
-                            syncAndReload();
+                            syncAndReload({});
                         }
                     });
                 } else {
@@ -363,10 +397,10 @@
                     .then(function(data) {
                         if (data.success && data.snap_token) {
                             window.snap.pay(data.snap_token, {
-                                onSuccess: function() { syncAndReload(); },
-                                onPending: function() { syncAndReload(); },
+                                onSuccess: function(result) { syncAndReload(result); },
+                                onPending: function(result) { syncAndReload(result); },
                                 onError: function() { alert('Pembayaran gagal.'); },
-                                onClose: function() { syncAndReload(); }
+                                onClose: function() { syncAndReload({}); }
                             });
                         } else {
                             alert(data.message || 'Gagal memuat popup pembayaran Midtrans.');

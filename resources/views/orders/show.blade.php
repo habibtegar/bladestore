@@ -32,7 +32,29 @@
                 </div>
             </div>
 
-            @if($order->canBePaid())
+            @if(in_array($order->status, ['processing', 'dikemas', 'shipped', 'dikirim', 'completed', 'selesai']))
+                <div class="alert alert-success border-0 shadow-sm d-flex align-items-center gap-3 p-3.5 rounded-3 mb-4" style="background-color: #DCFCE7; border: 1px solid #86EFAC !important;">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <div>
+                        <span class="x-small text-success text-uppercase fw-bold d-block">Pembayaran Telah Diverifikasi (Lunas)</span>
+                        <span class="fw-bold fs-6 text-dark">Pesanan Anda saat ini sedang dikemas dan dipersiapkan oleh toko</span>
+                        <div class="x-small text-muted">Metode: {{ $order->payment_method }} &bull; Total: {{ $order->formatted_total_price }}</div>
+                    </div>
+                </div>
+            @elseif($order->isCod() && in_array($order->status, ['pending', 'belum_bayar']))
+                <div class="alert alert-info border-0 shadow-sm d-flex align-items-center gap-3 p-3.5 rounded-3 mb-4" style="background-color: #E0F2FE; border: 1px solid #BAE6FD !important;">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                        <i class="bi bi-cash-coin"></i>
+                    </div>
+                    <div>
+                        <span class="x-small text-primary text-uppercase fw-bold d-block">Metode Cash on Delivery (COD)</span>
+                        <span class="fw-bold fs-6 text-dark">Pembayaran tunai sebesar {{ $order->formatted_total_price }} dilakukan saat barang tiba</span>
+                        <div class="x-small text-muted">Kurir akan mengonfirmasi ke {{ $order->customer_phone }} sebelum pengantaran.</div>
+                    </div>
+                </div>
+            @elseif($order->canBePaid())
                 <div class="alert alert-primary border-0 shadow-sm d-flex flex-column flex-sm-row align-items-sm-center justify-content-between p-3.5 rounded-3 mb-4 gap-3" style="background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); border: 1px solid #BFDBFE !important;">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.3rem;">
@@ -195,21 +217,44 @@
     document.addEventListener('DOMContentLoaded', function() {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-        function syncAndReload(orderId, btn) {
+        function syncAndReload(orderId, btn, snapResult) {
             if (btn) {
                 btn.disabled = true;
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengonfirmasi...';
             }
 
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.backgroundColor = 'rgba(15, 23, 42, 0.75)';
+            overlay.style.zIndex = '99999';
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.color = '#fff';
+            overlay.innerHTML = '<div class="spinner-border text-light mb-3" style="width: 3rem; height: 3rem;" role="status"></div><h5 class="fw-bold text-white mb-1">Memverifikasi Pembayaran...</h5><p class="small text-light opacity-75 mb-0">Mohon tunggu sebentar, status pesanan sedang diperbarui.</p>';
+            document.body.appendChild(overlay);
+
             fetch('/orders/' + orderId + '/sync-status', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': csrfToken,
+                    'Content-Type': 'application/json',
                     'Accept': 'application/json'
-                }
+                },
+                body: JSON.stringify(snapResult || {})
             })
             .then(function(res) { return res.json(); })
-            .finally(function() {
+            .then(function() {
+                setTimeout(function() {
+                    window.location.reload();
+                }, 500);
+            })
+            .catch(function() {
                 window.location.reload();
             });
         }
@@ -218,7 +263,7 @@
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 const orderId = this.getAttribute('data-order-id');
-                syncAndReload(orderId, this);
+                syncAndReload(orderId, this, {});
             });
         });
 
@@ -230,10 +275,10 @@
 
                 function launchSnap(token) {
                     window.snap.pay(token, {
-                        onSuccess: function() { syncAndReload(orderId, btn); },
-                        onPending: function() { syncAndReload(orderId, btn); },
+                        onSuccess: function(result) { syncAndReload(orderId, btn, result); },
+                        onPending: function(result) { syncAndReload(orderId, btn, result); },
                         onError: function() { alert('Pembayaran gagal atau dibatalkan.'); },
-                        onClose: function() { syncAndReload(orderId, btn); }
+                        onClose: function() { syncAndReload(orderId, btn, {}); }
                     });
                 }
 

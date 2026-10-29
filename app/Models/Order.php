@@ -105,10 +105,24 @@ class Order extends Model
     }
 
     /**
+     * Check if the order is using Cash on Delivery (COD).
+     */
+    public function isCod(): bool
+    {
+        $method = strtolower((string) $this->payment_method);
+
+        return str_contains($method, 'cod') || str_contains($method, 'cash on delivery') || str_contains($method, 'bayar di tempat');
+    }
+
+    /**
      * Check if the order can still be paid via Midtrans / payment gateway.
      */
     public function canBePaid(): bool
     {
+        if ($this->isCod()) {
+            return false;
+        }
+
         return in_array($this->status, ['pending', 'belum_bayar']) && ! $this->isExpired();
     }
 
