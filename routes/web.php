@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\AdminProductController;
 use App\Http\Controllers\AdminRevenueController;
@@ -65,9 +66,10 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/{order}', [CheckoutController::class, 'show'])->name('show');
     });
 
-    // Admin Suite Management (Orders & Products - Protected with 'admin' middleware)
+    // Admin Suite Management (Orders, Revenue & Products - Protected with 'admin' middleware)
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function (): void {
-        Route::redirect('/', '/admin/orders');
+        Route::redirect('/', '/admin/dashboard');
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('/revenue', [AdminRevenueController::class, 'index'])->name('revenue.index');
         Route::get('/revenue/export', [AdminRevenueController::class, 'exportCsv'])->name('revenue.export');

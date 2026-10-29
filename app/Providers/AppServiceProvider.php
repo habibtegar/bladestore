@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Cart;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -22,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Paginator::useBootstrapFive();
+
         // View Composer untuk membagikan data keranjang pengguna yang sedang login ke layout & sidebar
         View::composer(['layouts.app', 'cart.partials.offcanvas'], function ($view): void {
             if (Auth::check()) {

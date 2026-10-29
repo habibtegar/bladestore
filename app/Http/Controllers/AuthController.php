@@ -34,7 +34,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             if (Auth::user()->isAdmin() && ! $request->session()->has('url.intended')) {
-                return redirect()->route('admin.orders.index')
+                return redirect()->route('admin.dashboard')
                     ->with('success', 'Selamat datang di Panel Admin, '.Auth::user()->name.'!');
             }
 
@@ -126,7 +126,7 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->intended(route('admin.orders.index'))
+        return redirect()->intended(route('admin.dashboard'))
             ->with('success', 'Berhasil login sebagai Administrator (admin@example.com)!');
     }
 

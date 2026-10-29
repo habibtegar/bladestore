@@ -281,6 +281,44 @@
         }
 
         .x-small { font-size: 0.75rem; }
+
+        /* Admin Pagination Styling */
+        .pagination .page-link {
+            color: #475569;
+            background-color: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            font-weight: 600;
+            font-size: 0.8125rem;
+            transition: all 0.15s ease;
+            min-width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px !important;
+        }
+
+        .pagination .page-link:hover {
+            color: var(--primary);
+            background-color: #F8FAFC;
+            border-color: #CBD5E1;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: #FFFFFF;
+            box-shadow: 0 2px 6px rgba(8, 102, 245, 0.25);
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #94A3B8;
+            background-color: #F8FAFC;
+            border-color: #E2E8F0;
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
     </style>
     @stack('styles')
 </head>
@@ -291,7 +329,7 @@
     <!-- Admin Sidebar -->
     <aside class="admin-sidebar" id="adminSidebar">
         <!-- Brand Header -->
-        <a href="{{ route('admin.orders.index') }}" class="admin-brand">
+        <a href="{{ route('admin.dashboard') }}" class="admin-brand">
             <span class="brand-badge">
                 <i class="bi bi-shield-lock-fill"></i>
             </span>
@@ -304,6 +342,16 @@
         <!-- Navigation Section -->
         <div class="sidebar-section-title">Menu Utama</div>
         <ul class="sidebar-nav">
+            <!-- Dashboard Admin -->
+            <li>
+                <a href="{{ route('admin.dashboard') }}" class="sidebar-nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                    <div class="sidebar-nav-content">
+                        <i class="bi bi-grid-1x2-fill sidebar-nav-icon"></i>
+                        <span>Dashboard</span>
+                    </div>
+                </a>
+            </li>
+
             <!-- Kelola Pesanan -->
             @php
                 $pendingOrdersCount = \App\Models\Order::where('status', 'pending')->count();

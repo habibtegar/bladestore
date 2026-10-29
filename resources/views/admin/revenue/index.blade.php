@@ -351,7 +351,9 @@
 
             <!-- Line Chart Canvas -->
             <div style="position: relative; height: 280px; width: 100%;">
-                <canvas id="dailyRevenueChart"></canvas>
+                <canvas id="dailyRevenueChart"
+                        data-labels='@json($chartData['labels'])'
+                        data-values='@json($chartData['data'])'></canvas>
             </div>
         </div>
     </div>
@@ -430,7 +432,9 @@
             </div>
 
             <div style="position: relative; height: 240px; width: 100%;">
-                <canvas id="monthlyRevenueChart"></canvas>
+                <canvas id="monthlyRevenueChart"
+                        data-labels='@json($monthlyChartData['labels'])'
+                        data-values='@json($monthlyChartData['data'])'></canvas>
             </div>
         </div>
     </div>
@@ -648,18 +652,15 @@
     </div>
 
     <!-- Card Footer with Pagination -->
-    @if($transactions->hasPages())
-        <div class="card-footer bg-white border-top border-light-subtle py-3 px-3 px-md-4">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
-                <div class="text-muted x-small">
-                    Menampilkan <span class="fw-semibold text-dark">{{ $transactions->firstItem() }}</span> s/d <span class="fw-semibold text-dark">{{ $transactions->lastItem() }}</span> dari <span class="fw-semibold text-dark">{{ $transactions->total() }}</span> transaksi
-                </div>
-                <div>
-                    {{ $transactions->links() }}
-                </div>
+    <div class="card-footer bg-white border-top border-light-subtle py-3 px-3 px-md-4">
+        @if($transactions->hasPages())
+            {{ $transactions->links() }}
+        @elseif($transactions->total() > 0)
+            <div class="text-muted small text-center text-md-start">
+                Menampilkan <span class="fw-semibold text-dark">{{ $transactions->count() }}</span> data transaksi
             </div>
-        </div>
-    @endif
+        @endif
+    </div>
 </div>
 @endsection
 
@@ -702,15 +703,16 @@
     }
 
     // 1. Line Chart: Tren Pendapatan Harian
-    const lineCtx = document.getElementById('dailyRevenueChart').getContext('2d');
+    const lineCanvas = document.getElementById('dailyRevenueChart');
+    const lineCtx = lineCanvas.getContext('2d');
     
     // Gradient background under the curve
     const lineGradient = lineCtx.createLinearGradient(0, 0, 0, 260);
     lineGradient.addColorStop(0, 'rgba(8, 102, 255, 0.22)');
     lineGradient.addColorStop(1, 'rgba(8, 102, 255, 0.01)');
 
-    const chartDailyLabels = @json($chartData['labels']);
-    const chartDailyValues = @json($chartData['data']);
+    const chartDailyLabels = JSON.parse(lineCanvas.getAttribute('data-labels') || '[]');
+    const chartDailyValues = JSON.parse(lineCanvas.getAttribute('data-values') || '[]');
 
     new Chart(lineCtx, {
         type: 'line',
@@ -794,9 +796,10 @@
     });
 
     // 2. Bar Chart: Perbandingan Omset Bulanan
-    const barCtx = document.getElementById('monthlyRevenueChart').getContext('2d');
-    const chartMonthlyLabels = @json($monthlyChartData['labels']);
-    const chartMonthlyValues = @json($monthlyChartData['data']);
+    const barCanvas = document.getElementById('monthlyRevenueChart');
+    const barCtx = barCanvas.getContext('2d');
+    const chartMonthlyLabels = JSON.parse(barCanvas.getAttribute('data-labels') || '[]');
+    const chartMonthlyValues = JSON.parse(barCanvas.getAttribute('data-values') || '[]');
 
     new Chart(barCtx, {
         type: 'bar',

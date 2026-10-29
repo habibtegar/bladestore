@@ -1390,7 +1390,7 @@ class EcommerceFlowTest extends TestCase
 
         $adminResponse->assertStatus(200);
         $adminResponse->assertSee('Dashboard Admin');
-        $adminResponse->assertSee(route('admin.orders.index'));
+        $adminResponse->assertSee(route('admin.dashboard'));
     }
 
     public function test_user_can_filter_products_by_price_range(): void

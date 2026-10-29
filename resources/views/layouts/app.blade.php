@@ -1015,10 +1015,19 @@
                             @if(auth()->user()->isAdmin())
                                 <li><hr class="dropdown-divider my-1"></li>
                                 <li>
+                                    <a class="dropdown-item d-flex align-items-center justify-content-between py-2 small text-danger fw-semibold" href="{{ route('admin.dashboard') }}">
+                                        <div class="d-flex align-items-center gap-2.5">
+                                            <i class="bi bi-grid-1x2-fill fs-6 text-danger"></i>
+                                            <span>Dashboard Admin</span>
+                                        </div>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle x-small">Utama</span>
+                                    </a>
+                                </li>
+                                <li>
                                     <a class="dropdown-item d-flex align-items-center justify-content-between py-2 small text-danger fw-semibold" href="{{ route('admin.orders.index') }}">
                                         <div class="d-flex align-items-center gap-2.5">
-                                            <i class="bi bi-speedometer2 fs-6 text-danger"></i>
-                                            <span>Dashboard Admin</span>
+                                            <i class="bi bi-receipt-cutoff fs-6 text-danger"></i>
+                                            <span>Kelola Pesanan</span>
                                         </div>
                                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle x-small">Panel Administrator</span>
                                     </a>
@@ -1137,9 +1146,13 @@
                         <span>Pengaturan Akun</span>
                     </a>
                     @if(auth()->user()->isAdmin())
+                        <a href="{{ route('admin.dashboard') }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2.5 px-2 border-0 rounded-2 text-danger fw-semibold">
+                            <i class="bi bi-grid-1x2-fill fs-5 text-danger"></i>
+                            <span>Dashboard Admin</span>
+                        </a>
                         <a href="{{ route('admin.orders.index') }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2.5 px-2 border-0 rounded-2 text-danger fw-semibold">
-                            <i class="bi bi-speedometer2 fs-5 text-danger"></i>
-                            <span>Dashboard Admin (Panel Administrator)</span>
+                            <i class="bi bi-receipt-cutoff fs-5 text-danger"></i>
+                            <span>Kelola Pesanan (Panel Administrator)</span>
                         </a>
                     @endif
                 @endauth

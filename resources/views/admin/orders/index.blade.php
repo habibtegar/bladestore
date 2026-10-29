@@ -469,11 +469,15 @@
     </div>
 
     <!-- Pagination -->
-    @if($orders->hasPages())
-        <div class="card-footer bg-white border-top py-3 d-flex justify-content-center">
-            {{ $orders->links('pagination::bootstrap-5') }}
-        </div>
-    @endif
+    <div class="card-footer bg-white border-top border-light-subtle py-3 px-3 px-md-4">
+        @if($orders->hasPages())
+            {{ $orders->links() }}
+        @elseif($orders->total() > 0)
+            <div class="text-muted small text-center text-md-start">
+                Menampilkan <span class="fw-semibold text-dark">{{ $orders->count() }}</span> pesanan
+            </div>
+        @endif
+    </div>
 </div>
 
 <!-- ==========================================

@@ -135,7 +135,7 @@ class AuthenticationTest extends TestCase
 
         // 2. Demo Admin Login
         $adminResponse = $this->get(route('demo.admin-login'));
-        $adminResponse->assertRedirect(route('admin.orders.index'));
+        $adminResponse->assertRedirect(route('admin.dashboard'));
         $this->assertAuthenticated();
         $this->assertEquals('admin', auth()->user()->role);
     }

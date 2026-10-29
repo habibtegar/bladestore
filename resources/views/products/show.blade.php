@@ -174,7 +174,7 @@
                                 <div class="input-group" style="width: 140px;">
                                     <button class="btn btn-outline-secondary px-3" type="button" onclick="decrementQty()">-</button>
                                     <input type="number" id="quantity" name="quantity" class="form-control text-center bg-white fw-bold" value="1" min="1" max="{{ $product->stock }}">
-                                    <button class="btn btn-outline-secondary px-3" type="button" onclick="incrementQty({{ $product->stock }})">+</button>
+                                    <button class="btn btn-outline-secondary px-3" type="button" onclick="incrementQty()">+</button>
                                 </div>
                                 <span class="text-muted x-small">
                                     Batas maksimal stok: <strong>{{ $product->stock }}</strong> unit
@@ -315,8 +315,9 @@
 <script>
     function incrementQty(max) {
         const input = document.getElementById('quantity');
-        let current = parseInt(input.value) || 1;
-        if (current < max) {
+        const maxLimit = typeof max === 'number' ? max : (parseInt(input.getAttribute('max'), 10) || 1);
+        let current = parseInt(input.value, 10) || 1;
+        if (current < maxLimit) {
             input.value = current + 1;
         }
     }

@@ -250,4 +250,57 @@ class AdminRevenueTest extends TestCase
         $response->assertSee('Rp 0');
         $response->assertSee('Tidak Ada Riwayat Transaksi');
     }
+
+    public function test_pagination_renders_cleanly_with_previous_and_next_controls(): void
+    {
+        // Create 15 paid orders
+        for ($i = 1; $i <= 15; $i++) {
+            Order::create([
+                'order_code' => sprintf('ORD-PAGINATE-%02d', $i),
+                'user_id' => $this->customer->id,
+                'total_price' => 100000 + ($i * 1000),
+                'payment_method' => 'QRIS Instant',
+                'status' => 'completed',
+                'shipping_address' => 'Alamat Pengujian',
+                'customer_phone' => '081234567890',
+            ]);
+        }
+
+        // Test Page 1
+        $page1Response = $this->actingAs($this->admin)->get(route('admin.revenue.index', [
+            'period' => 'all',
+            'payment_method' => 'QRIS Instant',
+            'page' => 1,
+        ]));
+
+        $page1Response->assertStatus(200);
+        // Previous disabled on page 1
+        $page1Response->assertSee('aria-label="Sebelumnya"', false);
+        $page1Response->assertSee('aria-disabled="true"', false);
+        // Next link enabled
+        $page1Response->assertSee('rel="next"', false);
+        // Indonesian summary text
+        $page1Response->assertSee('Menampilkan');
+        $page1Response->assertSee('1');
+        $page1Response->assertSee('10');
+        $page1Response->assertSee('15');
+        $page1Response->assertSee('data');
+
+        // Test Page 2
+        $page2Response = $this->actingAs($this->admin)->get(route('admin.revenue.index', [
+            'period' => 'all',
+            'payment_method' => 'QRIS Instant',
+            'page' => 2,
+        ]));
+
+        $page2Response->assertStatus(200);
+        // Previous link enabled on page 2
+        $page2Response->assertSee('rel="prev"', false);
+        // Next link disabled on page 2 (last page)
+        $page2Response->assertSee('aria-label="Berikutnya"', false);
+        // Active page indicator
+        $page2Response->assertSee('class="page-item active"', false);
+        // Filter params persisted in pagination URL
+        $page2Response->assertSee('payment_method=QRIS%20Instant', false);
+    }
 }
