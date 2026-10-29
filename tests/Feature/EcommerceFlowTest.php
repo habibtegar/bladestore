@@ -979,6 +979,11 @@ class EcommerceFlowTest extends TestCase
         $response->assertSee('Pembayaran Berhasil Diverifikasi');
         $response->assertSee('Pembayaran Telah Dikonfirmasi (Lunas)');
         $response->assertSee('Dikemas');
+        $response->assertSee('order-stepper');
+        $response->assertSee('Lihat Detail Pesanan');
+        $response->assertSee('Lanjut Belanja');
+        $response->assertSee(route('orders.show', $order->id));
+        $response->assertSee(route('orders.index'));
 
         // Pay now button and payment action card must NOT be present
         $response->assertDontSee('Selesaikan Pembayaran Sekarang');
@@ -1006,6 +1011,62 @@ class EcommerceFlowTest extends TestCase
         $response->assertSee('Selesaikan Pembayaran Sekarang');
         $response->assertSee('Belum Bayar');
         $response->assertSee('btn-pay-now');
+        $response->assertSee('order-stepper');
+        $response->assertSee('Lihat Detail Pesanan');
+        $response->assertSee('Lanjut Belanja');
+    }
+
+    public function test_checkout_success_page_does_not_mark_order_paid_via_spoofed_url_parameters(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::create([
+            'order_code' => 'ORD-SPOOF-TEST',
+            'user_id' => $user->id,
+            'total_price' => 150000,
+            'payment_method' => 'QRIS Instant',
+            'status' => 'pending',
+            'snap_token' => 'spoof-token-123',
+            'shipping_address' => 'Jl. Keamanan Siber No. 1',
+            'customer_phone' => '081234567890',
+        ]);
+
+        // Attempt accessing success page with spoofed Midtrans callback parameters
+        $response = $this->actingAs($user)->get(route('checkout.success', [
+            'order' => $order->id,
+            'order_id' => $order->order_code,
+            'status_code' => '200',
+            'transaction_status' => 'settlement',
+            'fraud_status' => 'accept',
+        ]));
+
+        $response->assertStatus(200);
+        // Must still show pending/unpaid because database status has not been verified
+        $this->assertEquals('pending', $order->fresh()->status);
+        $response->assertSee('Menunggu Pembayaran');
+        $response->assertDontSee('Pembayaran Berhasil Diverifikasi');
+        $response->assertSee('btn-pay-now');
+    }
+
+    public function test_checkout_success_page_handles_cancelled_order(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::create([
+            'order_code' => 'ORD-CANCELLED-TEST',
+            'user_id' => $user->id,
+            'total_price' => 80000,
+            'payment_method' => 'QRIS Instant',
+            'status' => 'cancelled',
+            'shipping_address' => 'Jl. Kenanga No. 8',
+            'customer_phone' => '081234567890',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('checkout.success', $order->id));
+
+        $response->assertStatus(200);
+        $response->assertSee('Pesanan Dibatalkan');
+        $response->assertDontSee('btn-pay-now');
+        $response->assertSee('Lihat Detail Pesanan');
+        $response->assertSee('Lanjut Belanja');
     }
 
     public function test_cart_page_renders_product_checkboxes_and_check_all_header(): void

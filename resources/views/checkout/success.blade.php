@@ -2,10 +2,143 @@
 
 @section('title', 'Pesanan #' . $order->order_code)
 
+@push('styles')
+<style>
+    /* Dynamic Order Timeline Stepper (BladeStore Primary Blue Design System) */
+    .order-stepper {
+        display: flex;
+        position: relative;
+        justify-content: space-between;
+        margin: 1.25rem 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .order-step {
+        flex: 1;
+        position: relative;
+        text-align: center;
+        padding: 0 0.5rem;
+    }
+
+    .order-step-icon-wrap {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background-color: #F8FAFC;
+        color: #94A3B8;
+        border: 2px solid #E2E8F0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 2;
+        transition: all 0.25s ease;
+    }
+
+    /* Completed Step */
+    .order-step.completed .order-step-icon-wrap {
+        background-color: #DCFCE7;
+        color: #15803D;
+        border-color: #86EFAC;
+    }
+
+    /* Active Step (In Progress - Primary Blue) */
+    .order-step.active .order-step-icon-wrap {
+        background-color: #EFF6FF;
+        color: #0866FF;
+        border-color: #0866FF;
+        box-shadow: 0 0 0 4px rgba(8, 102, 255, 0.15);
+    }
+
+    /* Active Step (Waiting Payment - Amber) */
+    .order-step.active-warning .order-step-icon-wrap {
+        background-color: #FEF3C7;
+        color: #D97706;
+        border-color: #F59E0B;
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15);
+    }
+
+    .order-step-title {
+        font-size: 0.8125rem;
+        font-weight: 700;
+        color: #1E293B;
+        line-height: 1.25;
+        margin-bottom: 0.2rem;
+    }
+
+    .order-step-desc {
+        font-size: 0.725rem;
+        color: #64748B;
+        line-height: 1.2;
+    }
+
+    /* Connecting Line between Steps */
+    .order-step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 22px;
+        left: 50%;
+        width: 100%;
+        height: 3px;
+        background-color: #E2E8F0;
+        z-index: 1;
+    }
+
+    .order-step.completed:not(:last-child)::after {
+        background-color: #86EFAC;
+    }
+
+    @media (max-width: 767.98px) {
+        .order-stepper {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1.25rem;
+            margin: 1rem 0;
+        }
+
+        .order-step {
+            display: flex;
+            align-items: center;
+            text-align: left;
+            gap: 1rem;
+            padding: 0;
+            width: 100%;
+        }
+
+        .order-step-icon-wrap {
+            margin-bottom: 0;
+            flex-shrink: 0;
+        }
+
+        .order-step:not(:last-child)::after {
+            top: 44px;
+            left: 21px;
+            width: 2px;
+            height: calc(100% + 0.25rem);
+        }
+    }
+</style>
+@endpush
+
 @section('content')
+<!-- Breadcrumbs -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small mb-1">
+        <li class="breadcrumb-item"><a href="{{ route('products.index') }}" class="text-decoration-none text-muted">Beranda</a></li>
+        <li class="breadcrumb-item"><a href="{{ route('orders.index') }}" class="text-decoration-none text-muted">Pesanan Saya</a></li>
+        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ $order->order_code }}</li>
+    </ol>
+</nav>
+
 <div class="row justify-content-center mb-5">
-    <div class="col-lg-8">
-        <!-- Success Banner Card -->
+    <div class="col-lg-9">
+        
+        <!-- ==========================================
+             1. SUCCESS / STATUS HERO BANNER
+             ========================================== -->
         <div class="card border-0 bg-white p-4 p-md-5 text-center mb-4 rounded-4 shadow-sm">
             @if(in_array($order->status, ['processing', 'dikemas', 'shipped', 'dikirim', 'completed', 'selesai']))
                 <div class="mb-3">
@@ -14,7 +147,9 @@
                     </span>
                 </div>
                 <h3 class="fw-bold text-dark mb-1">Pembayaran Berhasil Diverifikasi</h3>
-                <p class="text-muted small mb-3">Terima kasih! Pembayaran Anda sebesar <strong>{{ $order->formatted_total_price }}</strong> telah kami terima. Pesanan Anda saat ini sedang dikemas oleh toko.</p>
+                <p class="text-muted small mb-3 mx-auto" style="max-width: 580px;">
+                    Terima kasih! Pembayaran Anda sebesar <strong>{{ $order->formatted_total_price }}</strong> telah diverifikasi secara resmi. Pesanan Anda saat ini sedang dikemas oleh toko.
+                </p>
             @elseif($order->isCod())
                 <div class="mb-3">
                     <span class="p-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background-color: #E0F2FE; color: #0284C7;">
@@ -22,7 +157,9 @@
                     </span>
                 </div>
                 <h3 class="fw-bold text-dark mb-1">Pesanan Dibuat — Menunggu Pengiriman (COD)</h3>
-                <p class="text-muted small mb-3">Pesanan Anda telah dicatat dengan metode <strong class="text-primary">Cash on Delivery (Bayar di Tempat)</strong>. Pembayaran dilakukan secara tunai kepada kurir saat barang tiba.</p>
+                <p class="text-muted small mb-3 mx-auto" style="max-width: 580px;">
+                    Pesanan Anda telah dicatat dengan metode <strong class="text-primary">Cash on Delivery (Bayar di Tempat)</strong>. Pembayaran tunai sebesar <strong>{{ $order->formatted_total_price }}</strong> dilakukan kepada kurir saat barang tiba di alamat Anda.
+                </p>
             @elseif(in_array($order->status, ['pending', 'belum_bayar']))
                 <div class="mb-3">
                     <span class="p-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background-color: #FEF3C7; color: #D97706;">
@@ -30,7 +167,9 @@
                     </span>
                 </div>
                 <h3 class="fw-bold text-dark mb-1">Pesanan Dibuat — Menunggu Pembayaran</h3>
-                <p class="text-muted small mb-3">Pesanan Anda telah dicatat oleh sistem dengan status <strong class="text-warning">Belum Bayar</strong>. Segera selesaikan pembayaran agar pesanan dapat diproses.</p>
+                <p class="text-muted small mb-3 mx-auto" style="max-width: 580px;">
+                    Pesanan Anda telah dicatat oleh sistem dengan status <strong class="text-warning">Belum Bayar</strong>. Segera selesaikan pembayaran agar pesanan dapat segera diproses dan dikirimkan.
+                </p>
             @else
                 <div class="mb-3">
                     <span class="p-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background-color: #FEE2E2; color: #DC2626;">
@@ -41,23 +180,167 @@
                 <p class="text-muted small mb-3">Pesanan ini telah dibatalkan atau melewati batas waktu pembayaran.</p>
             @endif
 
+            <!-- Order Code Pill -->
             <div class="d-inline-flex align-items-center justify-content-center gap-2 p-2 px-3 rounded-pill bg-light border mx-auto mb-3">
                 <span class="text-muted x-small">Kode Pesanan:</span>
                 <span class="fw-bold text-dark font-monospace fs-6">{{ $order->order_code }}</span>
-                <button class="btn btn-sm btn-link text-decoration-none p-0 text-primary" onclick="navigator.clipboard.writeText('{{ $order->order_code }}'); alert('Kode pesanan {{ $order->order_code }} berhasil disalin!');" title="Salin Kode">
+                <button class="btn btn-sm btn-link text-decoration-none p-0 text-primary" onclick="navigator.clipboard.writeText('{{ $order->order_code }}'); alert('Kode pesanan {{ $order->order_code }} berhasil disalin!');" title="Salin Kode Pesanan">
                     <i class="bi bi-clipboard"></i>
                 </button>
             </div>
 
+            <!-- Status Badge -->
             <div class="d-flex justify-content-center">
-                <span class="badge {{ $order->status_badge_class }} px-3 py-2 fs-6">
+                <span class="badge {{ $order->status_badge_class }} px-3.5 py-2 fs-6 rounded-pill">
                     {{ $order->status_label }}
                 </span>
             </div>
         </div>
 
+        <!-- ==========================================
+             2. TIMELINE STATUS PESANAN AKTUAL SISTEM
+             ========================================== -->
+        <div class="card border-0 bg-white p-4 mb-4 rounded-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                <h5 class="fw-bold text-dark mb-0 fs-6 d-flex align-items-center gap-2">
+                    <i class="bi bi-diagram-3 text-primary"></i>
+                    <span>Pelacakan Alur Pesanan</span>
+                </h5>
+                <span class="x-small text-muted">Update Real-Time</span>
+            </div>
+
+            @php
+                $isPaidOrBeyond = in_array($order->status, ['processing', 'dikemas', 'shipped', 'dikirim', 'completed', 'selesai']);
+                $isShippedOrBeyond = in_array($order->status, ['shipped', 'dikirim', 'completed', 'selesai']);
+                $isCompleted = in_array($order->status, ['completed', 'selesai']);
+                $isCancelled = in_array($order->status, ['cancelled', 'dibatalkan']);
+                $isUnpaid = in_array($order->status, ['pending', 'belum_bayar']) && ! $order->isCod() && ! $isCancelled;
+            @endphp
+
+            @if($isCancelled)
+                <div class="alert alert-danger border-0 rounded-3 my-3 d-flex align-items-center gap-2.5">
+                    <i class="bi bi-x-octagon-fill fs-5"></i>
+                    <div>
+                        <strong>Pesanan Dibatalkan</strong>
+                        <div class="x-small mt-0.5">Pesanan ini telah dibatalkan karena melewati batas waktu pembayaran 24 jam atau dibatalkan oleh pengguna/admin.</div>
+                    </div>
+                </div>
+            @else
+                <ul class="order-stepper">
+                    <!-- Step 1: Pesanan Dibuat -->
+                    <li class="order-step completed">
+                        <div class="order-step-icon-wrap">
+                            <i class="bi bi-check-lg"></i>
+                        </div>
+                        <div>
+                            <div class="order-step-title">Pesanan Dibuat</div>
+                            <div class="order-step-desc">{{ $order->created_at->format('d M, H:i') }} WIB</div>
+                        </div>
+                    </li>
+
+                    <!-- Step 2: Pembayaran -->
+                    <li class="order-step {{ $isPaidOrBeyond ? 'completed' : ($order->isCod() ? 'completed' : ($isUnpaid ? 'active-warning' : '')) }}">
+                        <div class="order-step-icon-wrap">
+                            @if($isPaidOrBeyond)
+                                <i class="bi bi-check-lg"></i>
+                            @elseif($order->isCod())
+                                <i class="bi bi-cash-coin"></i>
+                            @elseif($isUnpaid)
+                                <i class="bi bi-credit-card"></i>
+                            @else
+                                <i class="bi bi-circle"></i>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="order-step-title">Verifikasi Pembayaran</div>
+                            <div class="order-step-desc">
+                                @if($isPaidOrBeyond)
+                                    <span class="text-success fw-semibold">Lunas Terverifikasi</span>
+                                @elseif($order->isCod())
+                                    <span class="text-primary fw-semibold">Bayar saat COD</span>
+                                @elseif($isUnpaid)
+                                    <span class="text-warning fw-semibold">Menunggu Pembayaran</span>
+                                @else
+                                    <span>Menunggu</span>
+                                @endif
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- Step 3: Pengemasan -->
+                    <li class="order-step {{ $isShippedOrBeyond ? 'completed' : (in_array($order->status, ['processing', 'dikemas']) ? 'active' : '') }}">
+                        <div class="order-step-icon-wrap">
+                            @if($isShippedOrBeyond)
+                                <i class="bi bi-check-lg"></i>
+                            @elseif(in_array($order->status, ['processing', 'dikemas']))
+                                <i class="bi bi-box-seam"></i>
+                            @else
+                                <i class="bi bi-box-seam"></i>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="order-step-title">Pengemasan Toko</div>
+                            <div class="order-step-desc">
+                                @if($isShippedOrBeyond)
+                                    <span class="text-success fw-semibold">Selesai Dikemas</span>
+                                @elseif(in_array($order->status, ['processing', 'dikemas']))
+                                    <span class="text-primary fw-semibold">Sedang Dikemas</span>
+                                @else
+                                    <span>Menunggu</span>
+                                @endif
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- Step 4: Pengiriman -->
+                    <li class="order-step {{ $isCompleted ? 'completed' : (in_array($order->status, ['shipped', 'dikirim']) ? 'active' : '') }}">
+                        <div class="order-step-icon-wrap">
+                            @if($isCompleted)
+                                <i class="bi bi-check-lg"></i>
+                            @elseif(in_array($order->status, ['shipped', 'dikirim']))
+                                <i class="bi bi-truck"></i>
+                            @else
+                                <i class="bi bi-truck"></i>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="order-step-title">Pengiriman Kurir</div>
+                            <div class="order-step-desc">
+                                @if($isCompleted)
+                                    <span class="text-success fw-semibold">Telah Diterima</span>
+                                @elseif(in_array($order->status, ['shipped', 'dikirim']))
+                                    <span class="text-primary fw-semibold">Dalam Perjalanan</span>
+                                @else
+                                    <span>Menunggu</span>
+                                @endif
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- Step 5: Selesai -->
+                    <li class="order-step {{ $isCompleted ? 'completed' : '' }}">
+                        <div class="order-step-icon-wrap">
+                            <i class="bi bi-patch-check"></i>
+                        </div>
+                        <div>
+                            <div class="order-step-title">Pesanan Selesai</div>
+                            <div class="order-step-desc">
+                                @if($isCompleted)
+                                    <span class="text-success fw-semibold">Selesai</span>
+                                @else
+                                    <span>Tahap Akhir</span>
+                                @endif
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            @endif
+        </div>
+
         @if($order->canBePaid())
-            <!-- Action Card: Bayar Sekarang (HANYA MUNCUL JIKA BELUM BAYAR) -->
+            <!-- ==========================================
+                 3. ACTION CARD: BAYAR SEKARANG (HANYA MUNCUL JIKA BELUM BAYAR)
+                 ========================================== -->
             <div class="card border-0 p-4 mb-4 rounded-4 shadow-sm text-center" style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border: 1px solid #FDE68A !important;">
                 <div class="mb-2">
                     <span class="badge bg-warning text-dark rounded-pill px-3 py-1.5 x-small fw-bold">
@@ -69,7 +352,7 @@
                     Klik tombol di bawah ini untuk membuka popup pembayaran aman melalui Midtrans (QRIS, Virtual Account Bank, GoPay, dan E-Wallet lainnya).
                 </p>
                 <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap">
-                    <button type="button" class="btn btn-primary btn-lg px-4 px-sm-5 py-3 fw-bold rounded-3 shadow d-inline-flex align-items-center justify-content-center gap-2 btn-pay-now">
+                    <button type="button" class="btn btn-primary btn-lg px-4 px-sm-5 py-3 fw-bold rounded-3 shadow d-inline-flex align-items-center justify-content-center gap-2 btn-pay-now" style="background: linear-gradient(135deg, #0866FF 0%, #1D4ED8 100%); border: none;">
                         <i class="bi bi-credit-card-2-front-fill fs-5"></i>
                         <span>Bayar Sekarang ({{ $order->formatted_total_price }})</span>
                         <i class="bi bi-arrow-right fs-5"></i>
@@ -86,18 +369,21 @@
         @endif
 
         @if(in_array($order->status, ['processing', 'dikemas', 'shipped', 'dikirim', 'completed', 'selesai']))
-            <!-- Informasi Pembayaran Lunas (Hapus instruksi bayar karena sudah bayar) -->
-            <div class="card border-0 bg-white p-4 mb-4 rounded-3 shadow-sm">
-                <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                    <i class="bi bi-shield-check text-success"></i> Konfirmasi Pembayaran
+            <!-- ==========================================
+                 4. KONFIRMASI LUNAS
+                 ========================================== -->
+            <div class="card border-0 bg-white p-4 mb-4 rounded-4 shadow-sm">
+                <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2 fs-6">
+                    <i class="bi bi-shield-check text-success fs-5"></i>
+                    <span>Konfirmasi Pembayaran</span>
                 </h5>
                 <div class="alert alert-success border-0 mb-0 rounded-3">
-                    <div class="d-flex gap-2">
-                        <i class="bi bi-check-circle-fill fs-5 mt-1"></i>
+                    <div class="d-flex gap-2.5 align-items-start">
+                        <i class="bi bi-check-circle-fill fs-5 text-success mt-0.5"></i>
                         <div>
                             <strong>Pembayaran Telah Dikonfirmasi (Lunas)</strong>
-                            <p class="mb-0 small mt-1">
-                                Transaksi sebesar <strong>{{ $order->formatted_total_price }}</strong> telah lunas melalui <strong>{{ $order->payment_method }}</strong>. Anda tidak perlu melakukan pembayaran lagi. Pesanan Anda saat ini sedang dikemas dan dipersiapkan untuk pengiriman.
+                            <p class="mb-0 small mt-1 leading-relaxed">
+                                Transaksi sebesar <strong>{{ $order->formatted_total_price }}</strong> telah lunas melalui <strong>{{ $order->payment_method }}</strong>. Anda tidak perlu melakukan pembayaran lagi. Pesanan Anda saat ini sedang dikemas dan dipersiapkan untuk pengiriman ke alamat tujuan.
                             </p>
                         </div>
                     </div>
@@ -105,9 +391,10 @@
             </div>
         @else
             <!-- Payment Instructions Box (HANYA TAMPIL JIKA BELUM BAYAR) -->
-            <div class="card border-0 bg-white p-4 mb-4 rounded-3 shadow-sm">
-                <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                    <i class="bi bi-wallet2 text-primary"></i> Instruksi Pembayaran: {{ $order->payment_method }}
+            <div class="card border-0 bg-white p-4 mb-4 rounded-4 shadow-sm">
+                <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2 fs-6">
+                    <i class="bi bi-wallet2 text-primary fs-5"></i>
+                    <span>Instruksi Pembayaran: {{ $order->payment_method }}</span>
                 </h5>
 
                 @if($order->payment_method === 'Transfer Bank Manual')
@@ -123,7 +410,7 @@
                     </div>
 
                     <div class="row g-3 mb-4">
-                        <!-- Bank BCA -->
+                        <!-- BCA -->
                         <div class="col-md-4">
                             <div class="p-3 rounded-3 bg-white border h-100 position-relative shadow-sm">
                                 <span class="badge bg-primary mb-2">BCA</span>
@@ -134,7 +421,7 @@
                                 </button>
                             </div>
                         </div>
-                        <!-- Bank Mandiri -->
+                        <!-- Mandiri -->
                         <div class="col-md-4">
                             <div class="p-3 rounded-3 bg-white border h-100 position-relative shadow-sm">
                                 <span class="badge bg-primary mb-2">MANDIRI</span>
@@ -145,7 +432,7 @@
                                 </button>
                             </div>
                         </div>
-                        <!-- Bank BRI -->
+                        <!-- BRI -->
                         <div class="col-md-4">
                             <div class="p-3 rounded-3 bg-white border h-100 position-relative shadow-sm">
                                 <span class="badge bg-primary mb-2">BRI</span>
@@ -205,16 +492,21 @@
             </div>
         @endif
 
-        <!-- Order Items Detail Card -->
-        <div class="card border-0 bg-white p-4 mb-4 rounded-3 shadow-sm">
-            <h5 class="fw-bold text-dark mb-3">Rincian Pembelian</h5>
+        <!-- ==========================================
+             5. RINCIAN BARANG & DATA TRANSAKSI DATABASE
+             ========================================== -->
+        <div class="card border-0 bg-white p-4 mb-4 rounded-4 shadow-sm">
+            <h5 class="fw-bold text-dark mb-3 fs-6 d-flex align-items-center gap-2">
+                <i class="bi bi-receipt text-primary"></i>
+                <span>Rincian Pembelian</span>
+            </h5>
             
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
                     <thead class="table-light small text-secondary">
                         <tr>
                             <th>Produk</th>
-                            <th class="text-center">Harga</th>
+                            <th class="text-center">Harga Satuan</th>
                             <th class="text-center">Jumlah</th>
                             <th class="text-end">Subtotal</th>
                         </tr>
@@ -224,14 +516,14 @@
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center gap-3">
-                                        <div style="width: 48px; height: 60px; flex-shrink: 0; background-color: #F3F4F6; border-radius: 6px; overflow: hidden;" class="border">
+                                        <div style="width: 52px; height: 52px; flex-shrink: 0; background-color: #F8FAFC; border-radius: 8px; overflow: hidden; padding: 4px;" class="border d-flex align-items-center justify-content-center">
                                             <img src="{{ optional($item->product)->image_url ?? \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}"
-                                                 class="w-100 h-100 object-fit-cover"
+                                                 class="w-100 h-100 object-fit-contain"
                                                  alt="{{ $item->product->name ?? 'Produk' }}"
                                                  onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
                                         </div>
                                         <div>
-                                            <h6 class="mb-0 fw-semibold text-dark small">{{ $item->product->name ?? 'Produk' }}</h6>
+                                            <h6 class="mb-0 fw-semibold text-dark small">{{ $item->product->name ?? 'Produk Marketplace' }}</h6>
                                             <span class="x-small text-muted">Kategori: {{ optional($item->product)->category_name ?? '-' }}</span>
                                         </div>
                                     </div>
@@ -265,24 +557,30 @@
                 </table>
             </div>
 
-            <!-- Shipping Details -->
-            <div class="border-top pt-3 mt-3">
+            <!-- Shipping & Transaction Metadata from DB -->
+            <div class="border-top pt-3.5 mt-3">
                 <div class="row g-3 x-small">
                     <div class="col-sm-6">
-                        <span class="text-muted d-block">Alamat Pengiriman:</span>
+                        <span class="text-muted d-block mb-0.5">Alamat Pengiriman:</span>
                         <span class="fw-semibold text-dark">{{ $order->shipping_address }}</span>
                     </div>
                     <div class="col-sm-3">
-                        <span class="text-muted d-block">Nomor Telepon:</span>
-                        <span class="fw-semibold text-dark">{{ $order->customer_phone }}</span>
+                        <span class="text-muted d-block mb-0.5">Nomor Telepon:</span>
+                        <span class="fw-semibold text-dark font-monospace">{{ $order->customer_phone }}</span>
                     </div>
                     <div class="col-sm-3">
-                        <span class="text-muted d-block">Waktu Pemesanan:</span>
+                        <span class="text-muted d-block mb-0.5">Waktu Pemesanan:</span>
                         <span class="fw-semibold text-dark">{{ $order->created_at->format('d M Y, H:i') }} WIB</span>
                     </div>
+                    @if($order->tracking_number)
+                        <div class="col-sm-6">
+                            <span class="text-muted d-block mb-0.5">Nomor Resi:</span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace fw-bold">{{ $order->tracking_number }}</span>
+                        </div>
+                    @endif
                     @if($order->notes)
                         <div class="col-12">
-                            <span class="text-muted d-block">Catatan Pengiriman:</span>
+                            <span class="text-muted d-block mb-0.5">Catatan Pengiriman:</span>
                             <span class="fst-italic text-secondary">{{ $order->notes }}</span>
                         </div>
                     @endif
@@ -290,23 +588,35 @@
             </div>
         </div>
 
-        <!-- Action Buttons -->
+        <!-- ==========================================
+             6. ACTION BUTTONS (BOTTOM BAR)
+             ========================================== -->
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
-            <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-receipt me-1"></i> Pesanan Saya
-            </a>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 w-100 w-sm-auto">
+                <a href="{{ route('orders.show', $order->id) }}" class="btn btn-outline-primary fw-semibold d-inline-flex align-items-center gap-1.5 flex-grow-1 flex-sm-grow-0">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Lihat Detail Pesanan</span>
+                </a>
+                <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5 flex-grow-1 flex-sm-grow-0">
+                    <i class="bi bi-receipt"></i>
+                    <span>Pesanan Saya</span>
+                </a>
+            </div>
+            
+            <div class="d-flex align-items-center gap-2 w-100 w-sm-auto justify-content-sm-end">
                 @if($order->canBePaid())
-                    <button type="button" class="btn btn-primary fw-bold shadow-sm d-inline-flex align-items-center gap-1.5 btn-pay-now">
+                    <button type="button" class="btn btn-primary fw-bold shadow-sm d-inline-flex align-items-center gap-1.5 btn-pay-now flex-grow-1 flex-sm-grow-0" style="background: linear-gradient(135deg, #0866FF 0%, #1D4ED8 100%); border: none;">
                         <i class="bi bi-credit-card-2-front"></i>
                         <span>Bayar Sekarang</span>
                     </button>
                 @endif
-                <a href="{{ route('products.index') }}" class="btn btn-outline-primary px-4">
-                    <i class="bi bi-bag me-1"></i> Lanjut Belanja
+                <a href="{{ route('products.index') }}#katalog-produk" class="btn btn-primary px-4 fw-bold text-white d-inline-flex align-items-center gap-1.5 flex-grow-1 flex-sm-grow-0" style="background: #0866FF; border-color: #0866FF;">
+                    <i class="bi bi-bag"></i>
+                    <span>Lanjut Belanja</span>
                 </a>
             </div>
         </div>
+
     </div>
 </div>
 @endsection

@@ -3,15 +3,22 @@
 @section('title', 'Keranjang Belanja')
 
 @section('content')
-<!-- Page Header -->
-<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+<!-- Page Header Breadcrumbs & Title -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small mb-1">
+        <li class="breadcrumb-item"><a href="{{ route('products.index') }}" class="text-decoration-none text-muted">Beranda</a></li>
+        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Keranjang Belanja</li>
+    </ol>
+</nav>
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4 pb-1">
     <div>
         <h2 class="h3 fw-bold text-dark mb-1">Keranjang Belanja</h2>
-        <p class="text-muted small mb-0">Periksa kembali daftar belanjaan Anda dan selesaikan pesanan dengan mudah.</p>
+        <p class="text-muted small mb-0">Periksa item belanjaan Anda, sesuaikan kuantitas, dan lanjutkan ke pembayaran instan Midtrans.</p>
     </div>
     <div>
-        <a href="{{ route('products.index') }}" class="btn btn-outline-secondary btn-sm px-3 py-2 d-inline-flex align-items-center gap-1.5 text-nowrap rounded-2">
-            <i class="bi bi-arrow-left"></i> Belanja Lainnya
+        <a href="{{ route('products.index') }}#katalog-produk" class="btn btn-outline-secondary btn-sm px-3 py-2 d-inline-flex align-items-center gap-1.5 text-nowrap rounded-2 shadow-xs">
+            <i class="bi bi-arrow-left"></i> Lanjut Belanja
         </a>
     </div>
 </div>
@@ -20,53 +27,60 @@
     <!-- Empty Cart State -->
     <div class="card border-0 p-5 text-center my-4 bg-white rounded-4 shadow-sm">
         <div class="mb-3">
-            <span class="p-4 rounded-circle d-inline-block bg-blue-50 text-blue-600" style="background-color: #EFF6FF; color: #2563EB;">
+            <span class="p-4 rounded-circle d-inline-block bg-blue-50 text-blue-600" style="background-color: #EFF6FF; color: #0866FF; width: 84px; height: 84px; display: inline-flex; align-items: center; justify-content: center;">
                 <i class="bi bi-cart-x fs-1"></i>
             </span>
         </div>
-        <h4 class="fw-bold text-dark mb-1">Keranjang Belanja Anda Kosong</h4>
-        <p class="text-muted small mb-4 col-md-6 mx-auto">
-            Anda belum memilih produk untuk dimasukkan ke dalam keranjang. Jelajahi katalog produk pilihan BladeStore sekarang.
+        <h4 class="fw-bold text-dark mb-2">Keranjang Belanja Anda Kosong</h4>
+        <p class="text-muted small mb-4 col-md-6 mx-auto leading-relaxed">
+            Anda belum memilih produk untuk dimasukkan ke dalam keranjang. Jelajahi ribuan produk pilihan BladeStore sekarang dan nikmati penawaran terbaik.
         </p>
         <div>
-            <a href="{{ route('products.index') }}" class="btn btn-primary bg-blue-600 border-blue-600 px-4 py-2.5 fw-bold text-white shadow-sm rounded-3 hover:bg-blue-700">
-                <i class="bi bi-shop me-1"></i> Mulai Belanja Sekarang
+            <a href="{{ route('products.index') }}#katalog-produk" class="btn btn-primary bg-blue-600 border-0 px-4 py-2.5 fw-bold text-white shadow-sm rounded-3 hover:bg-blue-700" style="background: linear-gradient(135deg, #0866FF 0%, #1D4ED8 100%);">
+                <i class="bi bi-shop me-1.5"></i> Mulai Belanja Sekarang
             </a>
         </div>
     </div>
 @else
     <form id="cart-checkout-form" action="{{ route('checkout.process') }}" method="POST">
         @csrf
-        <div class="row g-4 lg:grid lg:grid-cols-12 lg:gap-6">
+        <div class="row g-4">
             
             <!-- Cart Items List (Left Column) -->
-            <div class="col-12 col-lg-8 lg:col-span-8 space-y-6">
-                <div class="card border-0 bg-white overflow-hidden rounded-3 shadow-sm">
-                    <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-slate-50" style="background-color: #F8FAFC;">
-                        <span class="fw-bold text-dark small" id="cart-header-count">Daftar Produk Terpilih ({{ $cartItems->sum('quantity') }} Item)</span>
-                        <span class="text-muted x-small">BladeStore Official Checkout</span>
+            <div class="col-12 col-lg-8 space-y-4">
+                
+                <!-- Table Card -->
+                <div class="card border-0 bg-white overflow-hidden rounded-3 shadow-sm mb-4">
+                    <div class="p-3.5 border-bottom d-flex justify-content-between align-items-center bg-light">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold text-dark small" id="cart-header-count">Daftar Produk Terpilih ({{ $cartItems->sum('quantity') }} Item)</span>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle x-small rounded-pill">
+                            <i class="bi bi-shield-check me-1"></i> Official Store
+                        </span>
                     </div>
+
                     <div class="table-responsive">
                         <table class="table align-middle mb-0">
-                            <thead class="table-light text-secondary small text-uppercase">
+                            <thead class="table-light text-secondary small text-uppercase" style="font-size: 0.725rem; letter-spacing: 0.03em;">
                                 <tr>
-                                    <th scope="col" style="width: 46px;" class="ps-3 pe-0 text-center">
+                                    <th scope="col" style="width: 44px;" class="ps-3 pe-0 text-center">
                                         <div class="form-check d-flex justify-content-center m-0">
                                             <input class="form-check-input" type="checkbox" id="check-all-items" checked title="Pilih Semua Produk" style="cursor: pointer; width: 1.15rem; height: 1.15rem;">
                                         </div>
                                     </th>
-                                    <th scope="col" style="min-width: 240px;" class="ps-3">Produk</th>
-                                    <th scope="col" class="text-center">Harga</th>
-                                    <th scope="col" class="text-center" style="width: 160px;">Kuantitas</th>
+                                    <th scope="col" style="min-width: 220px;" class="ps-3">Produk</th>
+                                    <th scope="col" class="text-center">Harga Satuan</th>
+                                    <th scope="col" class="text-center" style="width: 150px;">Kuantitas</th>
                                     <th scope="col" class="text-end">Subtotal</th>
-                                    <th scope="col" class="text-center pe-4" style="width: 60px;">Hapus</th>
+                                    <th scope="col" class="text-center pe-3" style="width: 50px;">Hapus</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y">
+                            <tbody>
                                 @foreach($cartItems as $item)
                                     <tr id="cart-row-{{ $item->id }}" data-cart-id="{{ $item->id }}" data-price="{{ (float) $item->product->final_price }}">
                                         <!-- Checkbox Pilihan Produk -->
-                                        <td class="ps-3 pe-0 text-center" style="width: 46px;">
+                                        <td class="ps-3 pe-0 text-center" style="width: 44px;">
                                             <div class="form-check d-flex justify-content-center m-0">
                                                 <input class="form-check-input cart-item-checkbox" 
                                                        type="checkbox" 
@@ -75,7 +89,7 @@
                                                        id="cart-check-{{ $item->id }}" 
                                                        data-cart-id="{{ $item->id }}"
                                                        checked
-                                                       title="Pilih produk ini"
+                                                       title="Pilih produk ini untuk checkout"
                                                        style="cursor: pointer; width: 1.15rem; height: 1.15rem;">
                                             </div>
                                         </td>
@@ -83,68 +97,77 @@
                                         <!-- Product Info -->
                                         <td class="ps-3 py-3">
                                             <div class="d-flex align-items-center gap-3">
-                                                <div style="width: 58px; height: 58px; flex-shrink: 0; background-color: #F8FAFC; border-radius: 8px; overflow: hidden;" class="border">
+                                                <!-- Contain Thumbnail -->
+                                                <div style="width: 60px; height: 60px; flex-shrink: 0; background-color: #F8FAFC; border-radius: 8px; overflow: hidden; padding: 4px;" class="border d-flex align-items-center justify-content-center">
                                                     <img src="{{ $item->product->image_url }}"
                                                          alt="{{ $item->product->name }}"
-                                                         class="w-100 h-100 object-fit-cover"
+                                                         class="w-100 h-100 object-fit-contain"
                                                          onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
                                                 </div>
-                                                <div>
-                                                    <span class="badge bg-light text-secondary border x-small mb-1">
-                                                        {{ $item->product->category ?? 'Umum' }}
-                                                    </span>
-                                                    <a href="{{ route('products.show', $item->product->slug) }}" class="fw-bold text-dark text-decoration-none small d-block mb-1">
+                                                <div class="pe-2">
+                                                    <div class="d-flex align-items-center gap-1.5 mb-1 flex-wrap">
+                                                        <span class="badge bg-light text-secondary border x-small">
+                                                            {{ $item->product->category ?? 'Umum' }}
+                                                        </span>
+                                                        @if($item->product->stock <= 5)
+                                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle x-small fw-semibold">
+                                                                <i class="bi bi-exclamation-triangle me-1"></i>Sisa {{ $item->product->stock }} unit
+                                                            </span>
+                                                        @else
+                                                            <span class="badge bg-success-subtle text-success border border-success-subtle x-small fw-semibold">
+                                                                <i class="bi bi-check-circle me-1"></i>Stok Tersedia
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                    <a href="{{ route('products.show', $item->product->slug) }}" class="fw-bold text-dark text-decoration-none small d-block mb-1 text-hover-primary" title="{{ $item->product->name }}">
                                                         {{ $item->product->name }}
                                                     </a>
-                                                    <span class="text-muted x-small">
-                                                        Stok: <strong>{{ $item->product->stock }}</strong> unit
-                                                    </span>
                                                 </div>
                                             </div>
                                         </td>
 
                                         <!-- Unit Price -->
-                                        <td class="text-center text-nowrap small fw-semibold text-secondary">
+                                        <td class="text-center text-nowrap small text-secondary">
                                             @if($item->product->discount_percentage > 0)
                                                 <div class="text-primary fw-bold">{{ $item->product->formatted_final_price }}</div>
                                                 <div class="text-muted text-decoration-line-through x-small">{{ $item->product->formatted_price }}</div>
                                             @else
-                                                {{ $item->product->formatted_price }}
+                                                <span class="fw-semibold text-dark">{{ $item->product->formatted_price }}</span>
                                             @endif
                                         </td>
 
                                         <!-- Quantity Stepper Form (AJAX Dynamic Update) -->
                                         <td class="text-center">
-                                            <div class="d-inline-flex align-items-center justify-content-center gap-2">
-                                                <button class="btn btn-sm btn-outline-secondary rounded-2 d-inline-flex align-items-center justify-content-center btn-qty-change"
+                                            <div class="d-inline-flex align-items-center justify-content-center gap-1.5 p-1 rounded-2 bg-light border">
+                                                <button class="btn btn-sm btn-white border shadow-none rounded-2 d-inline-flex align-items-center justify-content-center btn-qty-change"
                                                         type="button"
                                                         id="btn-dec-{{ $item->id }}"
                                                         data-cart-id="{{ $item->id }}"
                                                         data-product-id="{{ $item->product_id }}"
                                                         data-stock="{{ $item->product->stock }}"
                                                         data-delta="-1"
-                                                        style="width: 32px; height: 32px; padding: 0;"
+                                                        style="width: 28px; height: 28px; padding: 0; background: #fff;"
                                                         {{ $item->quantity <= 1 ? 'disabled' : '' }}
                                                         title="Kurangi kuantitas">
-                                                    <i class="bi bi-dash-lg"></i>
+                                                    <i class="bi bi-dash"></i>
                                                 </button>
-                                                <span class="fw-bold text-dark text-center px-2 qty-display"
+                                                <span class="fw-bold text-dark text-center px-1.5 qty-display"
                                                       id="qty-val-{{ $item->id }}"
                                                       data-cart-id="{{ $item->id }}"
-                                                      style="min-width: 38px; font-size: 0.95rem; display: inline-block;">
+                                                      style="min-width: 32px; font-size: 0.875rem; display: inline-block;">
                                                     {{ $item->quantity }}
                                                 </span>
-                                                <button class="btn btn-sm btn-outline-secondary rounded-2 d-inline-flex align-items-center justify-content-center btn-qty-change"
+                                                <button class="btn btn-sm btn-white border shadow-none rounded-2 d-inline-flex align-items-center justify-content-center btn-qty-change"
                                                         type="button"
                                                         id="btn-inc-{{ $item->id }}"
                                                         data-cart-id="{{ $item->id }}"
                                                         data-product-id="{{ $item->product_id }}"
                                                         data-stock="{{ $item->product->stock }}"
                                                         data-delta="1"
-                                                        style="width: 32px; height: 32px; padding: 0;"
+                                                        style="width: 28px; height: 28px; padding: 0; background: #fff;"
                                                         {{ $item->quantity >= $item->product->stock ? 'disabled' : '' }}
                                                         title="Tambah kuantitas">
-                                                    <i class="bi bi-plus-lg"></i>
+                                                    <i class="bi bi-plus"></i>
                                                 </button>
                                             </div>
                                         </td>
@@ -152,13 +175,13 @@
                                         <!-- Subtotal -->
                                         <td class="text-end fw-bold text-nowrap fs-6 text-blue-600 subtotal-display"
                                             id="subtotal-val-{{ $item->id }}"
-                                            style="color: #2563EB;">
+                                            style="color: #0866FF;">
                                             {{ $item->formatted_subtotal }}
                                         </td>
 
                                         <!-- Remove Button -->
-                                        <td class="text-center pe-4">
-                                            <button type="button" class="btn btn-sm btn-link text-danger p-0" title="Hapus Produk" onclick="if(confirm('Hapus produk ini dari keranjang?')) document.getElementById('delete-cart-{{ $item->id }}').submit();">
+                                        <td class="text-center pe-3">
+                                            <button type="button" class="btn btn-sm btn-light text-danger p-1 rounded-2 border-0" title="Hapus Produk dari Keranjang" onclick="if(confirm('Hapus {{ addslashes($item->product->name) }} dari keranjang?')) document.getElementById('delete-cart-{{ $item->id }}').submit();">
                                                 <i class="bi bi-trash3 fs-6"></i>
                                             </button>
                                         </td>
@@ -169,25 +192,65 @@
                     </div>
                 </div>
 
-                <!-- Form Input Catatan & Pengiriman -->
-                <div class="card border-0 bg-white rounded-3 shadow-sm p-4">
-                    <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-pencil-square text-blue-600" style="color: #2563EB;"></i>
+                <!-- Form Input Kontak & Alamat Pengiriman -->
+                <div class="card border-0 bg-white rounded-3 shadow-sm p-4 mb-4" id="section-shipping-form">
+                    <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                        <i class="bi bi-truck text-primary"></i>
                         <span>Informasi Pengiriman & Catatan</span>
                     </h5>
+                    <p class="text-muted small mb-3">Pastikan nomor telepon aktif untuk menerima notifikasi status pengiriman dari kurir.</p>
                     
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-bold text-dark">Nomor Telepon / WhatsApp <span class="text-danger">*</span></label>
-                            <input type="text" name="customer_phone" class="form-control rounded-3 text-secondary small" value="{{ auth()->user()->phone ?? '081234567890' }}" placeholder="Contoh: 08123456789" required>
+                            <label for="customer_phone" class="form-label small fw-bold text-dark mb-1">
+                                Nomor Telepon / WhatsApp <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted small"><i class="bi bi-telephone"></i></span>
+                                <input type="tel" 
+                                       id="customer_phone" 
+                                       name="customer_phone" 
+                                       class="form-control rounded-end-3 text-dark small" 
+                                       value="{{ auth()->user()->phone ?? '081234567890' }}" 
+                                       placeholder="Contoh: 08123456789" 
+                                       required>
+                            </div>
+                            <div class="invalid-feedback" id="phone-feedback" style="display: none;">
+                                Masukkan nomor telepon/WhatsApp yang valid (minimal 8 angka).
+                            </div>
                         </div>
+
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-bold text-dark">Alamat Pengiriman Lengkap <span class="text-danger">*</span></label>
-                            <input type="text" name="shipping_address" class="form-control rounded-3 text-secondary small" value="{{ auth()->user()->address ?? 'Jl. Merdeka No. 45, Jakarta Pusat' }}" placeholder="Nama jalan, nomor rumah, RT/RW, kota" required>
+                            <label for="shipping_address" class="form-label small fw-bold text-dark mb-1">
+                                Alamat Pengiriman Lengkap <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted small"><i class="bi bi-geo-alt"></i></span>
+                                <input type="text" 
+                                       id="shipping_address" 
+                                       name="shipping_address" 
+                                       class="form-control rounded-end-3 text-dark small" 
+                                       value="{{ auth()->user()->address ?? 'Jl. Merdeka No. 45, Jakarta Pusat' }}" 
+                                       placeholder="Nama jalan, nomor rumah, RT/RW, kota/kabupaten" 
+                                       required>
+                            </div>
+                            <div class="invalid-feedback" id="address-feedback" style="display: none;">
+                                Masukkan alamat pengiriman lengkap (minimal 5 karakter).
+                            </div>
                         </div>
+
                         <div class="col-12">
-                            <label for="pageCartNotes" class="form-label small fw-bold text-dark">Catatan Tambahan (Opsional)</label>
-                            <textarea name="notes" id="pageCartNotes" class="form-control rounded-3 text-secondary small" rows="2" placeholder="Tulis instruksi khusus pengiriman, patokan alamat, atau catatan kemasan..." style="resize: none; border-color: #CBD5E1;"></textarea>
+                            <label for="pageCartNotes" class="form-label small fw-bold text-dark mb-1">
+                                Catatan Tambahan (Opsional)
+                            </label>
+                            <textarea name="notes" 
+                                      id="pageCartNotes" 
+                                      class="form-control rounded-3 text-dark small" 
+                                      rows="2" 
+                                      maxlength="500"
+                                      placeholder="Tulis instruksi khusus pengiriman, patokan alamat, atau catatan pesanan..." 
+                                      style="resize: none;"></textarea>
+                            <div class="x-small text-muted text-end mt-1">Maksimal 500 karakter</div>
                         </div>
                     </div>
                 </div>
@@ -198,13 +261,13 @@
                 <!-- Midtrans Automated Payment Info Banner -->
                 <div class="card border-0 rounded-3 shadow-sm p-3.5" style="background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%); border: 1px solid #DBEAFE !important;">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background-color: #DBEAFE; color: #2563EB;">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background-color: #DBEAFE; color: #0866FF;">
                             <i class="bi bi-shield-lock-fill fs-5"></i>
                         </div>
                         <div>
                             <span class="fw-bold text-dark d-block mb-1 small">Sistem Pembayaran Otomatis Midtrans</span>
                             <span class="text-muted x-small d-block leading-relaxed">
-                                Pilihan pembayaran lengkap (<strong>QRIS Instant, GoPay, ShopeePay, Virtual Account Bank BCA / Mandiri / BRI / BNI</strong>, dan <strong>Kartu Kredit</strong>) akan muncul otomatis di popup Midtrans setelah Anda menekan tombol <em>Bayar Sekarang</em>.
+                                Pilihan pembayaran lengkap (<strong>QRIS Instant, GoPay, ShopeePay, Virtual Account BCA / Mandiri / BRI / BNI</strong>, dan <strong>Kartu Kredit</strong>) akan muncul otomatis di popup Midtrans setelah menekan tombol <em>Bayar Sekarang</em>.
                             </span>
                         </div>
                     </div>
@@ -213,19 +276,19 @@
             </div>
 
             <!-- Order Summary (Right Column) -->
-            <div class="col-12 col-lg-4 lg:col-span-4">
-                <div class="card border-0 bg-white p-4 sticky sticky-top top-24 rounded-3 shadow-sm" style="top: 90px; z-index: 10;">
+            <div class="col-12 col-lg-4">
+                <div class="card border-0 bg-white p-4 sticky-top rounded-3 shadow-sm" style="top: 90px; z-index: 10;">
                     
                     <!-- Header Ringkasan & Data Pemesan -->
                     <div class="pb-3 mb-3 border-bottom">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h5 class="fw-bold text-dark mb-0">Ringkasan Pesanan</h5>
+                        <div class="d-flex justify-content-between align-items-center mb-1.5">
+                            <h5 class="fw-bold text-dark mb-0 fs-6">Ringkasan Pesanan</h5>
                             <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill x-small fw-bold">
-                                <i class="bi bi-patch-check-fill me-1"></i> Akun Terverifikasi
+                                <i class="bi bi-patch-check-fill me-1"></i> Terverifikasi
                             </span>
                         </div>
                         <div class="text-muted x-small">
-                            Pemesan: <strong class="text-dark">{{ auth()->user()->name }}</strong> ({{ auth()->user()->email }})
+                            Pemesan: <strong class="text-dark">{{ auth()->user()->name }}</strong>
                         </div>
                     </div>
                     
@@ -234,29 +297,34 @@
                         <span class="text-dark fw-semibold" id="cart-total-quantity">{{ $cartItems->sum('quantity') }} unit</span>
                     </div>
                     
-                    <div class="d-flex justify-content-between mb-3 small text-muted">
+                    <div class="d-flex justify-content-between mb-2 small text-muted">
                         <span>Biaya Pengiriman:</span>
-                        <span class="text-success fw-bold">GRATIS</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold">GRATIS</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3 small text-muted">
+                        <span>Biaya Penanganan / Admin:</span>
+                        <span class="text-success fw-semibold">Gratis</span>
                     </div>
 
                     <hr class="my-3">
 
-                    <div class="d-flex justify-content-between align-items-baseline mb-4">
+                    <div class="d-flex justify-content-between align-items-baseline mb-3.5">
                         <span class="fw-bold text-dark fs-6">Total Pembayaran:</span>
-                        <span class="h3 fw-bold mb-0 text-blue-600" id="cart-total-price" style="color: #2563EB;">
+                        <span class="h3 fw-bold mb-0 text-blue-600" id="cart-total-price" style="color: #0866FF;">
                             Rp {{ number_format($totalPrice, 0, ',', '.') }}
                         </span>
                     </div>
 
                     <!-- Tombol Bayar Sekarang Solid Biru (Midtrans Snap Trigger) -->
-                    <button type="submit" id="pay-button" class="btn btn-primary bg-blue-600 border-blue-600 w-100 py-3 d-flex align-items-center justify-content-center gap-2 fw-bold shadow-sm rounded-3 hover:bg-blue-700">
+                    <button type="submit" id="pay-button" class="btn btn-primary bg-blue-600 border-0 w-100 py-3 d-flex align-items-center justify-content-center gap-2 fw-bold shadow-sm rounded-3 hover:bg-blue-700" style="background: linear-gradient(135deg, #0866FF 0%, #1D4ED8 100%);">
                         <span id="pay-button-text">Bayar Sekarang</span>
                         <i class="bi bi-arrow-right fs-5" id="pay-button-icon"></i>
                     </button>
 
-                    <div class="d-flex align-items-center justify-content-center gap-1.5 mt-3 text-muted x-small">
+                    <div class="d-flex align-items-center justify-content-center gap-1.5 mt-3 text-muted x-small text-center">
                         <i class="bi bi-shield-check text-success fs-6"></i>
-                        <span>Pembayaran Aman & Otomatis via Midtrans</span>
+                        <span>Pembayaran Aman & Terenkripsi via Midtrans</span>
                     </div>
                 </div>
             </div>
@@ -298,7 +366,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ==========================================
-    // KALKULASI DINAMIS CHECKBOX & RINGKASAN
+    // 1. KALKULASI DINAMIS CHECKBOX & RINGKASAN
     // ==========================================
     function updateOrderSummary() {
         let selectedCount = 0;
@@ -375,6 +443,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Jalankan kalkulasi awal saat halaman dimuat
     updateOrderSummary();
 
+    // ==========================================
+    // 2. LOGIKA KUANTITAS STEPPER (AJAX)
+    // ==========================================
     const updatingCartIds = new Set();
     const qtyButtons = document.querySelectorAll('.btn-qty-change');
 
@@ -509,7 +580,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         alert(errorMsg);
                     }
 
-                    // Kembalikan tombol ke kondisi kuantitas valid sebelumnya
                     if (btnDec) btnDec.disabled = (currentQty <= 1);
                     if (btnInc) btnInc.disabled = (stock > 0 && currentQty >= stock);
                 }
@@ -527,43 +597,70 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ==========================================
-    // MIDTRANS SNAP POPUP CHECKOUT
+    // 3. MIDTRANS SNAP CHECKOUT (ANTI DOUBLE-CLICK DEBOUNCE)
     // ==========================================
     const checkoutForm = document.getElementById('cart-checkout-form');
+    let isSubmitting = false;
 
     if (checkoutForm && payButton) {
         checkoutForm.addEventListener('submit', function (e) {
             e.preventDefault();
 
+            if (isSubmitting) {
+                return;
+            }
+
             // Validasi minimal 1 produk terpilih untuk di-checkout
             const selectedCheckboxes = checkoutForm.querySelectorAll('.cart-item-checkbox:checked');
             if (selectedCheckboxes.length === 0) {
-                alert('Silakan pilih minimal satu produk di keranjang belanja Anda untuk melanjutkan checkout.');
+                alert('Silakan centang minimal satu produk di keranjang belanja Anda untuk melanjutkan checkout.');
                 return;
             }
 
             // Validasi field kontak & alamat di sisi frontend
-            const phoneInput = checkoutForm.querySelector('input[name="customer_phone"]');
-            const addressInput = checkoutForm.querySelector('input[name="shipping_address"]');
+            const phoneInput = document.getElementById('customer_phone');
+            const addressInput = document.getElementById('shipping_address');
+            const phoneFeedback = document.getElementById('phone-feedback');
+            const addressFeedback = document.getElementById('address-feedback');
 
-            if (!phoneInput || !phoneInput.value.trim()) {
-                alert('Silakan isi nomor telepon/WhatsApp terlebih dahulu.');
-                phoneInput?.focus();
+            let isValid = true;
+
+            // Validasi nomor telepon (min 8 karakter)
+            const phoneVal = phoneInput ? phoneInput.value.trim() : '';
+            if (!phoneVal || phoneVal.length < 8) {
+                if (phoneInput) phoneInput.classList.add('is-invalid');
+                if (phoneFeedback) phoneFeedback.style.display = 'block';
+                isValid = false;
+            } else {
+                if (phoneInput) phoneInput.classList.remove('is-invalid');
+                if (phoneFeedback) phoneFeedback.style.display = 'none';
+            }
+
+            // Validasi alamat pengiriman (min 5 karakter)
+            const addressVal = addressInput ? addressInput.value.trim() : '';
+            if (!addressVal || addressVal.length < 5) {
+                if (addressInput) addressInput.classList.add('is-invalid');
+                if (addressFeedback) addressFeedback.style.display = 'block';
+                isValid = false;
+            } else {
+                if (addressInput) addressInput.classList.remove('is-invalid');
+                if (addressFeedback) addressFeedback.style.display = 'none';
+            }
+
+            if (!isValid) {
+                document.getElementById('section-shipping-form')?.scrollIntoView({ behavior: 'smooth' });
                 return;
             }
 
-            if (!addressInput || !addressInput.value.trim()) {
-                alert('Silakan isi alamat pengiriman lengkap terlebih dahulu.');
-                addressInput?.focus();
-                return;
-            }
-
+            // Kunci tombol untuk mencegah transaksi ganda (double-click debounce)
+            isSubmitting = true;
             const originalText = payText ? payText.textContent : 'Bayar Sekarang';
             payButton.disabled = true;
             if (payText) payText.textContent = 'Menghubungkan Midtrans...';
             if (payIcon) payIcon.className = 'spinner-border spinner-border-sm';
 
             function resetPayButton() {
+                isSubmitting = false;
                 payButton.disabled = false;
                 if (payText) payText.textContent = originalText;
                 if (payIcon) payIcon.className = 'bi bi-arrow-right fs-5';
@@ -610,7 +707,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 resetPayButton();
                             },
                             onClose: function () {
-                                alert('Anda menutup popup sebelum menyelesaikan pembayaran.');
                                 if (result.data.redirect_url) {
                                     window.location.href = result.data.redirect_url;
                                 } else {
