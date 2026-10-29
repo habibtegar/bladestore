@@ -91,9 +91,20 @@ class AdminOrderController extends Controller
         $requestedStatus = $validated['status'] ?? null;
         $newStatus = $requestedStatus ?: $order->status;
 
-        // Otomatis ubah status pesanan menjadi "Dikirim" (shipped) saat nomor resi dimasukkan
+        // Pembatasan: Matikan input nomor resi dan pengiriman jika pesanan masih 'Belum Bayar'
+        if (in_array($order->status, ['pending', 'belum_bayar'])) {
+            if (! empty($newTrackingNumber)) {
+                return back()->with('error', 'Nomor resi tidak dapat diinput karena pesanan masih berstatus Belum Bayar. Input nomor resi hanya diizinkan setelah pembayaran diterima (status Dikemas).');
+            }
+
+            if (in_array($newStatus, ['shipped', 'dikirim'])) {
+                return back()->with('error', 'Status pesanan tidak dapat diubah menjadi Dikirim karena pesanan belum dibayar.');
+            }
+        }
+
+        // Otomatis ubah status pesanan menjadi "Dikirim" (shipped) saat nomor resi dimasukkan pada pesanan yang sudah dikemas
         if (! empty($newTrackingNumber)) {
-            if (in_array($order->status, ['processing', 'dikemas', 'pending', 'belum_bayar']) || empty($requestedStatus) || in_array($requestedStatus, ['processing', 'dikemas'])) {
+            if (in_array($order->status, ['processing', 'dikemas']) || in_array($requestedStatus, ['processing', 'dikemas']) || empty($requestedStatus)) {
                 $newStatus = 'shipped';
             }
         }

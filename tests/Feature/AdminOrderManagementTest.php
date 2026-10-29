@@ -373,4 +373,51 @@ class AdminOrderManagementTest extends TestCase
         $response->assertSessionHasErrors('status');
         $this->assertEquals('pending', $order->fresh()->status);
     }
+
+    public function test_admin_cannot_input_tracking_number_when_order_is_unpaid(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::create([
+            'order_code' => 'ORD-UNPAID-TRACKING',
+            'user_id' => $user->id,
+            'total_price' => 150000,
+            'payment_method' => 'Transfer Bank Manual',
+            'status' => 'pending',
+            'shipping_address' => 'Jl. Merdeka No. 1',
+            'customer_phone' => '08123456789',
+        ]);
+
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->patch(route('admin.orders.update-status', $order->id), [
+            'tracking_number' => 'JNE9988776655',
+        ]);
+
+        $response->assertSessionHas('error');
+        $this->assertNull($order->fresh()->tracking_number);
+        $this->assertEquals('pending', $order->fresh()->status);
+    }
+
+    public function test_admin_cannot_change_unpaid_order_status_to_shipped(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::create([
+            'order_code' => 'ORD-UNPAID-SHIPPED',
+            'user_id' => $user->id,
+            'total_price' => 150000,
+            'payment_method' => 'Transfer Bank Manual',
+            'status' => 'pending',
+            'shipping_address' => 'Jl. Merdeka No. 1',
+            'customer_phone' => '08123456789',
+        ]);
+
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->patch(route('admin.orders.update-status', $order->id), [
+            'status' => 'shipped',
+        ]);
+
+        $response->assertSessionHas('error');
+        $this->assertEquals('pending', $order->fresh()->status);
+    }
 }

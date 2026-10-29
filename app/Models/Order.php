@@ -78,7 +78,7 @@ class Order extends Model
     {
         return Attribute::make(
             get: fn (): string => match ($this->status) {
-                'pending', 'belum_bayar' => 'Belum Bayar',
+                'pending', 'belum_bayar' => $this->isExpired() ? 'Dibatalkan (Kadaluarsa)' : 'Belum Bayar',
                 'processing', 'dikemas' => 'Dikemas',
                 'shipped', 'dikirim' => 'Dikirim',
                 'completed', 'selesai' => 'Selesai',
@@ -86,6 +86,30 @@ class Order extends Model
                 default => ucfirst((string) $this->status),
             }
         );
+    }
+
+    /**
+     * Check if the order is expired (unpaid after 24 hours).
+     */
+    public function isExpired(): bool
+    {
+        if (in_array($this->status, ['cancelled', 'dibatalkan'])) {
+            return true;
+        }
+
+        if (in_array($this->status, ['pending', 'belum_bayar']) && $this->created_at) {
+            return $this->created_at->diffInHours(now()) >= 24;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if the order can still be paid via Midtrans / payment gateway.
+     */
+    public function canBePaid(): bool
+    {
+        return in_array($this->status, ['pending', 'belum_bayar']) && ! $this->isExpired();
     }
 
     /**

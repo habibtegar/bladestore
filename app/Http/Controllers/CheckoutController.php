@@ -362,6 +362,12 @@ class CheckoutController extends Controller
      */
     public function orders(Request $request): View
     {
+        // Otomatis batalkan pesanan pending yang melebihi 24 jam (kadaluarsa)
+        Order::where('user_id', Auth::id())
+            ->whereIn('status', ['pending', 'belum_bayar'])
+            ->where('created_at', '<=', now()->subHours(24))
+            ->update(['status' => 'cancelled']);
+
         $currentStatus = $request->query('status', 'all');
 
         $query = Order::with('items.product')
@@ -388,12 +394,77 @@ class CheckoutController extends Controller
     }
 
     /**
+     * Get or create Midtrans Snap Token for an existing order.
+     */
+    public function getOrderSnapToken(Order $order): JsonResponse
+    {
+        if ($order->user_id !== Auth::id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses tidak diizinkan.',
+            ], 403);
+        }
+
+        // Cek apakah pesanan sudah kadaluarsa (lebih dari 24 jam)
+        if ($order->isExpired()) {
+            if (! in_array($order->status, ['cancelled', 'dibatalkan'])) {
+                $order->update(['status' => 'cancelled']);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Batas waktu pembayaran pesanan ini telah kadaluarsa (24 jam). Pesanan telah dibatalkan.',
+                'is_expired' => true,
+            ], 422);
+        }
+
+        if (! in_array($order->status, ['pending', 'belum_bayar'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesanan ini sudah tidak berstatus Belum Bayar.',
+            ], 422);
+        }
+
+        // Jika snap_token sudah tersimpan sebelumnya di database, gunakan kembali
+        if (! empty($order->snap_token)) {
+            return response()->json([
+                'success' => true,
+                'snap_token' => $order->snap_token,
+                'order_code' => $order->order_code,
+            ]);
+        }
+
+        // Jika belum ada snap_token, minta token ke Midtrans API
+        $snapResult = $this->requestMidtransSnapToken($order);
+
+        if (! $snapResult['success'] || empty($snapResult['token'])) {
+            return response()->json([
+                'success' => false,
+                'message' => $snapResult['message'] ?? 'Gagal membuat token pembayaran Midtrans.',
+            ], 422);
+        }
+
+        $order->update(['snap_token' => $snapResult['token']]);
+
+        return response()->json([
+            'success' => true,
+            'snap_token' => $snapResult['token'],
+            'order_code' => $order->order_code,
+        ]);
+    }
+
+    /**
      * Display order detail.
      */
     public function show(Order $order): View
     {
         if ($order->user_id !== Auth::id()) {
             abort(403, 'Akses tidak diizinkan.');
+        }
+
+        // Otomatis batalkan pesanan pending yang melebihi 24 jam
+        if (in_array($order->status, ['pending', 'belum_bayar']) && $order->created_at->diffInHours(now()) >= 24) {
+            $order->update(['status' => 'cancelled']);
         }
 
         $order->load(['items.product', 'user']);

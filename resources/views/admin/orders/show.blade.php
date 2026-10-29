@@ -177,6 +177,13 @@
                 <i class="bi bi-truck text-primary"></i> Update Resi & Status
             </h5>
 
+            @if(in_array($order->status, ['pending', 'belum_bayar']))
+                <div class="alert alert-warning py-2.5 px-3 small border-0 mb-3 d-flex align-items-center gap-2 rounded-2">
+                    <i class="bi bi-exclamation-triangle-fill text-warning fs-6 flex-shrink-0"></i>
+                    <span style="font-size: 0.82rem;">Pesanan masih <strong>Belum Bayar</strong>. Form input resi dinonaktifkan hingga status berubah menjadi Dikemas (pembayaran diverifikasi).</span>
+                </div>
+            @endif
+
             <form action="{{ route('admin.orders.update-status', $order->id) }}" method="POST">
                 @csrf
                 @method('PATCH')
@@ -192,14 +199,19 @@
                                name="tracking_number"
                                id="tracking_number"
                                class="form-control @error('tracking_number') is-invalid @enderror"
-                               placeholder="Contoh: JNE882910291, SICEPAT992"
-                               value="{{ old('tracking_number', $order->tracking_number) }}">
+                               placeholder="{{ in_array($order->status, ['pending', 'belum_bayar']) ? 'Menunggu pembayaran selesai...' : 'Contoh: JNE882910291, SICEPAT992' }}"
+                               value="{{ old('tracking_number', $order->tracking_number) }}"
+                               {{ in_array($order->status, ['pending', 'belum_bayar']) ? 'disabled' : '' }}>
                     </div>
                     @error('tracking_number')
                         <div class="text-danger x-small mt-1">{{ $message }}</div>
                     @enderror
                     <div class="text-muted mt-1.5" style="font-size: 0.78rem;">
-                        <i class="bi bi-info-circle me-1 text-primary"></i> Menyimpan nomor resi otomatis mengubah status menjadi <strong>Dikirim</strong>.
+                        @if(in_array($order->status, ['pending', 'belum_bayar']))
+                            <span class="text-warning fw-semibold"><i class="bi bi-lock me-1"></i> Resi hanya dapat diinput setelah status Dikemas.</span>
+                        @else
+                            <i class="bi bi-info-circle me-1 text-primary"></i> Menyimpan nomor resi otomatis mengubah status menjadi <strong>Dikirim</strong>.
+                        @endif
                     </div>
                 </div>
 
@@ -211,11 +223,13 @@
                             Belum Bayar
                         </option>
                         <option value="processing" {{ in_array($order->status, ['processing', 'dikemas']) ? 'selected' : '' }}>
-                            Dikemas
+                            Dikemas (Sudah Dibayar)
                         </option>
-                        <option value="shipped" {{ in_array($order->status, ['shipped', 'dikirim']) ? 'selected' : '' }}>
-                            Dikirim
-                        </option>
+                        @if(!in_array($order->status, ['pending', 'belum_bayar']))
+                            <option value="shipped" {{ in_array($order->status, ['shipped', 'dikirim']) ? 'selected' : '' }}>
+                                Dikirim
+                            </option>
+                        @endif
                         <option value="completed" {{ in_array($order->status, ['completed', 'selesai']) ? 'selected' : '' }}>
                             Selesai
                         </option>

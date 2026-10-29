@@ -31,6 +31,31 @@
             </div>
         </div>
 
+        @if($order->canBePaid())
+            <!-- Action Card: Bayar Sekarang (Midtrans Snap) -->
+            <div class="card border-0 p-4 mb-4 rounded-4 shadow-sm text-center" style="background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); border: 1px solid #BFDBFE !important;">
+                <div class="mb-2">
+                    <span class="badge bg-primary text-white rounded-pill px-3 py-1.5 x-small fw-bold">
+                        <i class="bi bi-shield-check me-1"></i> Pembayaran Online Instan
+                    </span>
+                </div>
+                <h4 class="fw-bold text-dark mb-1">Selesaikan Pembayaran Sekarang</h4>
+                <p class="text-muted small mb-3 mx-auto" style="max-width: 520px;">
+                    Klik tombol di bawah ini untuk membuka popup pembayaran aman melalui Midtrans (QRIS, Virtual Account Bank, GoPay, dan E-Wallet lainnya).
+                </p>
+                <div>
+                    <button type="button" class="btn btn-primary btn-lg px-4 px-sm-5 py-3 fw-bold rounded-3 shadow d-inline-flex align-items-center justify-content-center gap-2 btn-pay-now">
+                        <i class="bi bi-credit-card-2-front-fill fs-5"></i>
+                        <span>Bayar Sekarang ({{ $order->formatted_total_price }})</span>
+                        <i class="bi bi-arrow-right fs-5"></i>
+                    </button>
+                </div>
+                <div class="x-small text-muted mt-2.5">
+                    <i class="bi bi-clock-history me-1"></i> Selesaikan pembayaran dalam 24 jam sebelum pesanan otomatis dibatalkan sistem.
+                </div>
+            </div>
+        @endif
+
         <!-- Payment Instructions Box -->
         <div class="card border-0 bg-white p-4 mb-4 rounded-3 shadow-sm">
             <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
@@ -195,14 +220,83 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
             <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-receipt me-1"></i> Pesanan Saya
             </a>
-            <a href="{{ route('products.index') }}" class="btn btn-primary px-4">
-                <i class="bi bi-bag me-1"></i> Lanjut Belanja
-            </a>
+            <div class="d-flex align-items-center gap-2">
+                @if($order->canBePaid())
+                    <button type="button" class="btn btn-primary fw-bold shadow-sm d-inline-flex align-items-center gap-1.5 btn-pay-now">
+                        <i class="bi bi-credit-card-2-front"></i>
+                        <span>Bayar Sekarang</span>
+                    </button>
+                @endif
+                <a href="{{ route('products.index') }}" class="btn btn-outline-primary px-4">
+                    <i class="bi bi-bag me-1"></i> Lanjut Belanja
+                </a>
+            </div>
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+@if($order->canBePaid())
+    <script src="{{ config('midtrans.snap_url', 'https://app.sandbox.midtrans.com/snap/snap.js') }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const snapToken = @json($order->snap_token);
+
+            function triggerSnapPayment() {
+                if (snapToken) {
+                    window.snap.pay(snapToken, {
+                        onSuccess: function(result) {
+                            window.location.reload();
+                        },
+                        onPending: function(result) {
+                            window.location.reload();
+                        },
+                        onError: function(result) {
+                            alert('Pembayaran gagal atau terjadi kesalahan.');
+                        },
+                        onClose: function() {
+                            console.log('Customer menutup popup Snap tanpa menyelesaikan pembayaran');
+                        }
+                    });
+                } else {
+                    // Minta token baru ke controller jika belum tersedia
+                    fetch('{{ route("orders.snap-token", $order->id) }}', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (data.success && data.snap_token) {
+                            window.snap.pay(data.snap_token, {
+                                onSuccess: function() { window.location.reload(); },
+                                onPending: function() { window.location.reload(); },
+                                onError: function() { alert('Pembayaran gagal.'); }
+                            });
+                        } else {
+                            alert(data.message || 'Gagal memuat popup pembayaran Midtrans.');
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error('Snap error:', err);
+                        alert('Terjadi kesalahan saat memuat popup pembayaran.');
+                    });
+                }
+            }
+
+            document.querySelectorAll('.btn-pay-now').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    triggerSnapPayment();
+                });
+            });
+        });
+    </script>
+@endif
+@endpush

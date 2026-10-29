@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Cart;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -733,5 +734,105 @@ class EcommerceFlowTest extends TestCase
         $response->assertSee('snap.js');
         $response->assertSee('cart-checkout-form');
         $response->assertSee('pay-button');
+    }
+
+    public function test_unpaid_order_shows_bayar_sekarang_button_on_checkout_success_and_order_history(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create();
+        $order = Order::create([
+            'order_code' => 'ORD-UNPAID-PAY-NOW',
+            'user_id' => $user->id,
+            'total_price' => 120000,
+            'payment_method' => 'Midtrans Snap',
+            'status' => 'pending',
+            'snap_token' => 'mock-snap-retry-token',
+            'shipping_address' => 'Jl. Kebon Jeruk No. 5',
+            'customer_phone' => '08123456789',
+        ]);
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'price' => 120000,
+            'subtotal' => 120000,
+        ]);
+
+        // 1. Checkout Success page
+        $successResponse = $this->actingAs($user)->get(route('checkout.success', $order->id));
+        $successResponse->assertStatus(200);
+        $successResponse->assertSee('Bayar Sekarang');
+        $successResponse->assertSee('mock-snap-retry-token');
+
+        // 2. Orders History index page
+        $historyResponse = $this->actingAs($user)->get(route('orders.index'));
+        $historyResponse->assertStatus(200);
+        $historyResponse->assertSee('Bayar Sekarang');
+        $historyResponse->assertSee('btn-pay-snap');
+
+        // 3. Order detail page
+        $detailResponse = $this->actingAs($user)->get(route('orders.show', $order->id));
+        $detailResponse->assertStatus(200);
+        $detailResponse->assertSee('Bayar Sekarang');
+        $detailResponse->assertSee('btn-pay-snap');
+    }
+
+    public function test_customer_can_retrieve_snap_token_for_unpaid_order(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::create([
+            'order_code' => 'ORD-SNAP-RETRIEVE',
+            'user_id' => $user->id,
+            'total_price' => 150000,
+            'payment_method' => 'Midtrans Snap',
+            'status' => 'pending',
+            'snap_token' => 'active-saved-snap-token-123',
+            'shipping_address' => 'Jl. Kebon Kacang No. 7',
+            'customer_phone' => '08123456789',
+        ]);
+
+        $response = $this->actingAs($user)->getJson(route('orders.snap-token', $order->id));
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'snap_token' => 'active-saved-snap-token-123',
+            'order_code' => 'ORD-SNAP-RETRIEVE',
+        ]);
+    }
+
+    public function test_unpaid_order_older_than_24_hours_is_auto_cancelled_and_hides_pay_button(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::create([
+            'order_code' => 'ORD-EXPIRED-TEST',
+            'user_id' => $user->id,
+            'total_price' => 200000,
+            'payment_method' => 'Midtrans Snap',
+            'status' => 'pending',
+            'snap_token' => 'expired-token-456',
+            'shipping_address' => 'Jl. Diponegoro No. 8',
+            'customer_phone' => '08123456789',
+        ]);
+
+        // Set created_at to 25 hours ago
+        $order->created_at = now()->subHours(25);
+        $order->saveQuietly();
+
+        $this->assertTrue($order->isExpired());
+        $this->assertFalse($order->canBePaid());
+
+        // Visiting orders index auto-cancels expired orders
+        $response = $this->actingAs($user)->get(route('orders.index'));
+        $response->assertStatus(200);
+
+        $order->refresh();
+        $this->assertEquals('cancelled', $order->status);
+        $this->assertStringContainsString('Dibatalkan', $order->status_label);
+
+        // Pay button should NOT be rendered for expired/cancelled orders
+        $response->assertDontSee('Bayar Sekarang');
+        $response->assertDontSee('data-order-id="'.$order->id.'"', false);
     }
 }

@@ -32,6 +32,28 @@
                 </div>
             </div>
 
+            @if($order->canBePaid())
+                <div class="alert alert-primary border-0 shadow-sm d-flex flex-column flex-sm-row align-items-sm-center justify-content-between p-3.5 rounded-3 mb-4 gap-3" style="background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); border: 1px solid #BFDBFE !important;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+                        <div>
+                            <span class="x-small text-muted d-block text-uppercase fw-bold">Status Pembayaran: Belum Bayar</span>
+                            <span class="fw-bold fs-6 text-dark">Selesaikan transaksi Anda sekarang dengan aman</span>
+                            <div class="x-small text-muted">Batas waktu pembayaran 24 jam</div>
+                        </div>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-primary px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center gap-2 text-nowrap btn-pay-snap" data-order-id="{{ $order->id }}" data-snap-token="{{ $order->snap_token ?? '' }}">
+                            <i class="bi bi-credit-card-2-front"></i>
+                            <span>Bayar Sekarang</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            @endif
+
             @if($order->tracking_number)
                 <div class="alert alert-primary border-0 shadow-sm d-flex align-items-center justify-content-between p-3 rounded-3 mb-4" style="background-color: #EFF6FF; border: 1px solid #BFDBFE !important;">
                     <div class="d-flex align-items-center gap-3">
@@ -143,10 +165,76 @@
             <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Riwayat Pesanan
             </a>
-            <a href="{{ route('products.index') }}" class="btn btn-primary px-4">
-                Belanja Koleksi Lain
-            </a>
+            <div class="d-flex align-items-center gap-2">
+                @if($order->canBePaid())
+                    <button type="button" class="btn btn-primary fw-bold shadow-sm d-inline-flex align-items-center gap-1.5 btn-pay-snap" data-order-id="{{ $order->id }}" data-snap-token="{{ $order->snap_token ?? '' }}">
+                        <i class="bi bi-credit-card-2-front"></i>
+                        <span>Bayar Sekarang</span>
+                    </button>
+                @endif
+                <a href="{{ route('products.index') }}" class="btn btn-outline-primary px-4">
+                    Belanja Koleksi Lain
+                </a>
+            </div>
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+@if($order->canBePaid())
+<script src="{{ config('midtrans.snap_url', 'https://app.sandbox.midtrans.com/snap/snap.js') }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.btn-pay-snap').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const snapToken = this.getAttribute('data-snap-token');
+                const orderId = this.getAttribute('data-order-id');
+
+                if (snapToken && snapToken.trim() !== '') {
+                    window.snap.pay(snapToken, {
+                        onSuccess: function() { window.location.reload(); },
+                        onPending: function() { window.location.reload(); },
+                        onError: function() { alert('Pembayaran gagal atau dibatalkan.'); },
+                        onClose: function() { console.log('Popup ditutup'); }
+                    });
+                } else {
+                    const originalHtml = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memuat...';
+
+                    fetch('/orders/' + orderId + '/snap-token', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (data.success && data.snap_token) {
+                            btn.setAttribute('data-snap-token', data.snap_token);
+                            window.snap.pay(data.snap_token, {
+                                onSuccess: function() { window.location.reload(); },
+                                onPending: function() { window.location.reload(); },
+                                onError: function() { alert('Pembayaran gagal.'); }
+                            });
+                        } else {
+                            alert(data.message || 'Gagal memuat popup pembayaran Midtrans.');
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error('Snap error:', err);
+                        alert('Terjadi kesalahan saat memuat token pembayaran.');
+                    })
+                    .finally(function() {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    });
+                }
+            });
+        });
+    });
+</script>
+@endif
+@endpush

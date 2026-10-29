@@ -175,6 +175,8 @@
             flex-direction: column;
             min-height: 100vh;
             width: calc(100% - 270px);
+            min-width: 0;
+            overflow-x: hidden;
             transition: all 0.25s ease;
         }
 
@@ -188,6 +190,7 @@
             .admin-wrapper {
                 margin-left: 0;
                 width: 100%;
+                min-width: 0;
             }
         }
 
@@ -406,7 +409,7 @@
         </header>
 
         <!-- Main Body Area -->
-        <main class="p-4 p-lg-5 flex-grow-1">
+        <main class="p-4 p-lg-5 flex-grow-1" style="min-width: 0; max-width: 100%;">
             <!-- Global Flash Messages -->
             @if(session('success'))
                 <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm d-flex align-items-center gap-2 rounded-3 mb-4" role="alert">

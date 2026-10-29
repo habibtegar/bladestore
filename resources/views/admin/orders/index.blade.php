@@ -142,18 +142,18 @@
 </div>
 
 <!-- Table Daftar Pesanan Admin -->
-<div class="card border-0 bg-white overflow-hidden rounded-3 shadow-sm mb-4">
+<div class="card border-0 bg-white rounded-3 shadow-sm mb-4">
     <div class="table-responsive">
         <table class="table table-admin align-middle table-hover mb-0">
             <thead>
                 <tr>
-                    <th scope="col" style="width: 170px;">Order ID</th>
+                    <th scope="col" style="white-space: nowrap; width: 170px;">Order ID</th>
                     <th scope="col">Nama Pelanggan</th>
-                    <th scope="col" class="text-end" style="width: 150px;">Total Harga</th>
-                    <th scope="col" style="width: 160px;">Tanggal Pesanan</th>
-                    <th scope="col" class="text-center" style="width: 140px;">Status Pesanan</th>
-                    <th scope="col" style="width: 150px;">Nomor Resi</th>
-                    <th scope="col" class="text-center" style="width: 160px;">Aksi</th>
+                    <th scope="col" class="text-end" style="white-space: nowrap; width: 140px;">Total Harga</th>
+                    <th scope="col" style="white-space: nowrap; width: 150px;">Tanggal Pesanan</th>
+                    <th scope="col" class="text-center" style="white-space: nowrap; width: 140px;">Status Pesanan</th>
+                    <th scope="col" style="white-space: nowrap; width: 150px;">Nomor Resi</th>
+                    <th scope="col" class="text-center" style="white-space: nowrap; width: 150px;">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y">
@@ -171,8 +171,8 @@
 
                         <!-- 2. Nama Pelanggan -->
                         <td>
-                            <div class="fw-semibold text-dark small">{{ $order->user->name ?? 'Pelanggan' }}</div>
-                            <div class="x-small text-muted">{{ $order->user->email ?? '-' }}</div>
+                            <div class="fw-semibold text-dark small text-truncate" style="max-width: 180px;">{{ $order->user->name ?? 'Pelanggan' }}</div>
+                            <div class="x-small text-muted text-truncate" style="max-width: 180px;">{{ $order->user->email ?? '-' }}</div>
                             @if($order->customer_phone)
                                 <div class="x-small">
                                     <a href="https://wa.me/{{ preg_replace('/^0/', '62', preg_replace('/[^0-9]/', '', $order->customer_phone)) }}" target="_blank" rel="noopener noreferrer" class="text-success text-decoration-none">
@@ -188,13 +188,13 @@
                         </td>
 
                         <!-- 4. Tanggal Pesanan -->
-                        <td>
+                        <td style="white-space: nowrap;">
                             <div class="small text-dark">{{ $order->created_at->format('d M Y') }}</div>
                             <div class="x-small text-muted">{{ $order->created_at->format('H:i') }} WIB</div>
                         </td>
 
                         <!-- 5. Status Pesanan -->
-                        <td class="text-center">
+                        <td class="text-center" style="white-space: nowrap;">
                             @if(in_array($order->status, ['pending', 'belum_bayar']))
                                 <span class="badge bg-warning text-dark px-2.5 py-1.5 rounded-pill small">
                                     <i class="bi bi-clock-history me-1"></i> Belum Bayar
@@ -219,7 +219,7 @@
                         </td>
 
                         <!-- 6. Nomor Resi -->
-                        <td>
+                        <td style="white-space: nowrap;">
                             @if($order->tracking_number)
                                 <span class="font-monospace fw-bold small text-dark d-block">
                                     {{ $order->tracking_number }}
@@ -233,7 +233,7 @@
                         </td>
 
                         <!-- 7. Aksi -->
-                        <td class="text-center">
+                        <td class="text-center" style="white-space: nowrap;">
                             <div class="d-flex justify-content-center gap-1.5">
                                 <!-- Tombol Modal Detail & Resi -->
                                 <button type="button" 
@@ -254,215 +254,6 @@
                             </div>
                         </td>
                     </tr>
-
-                    <!-- ==========================================
-                         MODAL DETAIL PESANAN & UPDATE NOMOR RESI
-                         ========================================== -->
-                    <div class="modal fade" id="orderDetailModal{{ $order->id }}" tabindex="-1" aria-labelledby="orderDetailModalLabel{{ $order->id }}" aria-hidden="true">
-                        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-                            <div class="modal-content border-0 shadow">
-                                
-                                <!-- Modal Header -->
-                                <div class="modal-header bg-light py-3">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                            <i class="bi bi-receipt"></i>
-                                        </div>
-                                        <div>
-                                            <h5 class="modal-title fw-bold text-dark font-monospace mb-0" id="orderDetailModalLabel{{ $order->id }}">
-                                                #{{ $order->order_code }}
-                                            </h5>
-                                            <div class="x-small text-muted">
-                                                Dipesan pada {{ $order->created_at->format('d F Y, H:i') }} WIB
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="badge {{ $order->status_badge_class }} px-2.5 py-1.5 rounded-pill small">
-                                            {{ $order->status_label }}
-                                        </span>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                                    </div>
-                                </div>
-
-                                <!-- Modal Body -->
-                                <div class="modal-body p-4">
-                                    
-                                    <!-- 1. Daftar Produk yang Dibeli -->
-                                    <div class="mb-4">
-                                        <h6 class="fw-bold text-dark mb-2.5 d-flex align-items-center gap-2">
-                                            <i class="bi bi-basket2 text-primary"></i> Daftar Produk yang Dibeli
-                                        </h6>
-                                        <div class="table-responsive border rounded-3 overflow-hidden">
-                                            <table class="table table-sm align-middle mb-0">
-                                                <thead class="table-light x-small text-secondary">
-                                                    <tr>
-                                                        <th>Produk</th>
-                                                        <th class="text-center">Harga Satuan</th>
-                                                        <th class="text-center">Jumlah</th>
-                                                        <th class="text-end">Subtotal</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($order->items as $item)
-                                                        <tr>
-                                                            <td>
-                                                                <div class="d-flex align-items-center gap-2.5">
-                                                                    <div style="width: 40px; height: 40px; border-radius: 6px; overflow: hidden; background-color: #F8FAFC;" class="border flex-shrink-0">
-                                                                        <img src="{{ optional($item->product)->image_url ?? \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}"
-                                                                             alt="{{ $item->product->name ?? 'Produk' }}"
-                                                                             class="w-100 h-100 object-fit-cover"
-                                                                             onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
-                                                                    </div>
-                                                                    <div class="text-truncate">
-                                                                        <div class="fw-semibold text-dark small text-truncate" style="max-width: 280px;">
-                                                                            {{ $item->product->name ?? 'Produk telah dihapus' }}
-                                                                        </div>
-                                                                        <div class="x-small text-muted">ID: #{{ $item->product_id }}</div>
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td class="text-center text-nowrap small text-secondary">
-                                                                Rp {{ number_format((float)$item->price, 0, ',', '.') }}
-                                                            </td>
-                                                            <td class="text-center fw-semibold small">
-                                                                {{ $item->quantity }}x
-                                                            </td>
-                                                            <td class="text-end fw-bold text-primary text-nowrap small">
-                                                                Rp {{ number_format((float)$item->subtotal, 0, ',', '.') }}
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                                <tfoot class="table-light border-top">
-                                                    <tr>
-                                                        <td colspan="3" class="text-end fw-bold small">Total Pembayaran:</td>
-                                                        <td class="text-end fw-bold fs-6 text-primary">{{ $order->formatted_total_price }}</td>
-                                                    </tr>
-                                                </tfoot>
-                                            </table>
-                                        </div>
-                                    </div>
-
-                                    <!-- 2. Alamat Pengiriman & Data Pelanggan -->
-                                    <div class="row g-3 mb-4">
-                                        <div class="col-md-6">
-                                            <div class="p-3 bg-light rounded-3 border h-100">
-                                                <span class="x-small text-muted d-block fw-semibold mb-1">
-                                                    <i class="bi bi-person me-1"></i> Data Pembeli:
-                                                </span>
-                                                <div class="fw-bold text-dark small">{{ $order->user->name ?? 'Pelanggan' }}</div>
-                                                <div class="x-small text-muted mb-1">{{ $order->user->email ?? '-' }}</div>
-                                                <div class="small font-monospace text-success">
-                                                    <i class="bi bi-telephone me-1"></i> {{ $order->customer_phone ?: '-' }}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div class="p-3 bg-light rounded-3 border h-100">
-                                                <span class="x-small text-muted d-block fw-semibold mb-1">
-                                                    <i class="bi bi-geo-alt me-1"></i> Alamat Pengiriman:
-                                                </span>
-                                                <div class="small text-dark mb-1">
-                                                    {{ $order->shipping_address ?: 'Tidak ada alamat tercatat.' }}
-                                                </div>
-                                                @if($order->notes)
-                                                    <div class="x-small text-muted fst-italic">
-                                                        Catatan: "{{ $order->notes }}"
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- 3. Form Input Nomor Resi & Update Status -->
-                                    <form action="{{ route('admin.orders.update-status', $order->id) }}" method="POST" class="p-3.5 rounded-3 border bg-blue-50" style="background-color: #F8FAFC; border-color: #CBD5E1 !important;">
-                                        @csrf
-                                        @method('PATCH')
-
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
-                                                <i class="bi bi-truck text-primary"></i> Form Update Nomor Resi & Status
-                                            </h6>
-                                            <span class="badge bg-primary-subtle text-primary x-small">
-                                                Otomatis jadi "Dikirim" saat resi disimpan
-                                            </span>
-                                        </div>
-
-                                        <div class="row g-3 align-items-end">
-                                            <!-- Nomor Resi Input -->
-                                            <div class="col-md-6">
-                                                <label for="tracking_number_{{ $order->id }}" class="form-label small fw-semibold text-dark mb-1">
-                                                    Nomor Resi Pengiriman:
-                                                </label>
-                                                <div class="input-group input-group-sm">
-                                                    <span class="input-group-text bg-white"><i class="bi bi-upc-scan"></i></span>
-                                                    <input type="text"
-                                                           name="tracking_number"
-                                                           id="tracking_number_{{ $order->id }}"
-                                                           class="form-control"
-                                                           placeholder="Contoh: JNE882910291, SICEPAT992"
-                                                           value="{{ $order->tracking_number }}">
-                                                </div>
-                                                <div class="text-muted mt-1" style="font-size: 0.78rem;">
-                                                    Status akan langsung diperbarui ke <strong>Dikirim</strong>.
-                                                </div>
-                                            </div>
-
-                                            <!-- Status Dropdown (Manual Override) -->
-                                            <div class="col-md-6">
-                                                <label for="status_select_{{ $order->id }}" class="form-label small fw-semibold text-dark mb-1">
-                                                    Ubah Status Manual:
-                                                </label>
-                                                <select name="status" id="status_select_{{ $order->id }}" class="form-select form-select-sm">
-                                                    <option value="pending" {{ in_array($order->status, ['pending', 'belum_bayar']) ? 'selected' : '' }}>
-                                                        Belum Bayar
-                                                    </option>
-                                                    <option value="processing" {{ in_array($order->status, ['processing', 'dikemas']) ? 'selected' : '' }}>
-                                                        Dikemas
-                                                    </option>
-                                                    <option value="shipped" {{ in_array($order->status, ['shipped', 'dikirim']) ? 'selected' : '' }}>
-                                                        Dikirim
-                                                    </option>
-                                                    <option value="completed" {{ in_array($order->status, ['completed', 'selesai']) ? 'selected' : '' }}>
-                                                        Selesai
-                                                    </option>
-                                                    <option value="cancelled" {{ in_array($order->status, ['cancelled', 'dibatalkan']) ? 'selected' : '' }}>
-                                                        Dibatalkan
-                                                    </option>
-                                                </select>
-                                                <div class="text-muted mt-1" style="font-size: 0.78rem;">
-                                                    Pilih jika ingin mengubah ke status selain Dikirim.
-                                                </div>
-                                            </div>
-
-                                            <div class="col-12 d-flex justify-content-end gap-2 pt-2 border-top">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary px-3" data-bs-dismiss="modal">
-                                                    Batal
-                                                </button>
-                                                <button type="submit" class="btn btn-sm btn-primary px-3 fw-semibold">
-                                                    <i class="bi bi-save me-1"></i> Simpan Resi dan Perbarui Status
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </form>
-
-                                </div>
-
-                                <!-- Modal Footer -->
-                                <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between align-items-center">
-                                    <div class="small text-muted">
-                                        Metode Bayar: <strong>{{ $order->payment_method }}</strong>
-                                    </div>
-                                    <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-link text-decoration-none">
-                                        Buka Detail Halaman Penuh <i class="bi bi-arrow-right ms-1"></i>
-                                    </a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
                 @empty
                     <tr>
                         <td colspan="7" class="text-center py-5">
@@ -484,4 +275,235 @@
         </div>
     @endif
 </div>
+
+<!-- ==========================================
+     MODALS SECTION (OUTSIDE OF TABLE)
+     ========================================== -->
+@foreach($orders as $order)
+    <div class="modal fade" id="orderDetailModal{{ $order->id }}" tabindex="-1" aria-labelledby="orderDetailModalLabel{{ $order->id }}" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                
+                <!-- Modal Header -->
+                <div class="modal-header bg-light py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold text-dark font-monospace mb-0" id="orderDetailModalLabel{{ $order->id }}">
+                                #{{ $order->order_code }}
+                            </h5>
+                            <div class="x-small text-muted">
+                                Dipesan pada {{ $order->created_at->format('d F Y, H:i') }} WIB
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge {{ $order->status_badge_class }} px-2.5 py-1.5 rounded-pill small">
+                            {{ $order->status_label }}
+                        </span>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body p-4">
+                    
+                    <!-- 1. Daftar Produk yang Dibeli -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-dark mb-2.5 d-flex align-items-center gap-2">
+                            <i class="bi bi-basket2 text-primary"></i> Daftar Produk yang Dibeli
+                        </h6>
+                        <div class="table-responsive border rounded-3 overflow-hidden">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead class="table-light x-small text-secondary">
+                                    <tr>
+                                        <th>Produk</th>
+                                        <th class="text-center">Harga Satuan</th>
+                                        <th class="text-center">Jumlah</th>
+                                        <th class="text-end">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($order->items as $item)
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2.5">
+                                                    <div style="width: 40px; height: 40px; border-radius: 6px; overflow: hidden; background-color: #F8FAFC;" class="border flex-shrink-0">
+                                                        <img src="{{ optional($item->product)->image_url ?? \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}"
+                                                             alt="{{ $item->product->name ?? 'Produk' }}"
+                                                             class="w-100 h-100 object-fit-cover"
+                                                             onerror="this.onerror=null; this.src='{{ \App\Models\Product::DEFAULT_FALLBACK_IMAGE }}';">
+                                                    </div>
+                                                    <div class="text-truncate">
+                                                        <div class="fw-semibold text-dark small text-truncate" style="max-width: 280px;">
+                                                            {{ $item->product->name ?? 'Produk telah dihapus' }}
+                                                        </div>
+                                                        <div class="x-small text-muted">ID: #{{ $item->product_id }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center text-nowrap small text-secondary">
+                                                Rp {{ number_format((float)$item->price, 0, ',', '.') }}
+                                            </td>
+                                            <td class="text-center fw-semibold small">
+                                                {{ $item->quantity }}x
+                                            </td>
+                                            <td class="text-end fw-bold text-primary text-nowrap small">
+                                                Rp {{ number_format((float)$item->subtotal, 0, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot class="table-light border-top">
+                                    <tr>
+                                        <td colspan="3" class="text-end fw-bold small">Total Pembayaran:</td>
+                                        <td class="text-end fw-bold fs-6 text-primary">{{ $order->formatted_total_price }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 2. Alamat Pengiriman & Data Pelanggan -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 border h-100">
+                                <span class="x-small text-muted d-block fw-semibold mb-1">
+                                    <i class="bi bi-person me-1"></i> Data Pembeli:
+                                </span>
+                                <div class="fw-bold text-dark small">{{ $order->user->name ?? 'Pelanggan' }}</div>
+                                <div class="x-small text-muted mb-1">{{ $order->user->email ?? '-' }}</div>
+                                <div class="small font-monospace text-success">
+                                    <i class="bi bi-telephone me-1"></i> {{ $order->customer_phone ?: '-' }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 border h-100">
+                                <span class="x-small text-muted d-block fw-semibold mb-1">
+                                    <i class="bi bi-geo-alt me-1"></i> Alamat Pengiriman:
+                                </span>
+                                <div class="small text-dark mb-1">
+                                    {{ $order->shipping_address ?: 'Tidak ada alamat tercatat.' }}
+                                </div>
+                                @if($order->notes)
+                                    <div class="x-small text-muted fst-italic">
+                                        Catatan: "{{ $order->notes }}"
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Form Input Nomor Resi & Update Status -->
+                    <form action="{{ route('admin.orders.update-status', $order->id) }}" method="POST" class="p-3.5 rounded-3 border" style="background-color: #F8FAFC; border-color: #CBD5E1 !important;">
+                        @csrf
+                        @method('PATCH')
+
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
+                                <i class="bi bi-truck text-primary"></i> Form Update Nomor Resi & Status
+                            </h6>
+                            @if(in_array($order->status, ['pending', 'belum_bayar']))
+                                <span class="badge bg-warning text-dark x-small">
+                                    <i class="bi bi-lock-fill me-1"></i> Resi Terkunci (Belum Bayar)
+                                </span>
+                            @else
+                                <span class="badge bg-primary-subtle text-primary x-small">
+                                    Otomatis jadi "Dikirim" saat resi disimpan
+                                </span>
+                            @endif
+                        </div>
+
+                        @if(in_array($order->status, ['pending', 'belum_bayar']))
+                            <div class="alert alert-warning py-2 px-3 small border-0 mb-3 d-flex align-items-center gap-2 rounded-2">
+                                <i class="bi bi-exclamation-triangle-fill text-warning fs-6 flex-shrink-0"></i>
+                                <span style="font-size: 0.8rem;">Pesanan ini masih <strong>Belum Bayar</strong>. Form nomor resi dinonaktifkan hingga pesanan dibayar (status Dikemas).</span>
+                            </div>
+                        @endif
+
+                        <div class="row g-3 align-items-end">
+                            <!-- Nomor Resi Input -->
+                            <div class="col-md-6">
+                                <label for="tracking_number_{{ $order->id }}" class="form-label small fw-semibold text-dark mb-1">
+                                    Nomor Resi Pengiriman:
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white"><i class="bi bi-upc-scan"></i></span>
+                                    <input type="text"
+                                           name="tracking_number"
+                                           id="tracking_number_{{ $order->id }}"
+                                           class="form-control"
+                                           placeholder="{{ in_array($order->status, ['pending', 'belum_bayar']) ? 'Menunggu pembayaran selesai...' : 'Contoh: JNE882910291, SICEPAT992' }}"
+                                           value="{{ $order->tracking_number }}"
+                                           {{ in_array($order->status, ['pending', 'belum_bayar']) ? 'disabled' : '' }}>
+                                </div>
+                                <div class="text-muted mt-1" style="font-size: 0.78rem;">
+                                    @if(in_array($order->status, ['pending', 'belum_bayar']))
+                                        <span class="text-warning fw-semibold"><i class="bi bi-lock"></i> Resi hanya dapat diinput setelah pembayaran diterima.</span>
+                                    @else
+                                        Status akan langsung diperbarui ke <strong>Dikirim</strong>.
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Status Dropdown (Manual Override) -->
+                            <div class="col-md-6">
+                                <label for="status_select_{{ $order->id }}" class="form-label small fw-semibold text-dark mb-1">
+                                    Ubah Status Manual:
+                                </label>
+                                <select name="status" id="status_select_{{ $order->id }}" class="form-select form-select-sm">
+                                    <option value="pending" {{ in_array($order->status, ['pending', 'belum_bayar']) ? 'selected' : '' }}>
+                                        Belum Bayar
+                                    </option>
+                                    <option value="processing" {{ in_array($order->status, ['processing', 'dikemas']) ? 'selected' : '' }}>
+                                        Dikemas (Sudah Dibayar)
+                                    </option>
+                                    @if(!in_array($order->status, ['pending', 'belum_bayar']))
+                                        <option value="shipped" {{ in_array($order->status, ['shipped', 'dikirim']) ? 'selected' : '' }}>
+                                            Dikirim
+                                        </option>
+                                    @endif
+                                    <option value="completed" {{ in_array($order->status, ['completed', 'selesai']) ? 'selected' : '' }}>
+                                        Selesai
+                                    </option>
+                                    <option value="cancelled" {{ in_array($order->status, ['cancelled', 'dibatalkan']) ? 'selected' : '' }}>
+                                        Dibatalkan
+                                    </option>
+                                </select>
+                                <div class="text-muted mt-1" style="font-size: 0.78rem;">
+                                    Pilih status untuk memperbarui pesanan secara manual.
+                                </div>
+                            </div>
+
+                            <div class="col-12 d-flex justify-content-end gap-2 pt-2 border-top">
+                                <button type="button" class="btn btn-sm btn-outline-secondary px-3" data-bs-dismiss="modal">
+                                    Batal
+                                </button>
+                                <button type="submit" class="btn btn-sm btn-primary px-3 fw-semibold">
+                                    <i class="bi bi-save me-1"></i> Simpan Resi dan Perbarui Status
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between align-items-center">
+                    <div class="small text-muted">
+                        Metode Bayar: <strong>{{ $order->payment_method }}</strong>
+                    </div>
+                    <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-link text-decoration-none">
+                        Buka Detail Halaman Penuh <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+@endforeach
 @endsection

@@ -59,6 +59,7 @@ Route::middleware('auth')->group(function (): void {
     // Order History & Details (Customer)
     Route::prefix('orders')->name('orders.')->group(function (): void {
         Route::get('/', [CheckoutController::class, 'orders'])->name('index');
+        Route::match(['get', 'post'], '/{order}/snap-token', [CheckoutController::class, 'getOrderSnapToken'])->name('snap-token');
         Route::get('/{order}', [CheckoutController::class, 'show'])->name('show');
     });
 

@@ -289,13 +289,22 @@
                         </div>
 
                         <!-- Total Harga di Sudut Kanan Bawah -->
-                        <div class="d-flex align-items-center gap-3 ms-auto">
+                        <div class="d-flex align-items-center gap-2.5 ms-auto flex-wrap justify-content-end">
                             <div class="text-end">
                                 <div class="x-small text-muted">Total Pembayaran:</div>
                                 <div class="fw-bold fs-5 text-blue-600" style="color: #2563EB;">
                                     {{ $order->formatted_total_price }}
                                 </div>
                             </div>
+                            @if($order->canBePaid())
+                                <button type="button" 
+                                        class="btn btn-sm btn-primary bg-blue-600 border-blue-600 px-3.5 py-1.5 fw-bold rounded-2 shadow-sm d-inline-flex align-items-center gap-1.5 btn-pay-snap"
+                                        data-order-id="{{ $order->id }}"
+                                        data-snap-token="{{ $order->snap_token ?? '' }}">
+                                    <i class="bi bi-credit-card-2-front"></i>
+                                    <span>Bayar Sekarang</span>
+                                </button>
+                            @endif
                             <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm px-3.5 py-1.5 fw-semibold rounded-2 shadow-sm text-blue-600 border-blue-600 hover:bg-blue-50" style="background-color: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE;">
                                 Detail Pesanan <i class="bi bi-chevron-right ms-1"></i>
                             </a>
@@ -314,3 +323,59 @@
 
 </div>
 @endsection
+
+@push('scripts')
+<script src="{{ config('midtrans.snap_url', 'https://app.sandbox.midtrans.com/snap/snap.js') }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.btn-pay-snap').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const snapToken = this.getAttribute('data-snap-token');
+                const orderId = this.getAttribute('data-order-id');
+
+                if (snapToken && snapToken.trim() !== '') {
+                    window.snap.pay(snapToken, {
+                        onSuccess: function() { window.location.reload(); },
+                        onPending: function() { window.location.reload(); },
+                        onError: function() { alert('Pembayaran gagal atau dibatalkan.'); },
+                        onClose: function() { console.log('Popup ditutup oleh pembeli'); }
+                    });
+                } else {
+                    const originalHtml = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memuat...';
+
+                    fetch('/orders/' + orderId + '/snap-token', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (data.success && data.snap_token) {
+                            btn.setAttribute('data-snap-token', data.snap_token);
+                            window.snap.pay(data.snap_token, {
+                                onSuccess: function() { window.location.reload(); },
+                                onPending: function() { window.location.reload(); },
+                                onError: function() { alert('Pembayaran gagal.'); }
+                            });
+                        } else {
+                            alert(data.message || 'Gagal memuat popup pembayaran Midtrans.');
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error('Snap token error:', err);
+                        alert('Terjadi kesalahan saat memuat token pembayaran.');
+                    })
+                    .finally(function() {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    });
+                }
+            });
+        });
+    });
+</script>
+@endpush
