@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit Produk — ' . $product->name . ' — Admin')
+@section('title', 'Edit Produk — ' . $product->name)
 @section('page-title', 'Edit Produk')
 
 @section('content')

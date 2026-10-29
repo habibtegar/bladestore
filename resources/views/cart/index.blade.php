@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Keranjang Belanja — BladeStore')
+@section('title', 'Keranjang Belanja')
 
 @section('content')
 <!-- Page Header -->

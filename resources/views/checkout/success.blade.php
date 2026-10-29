@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Pesanan #' . $order->order_code . ' — BladeStore')
+@section('title', 'Pesanan #' . $order->order_code)
 
 @section('content')
 <div class="row justify-content-center mb-5">

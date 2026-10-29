@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>@yield('title', 'Admin Dashboard') — BladeStore Management Suite</title>
+    <title>BladeStore - {{ trim(preg_replace('/^(BladeStore\s*[-—]\s*|\s*[-—]\s*BladeStore.*$)/i', '', View::yieldContent('title') ?: 'Admin Dashboard')) }}</title>
+
+    <!-- Favicon BladeStore Logo -->
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo.svg') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
 
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

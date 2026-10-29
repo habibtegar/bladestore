@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Pesanan #' . $order->order_code . ' — BladeStore')
+@section('title', 'Detail Pesanan #' . $order->order_code)
 
 @section('content')
 <!-- Breadcrumbs -->

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Tambah Produk Baru — Admin BladeStore')
+@section('title', 'Tambah Produk Baru')
 @section('page-title', 'Tambah Produk Baru')
 
 @section('content')

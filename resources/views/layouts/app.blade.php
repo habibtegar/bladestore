@@ -5,7 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', config('app.name', 'BladeStore')) — Marketplace Multi-Kategori Terpercaya</title>
+    <title>BladeStore - {{ trim(preg_replace('/^(BladeStore\s*[-—]\s*|\s*[-—]\s*BladeStore.*$)/i', '', View::yieldContent('title') ?: 'Marketplace Multi-Kategori Terpercaya')) }}</title>
+
+    <!-- Favicon BladeStore Logo -->
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo.svg') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/logo.png') }}">
 
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -203,24 +209,26 @@
             font-weight: 600;
         }
 
-        /* Cart Icon Only Button */
+        /* Nav Action Buttons (Wishlist, Notifikasi, & Keranjang) */
+        .nav-icon-btn,
         .nav-cart-btn {
             position: relative;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 42px;
-            height: 42px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             color: var(--slate-700);
             background-color: #FFFFFF;
             border: 1px solid var(--border-color);
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             text-decoration: none;
             transition: all 0.2s ease;
             flex-shrink: 0;
         }
 
+        .nav-icon-btn:hover,
         .nav-cart-btn:hover {
             color: var(--primary);
             background-color: var(--primary-subtle);
@@ -229,16 +237,17 @@
             box-shadow: 0 2px 6px rgba(8, 102, 255, 0.12);
         }
 
+        .nav-icon-badge,
         .nav-cart-badge {
             position: absolute;
             top: -2px;
             right: -2px;
-            background-color: var(--danger);
+            background-color: #EF4444;
             color: #FFFFFF;
             font-size: 0.65rem;
             font-weight: 700;
-            min-width: 19px;
-            height: 19px;
+            min-width: 18px;
+            height: 18px;
             padding: 0 4px;
             border-radius: 9999px;
             display: inline-flex;
@@ -247,6 +256,67 @@
             border: 2px solid #FFFFFF;
             box-shadow: 0 2px 4px rgba(239, 68, 68, 0.35);
             line-height: 1;
+        }
+
+        /* Global Search Bar (Marketplace Standard) */
+        .global-search-form {
+            max-width: 580px;
+            position: relative;
+        }
+
+        .global-search-input {
+            background-color: #F8FAFC !important;
+            border: 1.5px solid #E2E8F0 !important;
+            border-radius: 9999px !important;
+            padding-left: 2.5rem !important;
+            padding-right: 4.8rem !important;
+            font-size: 0.88rem !important;
+            height: 42px !important;
+            transition: all 0.2s ease !important;
+            color: var(--dark-navy) !important;
+        }
+
+        .global-search-input:focus {
+            background-color: #FFFFFF !important;
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 3px rgba(8, 102, 255, 0.12) !important;
+        }
+
+        .global-search-icon {
+            position: absolute;
+            left: 0.95rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94A3B8;
+            font-size: 0.95rem;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .global-search-btn {
+            position: absolute;
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 34px;
+            padding: 0 1.1rem;
+            border-radius: 9999px;
+            background-color: var(--primary);
+            border: none;
+            color: #FFFFFF;
+            font-size: 0.825rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            transition: background-color 0.2s ease;
+            z-index: 5;
+        }
+
+        .global-search-btn:hover {
+            background-color: var(--primary-hover);
+            color: #FFFFFF;
         }
 
         .nav-profile-btn {
@@ -767,14 +837,12 @@
 
     <!-- MAIN MARKETPLACE NAVBAR -->
     <nav class="marketplace-header">
-        <div class="container d-flex justify-content-between align-items-center">
+        <div class="container d-flex justify-content-between align-items-center gap-2 gap-lg-3">
             
             <!-- Logo & Brand (Kiri) -->
-            <a href="{{ route('products.index') }}" class="brand-link">
-                <div class="brand-logo-icon">
-                    <i class="bi bi-shop-window"></i>
-                </div>
-                <div>
+            <a href="{{ route('products.index') }}" class="brand-link flex-shrink-0">
+                <img src="{{ asset('images/logo.svg') }}" alt="BladeStore Logo" class="brand-logo-img" style="width: 36px; height: 36px; border-radius: 8px; box-shadow: 0 3px 8px rgba(8, 102, 255, 0.22); flex-shrink: 0;">
+                <div class="d-none d-sm-block">
                     <span class="brand-title">BLADESTORE</span>
                     <span class="brand-tagline">Marketplace</span>
                 </div>
@@ -786,39 +854,86 @@
                 $navCartTotal = $navCartItems->sum(fn($i) => (float)$i->subtotal);
             @endphp
 
-            <!-- Deretan Menu Navigasi Teks Murni (Tengah: Bersih & Lega) -->
-            <div class="nav-menu-list d-none d-lg-flex">
+            <!-- Global Search Bar (Tengah: Standar Marketplace Profesional) -->
+            <form action="{{ route('products.index') }}" method="GET" class="global-search-form flex-grow-1 mx-2 mx-md-3 mx-lg-4 d-none d-md-block">
+                <div class="position-relative w-100">
+                    <i class="bi bi-search global-search-icon"></i>
+                    <input type="text" 
+                           name="search" 
+                           class="form-control global-search-input" 
+                           placeholder="Cari berbagai produk berkualitas di BladeStore..." 
+                           value="{{ request('search') }}"
+                           aria-label="Cari Produk di BladeStore">
+                    <button class="btn global-search-btn" type="submit" aria-label="Cari">
+                        <span>Cari</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Menu Cepat (Desktop: Kategori & Beranda) -->
+            <div class="nav-menu-list d-none d-xl-flex me-1">
                 <a href="{{ route('products.index') }}" class="nav-menu-link {{ request()->routeIs('products.index') && !request('category') ? 'active' : '' }}">
                     Beranda
                 </a>
                 <a href="{{ route('products.index') }}#kategori-marketplace" class="nav-menu-link {{ request('category') ? 'active' : '' }}">
                     Kategori
                 </a>
-                <a href="{{ route('orders.index') }}" class="nav-menu-link {{ request()->routeIs('orders.*') ? 'active' : '' }}">
-                    Pesanan Saya
-                </a>
             </div>
 
-            <!-- Grup Aksi Utama: Keranjang Murni Ikon & Profil (Kanan) -->
-            <div class="d-none d-lg-flex align-items-center gap-3">
-                <!-- Keranjang (Murni Ikon Tanpa Teks: Side Panel Trigger) -->
-                <a href="#cartOffcanvas" data-bs-toggle="offcanvas" role="button" aria-controls="cartOffcanvas" class="nav-cart-btn {{ request()->routeIs('cart.*') ? 'border-primary text-primary' : '' }}" title="Keranjang Belanja" aria-label="Keranjang Belanja">
-                    <i class="bi bi-cart3"></i>
-                    <span id="cart-badge-count" class="nav-cart-badge {{ $cartTotalCount > 0 ? '' : 'd-none' }}" style="{{ $cartTotalCount > 0 ? '' : 'display: none;' }}">{{ $cartTotalCount }}</span>
-                </a>
+            <!-- Grup Aksi Kanan: Ikon Interaksi & Dropdown Profil -->
+            <div class="d-flex align-items-center gap-2 gap-lg-3 flex-shrink-0">
+                
+                <!-- Ikon Interaksi Sejajar (Wishlist, Notifikasi, Keranjang Belanja) -->
+                <div class="d-flex align-items-center gap-1.5 gap-sm-2">
+                    <!-- Wishlist (Hati) -->
+                    <a href="{{ route('products.index') }}#katalog-produk" 
+                       class="nav-icon-btn d-none d-sm-inline-flex" 
+                       title="Favorit Saya (Wishlist)" 
+                       aria-label="Wishlist" 
+                       onclick="alert('Fitur Wishlist akan segera hadir.'); return false;">
+                        <i class="bi bi-heart"></i>
+                    </a>
 
-                <!-- Profil / Akun di Ujung Paling Kanan -->
+                    <!-- Notifikasi (Lonceng) dengan Badge Angka Notifikasi Kecil -->
+                    <a href="{{ route('orders.index') }}" 
+                       class="nav-icon-btn position-relative" 
+                       title="Notifikasi Pembaruan Pesanan" 
+                       aria-label="Notifikasi">
+                        <i class="bi bi-bell"></i>
+                        <span class="nav-icon-badge" id="notification-badge-count">2</span>
+                    </a>
+
+                    <!-- Keranjang Belanja (Side Panel Trigger) -->
+                    <a href="#cartOffcanvas" 
+                       data-bs-toggle="offcanvas" 
+                       role="button" 
+                       aria-controls="cartOffcanvas" 
+                       class="nav-cart-btn {{ request()->routeIs('cart.*') ? 'border-primary text-primary' : '' }}" 
+                       title="Keranjang Belanja" 
+                       aria-label="Keranjang Belanja">
+                        <i class="bi bi-cart3"></i>
+                        <span id="cart-badge-count" 
+                              class="nav-cart-badge {{ $cartTotalCount > 0 ? '' : 'd-none' }}" 
+                              style="{{ $cartTotalCount > 0 ? '' : 'display: none;' }}">{{ $cartTotalCount }}</span>
+                    </a>
+                </div>
+
+                <!-- Divider Halus Antara Ikon dan Profil -->
+                <div class="vr my-2 text-secondary opacity-25 d-none d-lg-block" style="height: 24px;"></div>
+
+                <!-- Dropdown Profil Pengguna (Desktop) -->
                 @auth
-                    <div class="dropdown">
+                    <div class="dropdown d-none d-lg-block">
                         <button class="nav-profile-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center fw-bold" style="width: 24px; height: 24px; font-size: 0.75rem;">
+                            <span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 26px; height: 26px; font-size: 0.75rem;">
                                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                             </span>
-                            <span class="text-truncate" style="max-width: 120px;">
+                            <span class="text-truncate d-none d-xl-inline" style="max-width: 120px;">
                                 {{ auth()->user()->name }}
                             </span>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 py-2 mt-2" style="min-width: 220px;">
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 py-2 mt-2" style="min-width: 240px;">
+                            <!-- Header Info Pengguna -->
                             <li class="px-3 py-2 border-bottom mb-1 bg-light">
                                 <div class="fw-bold text-dark small text-truncate">{{ auth()->user()->name }}</div>
                                 <div class="text-muted x-small text-truncate">{{ auth()->user()->email }}</div>
@@ -826,43 +941,55 @@
                                     {{ auth()->user()->isAdmin() ? 'Administrator' : 'Pelanggan' }}
                                 </span>
                             </li>
+
+                            <!-- 1. Pengaturan Akun -->
                             <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2 py-2 small" href="{{ route('orders.index') }}">
-                                    <i class="bi bi-receipt text-primary"></i> Pesanan Saya
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2 py-2 small" href="{{ route('cart.index') }}">
-                                    <i class="bi bi-bag text-primary"></i> Keranjang Belanja
+                                <a class="dropdown-item d-flex align-items-center gap-2.5 py-2 small" href="#" onclick="alert('Fitur Pengaturan Akun akan segera hadir.'); return false;">
+                                    <i class="bi bi-gear text-secondary fs-6"></i>
+                                    <span>Pengaturan Akun</span>
                                 </a>
                             </li>
 
-                            <!-- Panel Admin HANYA muncul jika isAdmin() -->
+                            <!-- 2. Pesanan Saya -->
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2.5 py-2 small" href="{{ route('orders.index') }}">
+                                    <i class="bi bi-receipt text-primary fs-6"></i>
+                                    <span>Pesanan Saya</span>
+                                </a>
+                            </li>
+
+                            {{-- 3. Dashboard Admin (Hanya jika pengguna login memiliki role sebagai Admin) --}}
                             @if(auth()->user()->isAdmin())
                                 <li><hr class="dropdown-divider my-1"></li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2 small text-danger fw-semibold" href="{{ route('admin.orders.index') }}">
-                                        <i class="bi bi-shield-lock-fill"></i> Panel Administrator
+                                    <a class="dropdown-item d-flex align-items-center justify-content-between py-2 small text-danger fw-semibold" href="{{ route('admin.orders.index') }}">
+                                        <div class="d-flex align-items-center gap-2.5">
+                                            <i class="bi bi-speedometer2 fs-6 text-danger"></i>
+                                            <span>Dashboard Admin</span>
+                                        </div>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle x-small">Panel Administrator</span>
                                     </a>
                                 </li>
                             @endif
 
+                            <!-- 4. Keluar / Logout (dengan form POST yang aman) -->
                             <li><hr class="dropdown-divider my-1"></li>
                             <li>
-                                <form action="{{ route('logout') }}" method="POST">
-                                     @csrf
-                                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 small text-muted">
-                                        <i class="bi bi-box-arrow-right"></i> Keluar Akun
+                                <form action="{{ route('logout') }}" method="POST" class="m-0 p-0">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2.5 py-2 small text-muted">
+                                        <i class="bi bi-box-arrow-right fs-6"></i>
+                                        <span>Keluar / Logout</span>
                                     </button>
                                 </form>
                             </li>
                         </ul>
                     </div>
                 @else
-                    <div class="dropdown">
+                    <div class="dropdown d-none d-lg-block">
                         <button class="nav-profile-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle fs-5 text-primary"></i>
-                            <span>Profil</span>
+                            <span>Akun</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 py-2 mt-2" style="min-width: 180px;">
                             <li>
@@ -878,22 +1005,32 @@
                         </ul>
                     </div>
                 @endauth
-            </div>
 
-            <!-- Mobile Action Buttons & Hamburger (d-lg-none) -->
-            <div class="d-flex align-items-center gap-2 d-lg-none">
-                <!-- Cart Shortcut (Side Panel Trigger) -->
-                <a href="#cartOffcanvas" data-bs-toggle="offcanvas" role="button" aria-controls="cartOffcanvas" class="nav-cart-btn" style="width: 38px; height: 38px; font-size: 1.15rem;" title="Keranjang Belanja" aria-label="Keranjang Belanja">
-                    <i class="bi bi-cart3"></i>
-                    <span id="cart-badge-count-mobile" class="nav-cart-badge mobile-cart-badge {{ $cartTotalCount > 0 ? '' : 'd-none' }}" style="{{ $cartTotalCount > 0 ? '' : 'display: none;' }}">{{ $cartTotalCount }}</span>
-                </a>
-
-                <!-- Hamburger Button to trigger Offcanvas -->
-                <button class="navbar-hamburger-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNavOffcanvas" aria-controls="mobileNavOffcanvas" aria-label="Buka Menu Navigasi">
+                <!-- Hamburger Button to trigger Offcanvas (Mobile) -->
+                <button class="navbar-hamburger-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNavOffcanvas" aria-controls="mobileNavOffcanvas" aria-label="Buka Menu Navigasi">
                     <i class="bi bi-list"></i>
                 </button>
             </div>
 
+        </div>
+
+        <!-- Mobile Global Search Bar Baris Kedua (< 768px) -->
+        <div class="container d-md-none mt-2 pt-1">
+            <form action="{{ route('products.index') }}" method="GET" class="global-search-form w-100">
+                <div class="position-relative w-100">
+                    <i class="bi bi-search global-search-icon"></i>
+                    <input type="text" 
+                           name="search" 
+                           class="form-control global-search-input" 
+                           style="height: 38px !important; font-size: 0.84rem !important;"
+                           placeholder="Cari berbagai produk di BladeStore..." 
+                           value="{{ request('search') }}"
+                           aria-label="Cari Produk">
+                    <button class="btn global-search-btn" type="submit" style="height: 30px; font-size: 0.75rem;">
+                        <span>Cari</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </nav>
 
@@ -901,9 +1038,7 @@
     <div class="offcanvas offcanvas-end border-0 shadow" tabindex="-1" id="mobileNavOffcanvas" aria-labelledby="mobileNavOffcanvasLabel" style="width: 290px;">
         <div class="offcanvas-header border-bottom py-3">
             <div class="d-flex align-items-center gap-2">
-                <div class="brand-logo-icon" style="width: 30px; height: 30px; font-size: 0.95rem;">
-                    <i class="bi bi-shop-window"></i>
-                </div>
+                <img src="{{ asset('images/logo.svg') }}" alt="BladeStore Logo" style="width: 30px; height: 30px; border-radius: 6px; flex-shrink: 0;">
                 <h6 class="offcanvas-title fw-bold text-dark mb-0" id="mobileNavOffcanvasLabel">Menu BladeStore</h6>
             </div>
             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Tutup"></button>
@@ -925,15 +1060,30 @@
                     </div>
                     <span id="cart-badge-count-drawer" class="badge bg-danger rounded-pill {{ $cartTotalCount > 0 ? '' : 'd-none' }}" style="{{ $cartTotalCount > 0 ? '' : 'display: none;' }}">{{ $cartTotalCount }}</span>
                 </a>
+                <a href="{{ route('orders.index') }}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between py-2.5 px-2 border-0 rounded-2 text-dark">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-bell fs-5 text-warning"></i>
+                        <span>Notifikasi</span>
+                    </div>
+                    <span class="badge bg-danger rounded-pill">2</span>
+                </a>
+                <a href="{{ route('products.index') }}#katalog-produk" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2.5 px-2 border-0 rounded-2 text-dark">
+                    <i class="bi bi-heart fs-5 text-danger"></i>
+                    <span>Wishlist (Favorit)</span>
+                </a>
                 <a href="{{ route('orders.index') }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2.5 px-2 border-0 rounded-2 text-dark">
                     <i class="bi bi-receipt fs-5 text-primary"></i>
                     <span>Pesanan Saya</span>
                 </a>
                 @auth
+                    <a href="#" onclick="alert('Fitur Pengaturan Akun akan segera hadir.'); return false;" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2.5 px-2 border-0 rounded-2 text-dark">
+                        <i class="bi bi-gear fs-5 text-secondary"></i>
+                        <span>Pengaturan Akun</span>
+                    </a>
                     @if(auth()->user()->isAdmin())
                         <a href="{{ route('admin.orders.index') }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2.5 px-2 border-0 rounded-2 text-danger fw-semibold">
-                            <i class="bi bi-shield-lock-fill fs-5 text-danger"></i>
-                            <span>Panel Administrator</span>
+                            <i class="bi bi-speedometer2 fs-5 text-danger"></i>
+                            <span>Dashboard Admin (Panel Administrator)</span>
                         </a>
                     @endif
                 @endauth
@@ -1065,9 +1215,7 @@
                 <!-- Col 1: About BladeStore -->
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="d-flex align-items-center gap-2 mb-3">
-                        <div class="brand-logo-icon" style="width: 32px; height: 32px; font-size: 1rem; border-radius: 6px;">
-                            <i class="bi bi-shop-window"></i>
-                        </div>
+                        <img src="{{ asset('images/logo.svg') }}" alt="BladeStore Logo" style="width: 32px; height: 32px; border-radius: 6px; flex-shrink: 0;">
                         <span class="fs-4 fw-bold text-white tracking-tight">BLADESTORE</span>
                     </div>
                     <p class="small text-light text-opacity-75 leading-relaxed mb-0">

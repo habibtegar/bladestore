@@ -173,7 +173,14 @@ class EcommerceFlowTest extends TestCase
             'success' => true,
             'cart_count' => 2,
         ]);
-        $response->assertSee('Sepatu Sneakers Kasual');
+
+        $sidebarHtml = (string) $response->json('sidebar_html');
+        $this->assertStringContainsString('Sepatu Sneakers Kasual', $sidebarHtml);
+        $this->assertStringContainsString('Lihat Keranjang Lengkap', $sidebarHtml);
+        $this->assertStringContainsString(route('cart.index'), $sidebarHtml);
+        $this->assertStringNotContainsString('Tujuan Pengiriman & WhatsApp', $sidebarHtml);
+        $this->assertStringNotContainsString('Catatan Tambahan (Opsional)', $sidebarHtml);
+        $this->assertStringNotContainsString('Bayar Sekarang', $sidebarHtml);
     }
 
     public function test_user_can_checkout_with_manual_bank_transfer(): void
@@ -1149,5 +1156,71 @@ class EcommerceFlowTest extends TestCase
             'success' => false,
             'message' => 'Silakan pilih minimal satu produk di keranjang untuk checkout.',
         ]);
+    }
+
+    public function test_layout_renders_favicon_and_dynamic_browser_tab_title_format(): void
+    {
+        // 1. Beranda / Katalog Produk
+        $homeResponse = $this->get(route('products.index'));
+        $homeResponse->assertStatus(200);
+        $homeResponse->assertSee('<title>BladeStore - Katalog Produk Pilihan</title>', false);
+        $homeResponse->assertSee('images/logo.svg', false);
+        $homeResponse->assertSee('favicon.ico', false);
+
+        // 2. Auth Pages
+        $loginResponse = $this->get(route('login'));
+        $loginResponse->assertStatus(200);
+        $loginResponse->assertSee('<title>BladeStore - Masuk ke Akun</title>', false);
+
+        $registerResponse = $this->get(route('register'));
+        $registerResponse->assertStatus(200);
+        $registerResponse->assertSee('<title>BladeStore - Daftar Akun Baru</title>', false);
+
+        // 3. User Authenticated Pages (Cart & Orders)
+        $user = User::factory()->create();
+        $cartResponse = $this->actingAs($user)->get(route('cart.index'));
+        $cartResponse->assertStatus(200);
+        $cartResponse->assertSee('<title>BladeStore - Keranjang Belanja</title>', false);
+
+        $ordersResponse = $this->actingAs($user)->get(route('orders.index'));
+        $ordersResponse->assertStatus(200);
+        $ordersResponse->assertSee('<title>BladeStore - Pesanan Saya</title>', false);
+    }
+
+    public function test_navbar_renders_global_search_interaction_icons_and_profile_dropdown(): void
+    {
+        $customer = User::factory()->create(['role' => 'customer', 'name' => 'Budi Pelanggan']);
+
+        $response = $this->actingAs($customer)->get(route('products.index'));
+
+        $response->assertStatus(200);
+
+        // 1. Global Search Bar
+        $response->assertSee('global-search-form', false);
+        $response->assertSee('name="search"', false);
+        $response->assertSee('global-search-btn', false);
+        $response->assertSee(route('products.index'));
+
+        // 2. Ikon Interaksi (Wishlist, Notifikasi, Keranjang)
+        $response->assertSee('bi-heart', false);
+        $response->assertSee('bi-bell', false);
+        $response->assertSee('notification-badge-count', false);
+        $response->assertSee('bi-cart3', false);
+        $response->assertSee('cart-badge-count', false);
+
+        // 3. Dropdown Profil Pengguna (Customer)
+        $response->assertSee('Pengaturan Akun');
+        $response->assertSee('Pesanan Saya');
+        $response->assertSee('Keluar / Logout');
+        $response->assertSee(route('logout'));
+        $response->assertDontSee('Dashboard Admin');
+
+        // 4. Admin Navbar
+        $admin = User::factory()->admin()->create(['name' => 'Admin Utama']);
+        $adminResponse = $this->actingAs($admin)->get(route('products.index'));
+
+        $adminResponse->assertStatus(200);
+        $adminResponse->assertSee('Dashboard Admin');
+        $adminResponse->assertSee(route('admin.orders.index'));
     }
 }

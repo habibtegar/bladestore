@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $product->name . ' — BladeStore Marketplace')
+@section('title', $product->name)
 
 @section('content')
 
