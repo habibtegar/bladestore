@@ -54,14 +54,13 @@
         flex: 1 1 0;
         min-width: 110px;
         text-align: center;
-        padding: 0.9rem 0.5rem;
+        padding: 0.9rem 0.5rem 0.95rem;
         color: #64748B;
         font-weight: 500;
         font-size: 0.875rem;
         text-decoration: none;
         position: relative;
-        transition: all 0.2s ease;
-        border-bottom: 3.5px solid transparent;
+        transition: color 0.2s ease, background-color 0.2s ease;
         white-space: nowrap;
         display: inline-flex;
         align-items: center;
@@ -69,22 +68,55 @@
         gap: 0.35rem;
     }
 
+    /* Animated Underline Indicator */
+    .order-status-tab::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 3.5px;
+        background-color: #0866FF;
+        border-radius: 4px 4px 0 0;
+        transform: scaleX(0);
+        transform-origin: center;
+        opacity: 0;
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, background-color 0.2s ease;
+    }
+
+    /* Animasi garis biru saat kursor diarahkan ke pilihan lain (Hover) */
     .order-status-tab:hover {
         color: #0866FF;
         background-color: #F8FAFC;
     }
 
+    .order-status-tab:hover::after {
+        transform: scaleX(1);
+        opacity: 1;
+        background-color: #0866FF;
+    }
+
+    /* Tab Aktif: Garis biru penuh & permanen */
     .order-status-tab.active {
         color: #0866FF;
         font-weight: 700;
-        border-bottom: 3.5px solid #0866FF !important;
         background-color: #FFFFFF;
+    }
+
+    .order-status-tab.active::after {
+        transform: scaleX(1);
+        opacity: 1;
+        background-color: #0866FF;
     }
 
     .order-status-tab .badge {
         font-size: 0.7rem;
         padding: 0.2rem 0.45rem;
-        transition: all 0.2s ease;
+        transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .order-status-tab:hover .badge {
+        transform: scale(1.08);
     }
 
     .order-status-tab.active .badge {
