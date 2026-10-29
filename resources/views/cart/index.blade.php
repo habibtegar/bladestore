@@ -43,7 +43,7 @@
             <div class="col-12 col-lg-8 lg:col-span-8 space-y-6">
                 <div class="card border-0 bg-white overflow-hidden rounded-3 shadow-sm">
                     <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-slate-50" style="background-color: #F8FAFC;">
-                        <span class="fw-bold text-dark small">Daftar Produk Terpilih ({{ $cartItems->sum('quantity') }} Item)</span>
+                        <span class="fw-bold text-dark small" id="cart-header-count">Daftar Produk Terpilih ({{ $cartItems->sum('quantity') }} Item)</span>
                         <span class="text-muted x-small">BladeStore Official Checkout</span>
                     </div>
                     <div class="table-responsive">
@@ -59,7 +59,7 @@
                             </thead>
                             <tbody class="divide-y">
                                 @foreach($cartItems as $item)
-                                    <tr>
+                                    <tr id="cart-row-{{ $item->id }}">
                                         <!-- Product Info -->
                                         <td class="ps-4 py-3">
                                             <div class="d-flex align-items-center gap-3">
@@ -93,24 +93,35 @@
                                             @endif
                                         </td>
 
-                                        <!-- Quantity Stepper Form -->
+                                        <!-- Quantity Stepper Form (AJAX Dynamic Update) -->
                                         <td class="text-center">
                                             <div class="d-inline-flex align-items-center justify-content-center gap-2">
-                                                <button class="btn btn-sm btn-outline-secondary rounded-2 d-inline-flex align-items-center justify-content-center"
+                                                <button class="btn btn-sm btn-outline-secondary rounded-2 d-inline-flex align-items-center justify-content-center btn-qty-change"
                                                         type="button"
+                                                        id="btn-dec-{{ $item->id }}"
+                                                        data-cart-id="{{ $item->id }}"
+                                                        data-product-id="{{ $item->product_id }}"
+                                                        data-stock="{{ $item->product->stock }}"
+                                                        data-delta="-1"
                                                         style="width: 32px; height: 32px; padding: 0;"
-                                                        onclick="document.getElementById('update-qty-dec-{{ $item->id }}').submit();"
                                                         {{ $item->quantity <= 1 ? 'disabled' : '' }}
                                                         title="Kurangi kuantitas">
                                                     <i class="bi bi-dash-lg"></i>
                                                 </button>
-                                                <span class="fw-bold text-dark text-center px-2" style="min-width: 38px; font-size: 0.95rem; display: inline-block;">
+                                                <span class="fw-bold text-dark text-center px-2 qty-display"
+                                                      id="qty-val-{{ $item->id }}"
+                                                      data-cart-id="{{ $item->id }}"
+                                                      style="min-width: 38px; font-size: 0.95rem; display: inline-block;">
                                                     {{ $item->quantity }}
                                                 </span>
-                                                <button class="btn btn-sm btn-outline-secondary rounded-2 d-inline-flex align-items-center justify-content-center"
+                                                <button class="btn btn-sm btn-outline-secondary rounded-2 d-inline-flex align-items-center justify-content-center btn-qty-change"
                                                         type="button"
+                                                        id="btn-inc-{{ $item->id }}"
+                                                        data-cart-id="{{ $item->id }}"
+                                                        data-product-id="{{ $item->product_id }}"
+                                                        data-stock="{{ $item->product->stock }}"
+                                                        data-delta="1"
                                                         style="width: 32px; height: 32px; padding: 0;"
-                                                        onclick="document.getElementById('update-qty-inc-{{ $item->id }}').submit();"
                                                         {{ $item->quantity >= $item->product->stock ? 'disabled' : '' }}
                                                         title="Tambah kuantitas">
                                                     <i class="bi bi-plus-lg"></i>
@@ -119,7 +130,9 @@
                                         </td>
 
                                         <!-- Subtotal -->
-                                        <td class="text-end fw-bold text-nowrap fs-6 text-blue-600" style="color: #2563EB;">
+                                        <td class="text-end fw-bold text-nowrap fs-6 text-blue-600 subtotal-display"
+                                            id="subtotal-val-{{ $item->id }}"
+                                            style="color: #2563EB;">
                                             {{ $item->formatted_subtotal }}
                                         </td>
 
@@ -247,7 +260,7 @@
                     
                     <div class="d-flex justify-content-between mb-2 small text-muted">
                         <span>Total Kuantitas:</span>
-                        <span class="text-dark fw-semibold">{{ $cartItems->sum('quantity') }} unit</span>
+                        <span class="text-dark fw-semibold" id="cart-total-quantity">{{ $cartItems->sum('quantity') }} unit</span>
                     </div>
                     
                     <div class="d-flex justify-content-between mb-3 small text-muted">
@@ -259,7 +272,7 @@
 
                     <div class="d-flex justify-content-between align-items-baseline mb-4">
                         <span class="fw-bold text-dark fs-6">Total Pembayaran:</span>
-                        <span class="h3 fw-bold mb-0 text-blue-600" style="color: #2563EB;">
+                        <span class="h3 fw-bold mb-0 text-blue-600" id="cart-total-price" style="color: #2563EB;">
                             Rp {{ number_format($totalPrice, 0, ',', '.') }}
                         </span>
                     </div>
@@ -275,18 +288,8 @@
         </div>
     </form>
 
-    <!-- Hidden standalone forms for quantity increment/decrement/deletion -->
+    <!-- Hidden standalone forms for deletion -->
     @foreach($cartItems as $item)
-        <form id="update-qty-dec-{{ $item->id }}" action="{{ route('cart.update', $item->id) }}" method="POST" style="display: none;">
-            @csrf
-            @method('PATCH')
-            <input type="hidden" name="quantity" value="{{ max(1, $item->quantity - 1) }}">
-        </form>
-        <form id="update-qty-inc-{{ $item->id }}" action="{{ route('cart.update', $item->id) }}" method="POST" style="display: none;">
-            @csrf
-            @method('PATCH')
-            <input type="hidden" name="quantity" value="{{ $item->quantity + 1 }}">
-        </form>
         <form id="delete-cart-{{ $item->id }}" action="{{ route('cart.destroy', $item->id) }}" method="POST" style="display: none;">
             @csrf
             @method('DELETE')
@@ -295,3 +298,157 @@
 
 @endif
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+        || document.querySelector('input[name="_token"]')?.value;
+
+    const updatingCartIds = new Set();
+    const qtyButtons = document.querySelectorAll('.btn-qty-change');
+
+    qtyButtons.forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            const cartId = this.getAttribute('data-cart-id');
+            const productId = this.getAttribute('data-product-id');
+            const stock = parseInt(this.getAttribute('data-stock'), 10) || 0;
+            const delta = parseInt(this.getAttribute('data-delta'), 10) || 0;
+
+            if (!cartId || updatingCartIds.has(cartId)) {
+                return;
+            }
+
+            const qtySpan = document.getElementById(`qty-val-${cartId}`);
+            const currentQty = parseInt(qtySpan ? qtySpan.textContent.trim() : '1', 10);
+            const newQty = currentQty + delta;
+
+            // Validasi batas minimal kuantitas
+            if (newQty < 1) {
+                return;
+            }
+
+            // Validasi batas maksimal stok di sisi client
+            if (stock > 0 && newQty > stock) {
+                const stockMsg = `Jumlah melebihi stok yang tersedia (${stock} unit).`;
+                if (typeof window.showCartToast === 'function') {
+                    window.showCartToast(stockMsg);
+                } else {
+                    alert(stockMsg);
+                }
+                const btnInc = document.getElementById(`btn-inc-${cartId}`);
+                if (btnInc) btnInc.disabled = true;
+                return;
+            }
+
+            const btnDec = document.getElementById(`btn-dec-${cartId}`);
+            const btnInc = document.getElementById(`btn-inc-${cartId}`);
+
+            // Tandai item sedang diproses dan kunci tombol sementara
+            updatingCartIds.add(cartId);
+            if (btnDec) btnDec.disabled = true;
+            if (btnInc) btnInc.disabled = true;
+
+            fetch(`{{ url('cart') }}/${cartId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    quantity: newQty,
+                    product_id: productId,
+                    _token: csrfToken
+                })
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    window.location.href = '{{ route("login") }}';
+                    return null;
+                }
+                return response.json().then(data => ({
+                    ok: response.ok,
+                    status: response.status,
+                    data: data
+                }));
+            })
+            .then(result => {
+                if (!result) return;
+
+                if (result.ok && result.data && result.data.success) {
+                    const item = result.data.item;
+
+                    // 1. Perbarui teks kuantitas pada baris produk
+                    if (qtySpan) {
+                        qtySpan.textContent = item.quantity;
+                    }
+
+                    // 2. Perbarui subtotal pada baris produk
+                    const subtotalEl = document.getElementById(`subtotal-val-${cartId}`);
+                    if (subtotalEl) {
+                        subtotalEl.textContent = item.formatted_subtotal;
+                    }
+
+                    // 3. Perbarui Total Pembayaran di Ringkasan Pesanan
+                    const totalPriceEl = document.getElementById('cart-total-price');
+                    if (totalPriceEl) {
+                        totalPriceEl.textContent = result.data.formatted_total_price;
+                    }
+
+                    // 4. Perbarui Total Kuantitas di Ringkasan Pesanan
+                    const totalQtyEl = document.getElementById('cart-total-quantity');
+                    if (totalQtyEl) {
+                        totalQtyEl.textContent = `${result.data.total_quantity} unit`;
+                    }
+
+                    // 5. Perbarui Header Total Item
+                    const headerCountEl = document.getElementById('cart-header-count');
+                    if (headerCountEl) {
+                        headerCountEl.textContent = `Daftar Produk Terpilih (${result.data.total_quantity} Item)`;
+                    }
+
+                    // 6. Atur status tombol disable sesuai kuantitas terbaru & stok
+                    if (btnDec) btnDec.disabled = (item.quantity <= 1);
+                    if (btnInc) btnInc.disabled = (item.quantity >= item.stock);
+
+                    // 7. Perbarui badge keranjang di navbar jika ada
+                    document.querySelectorAll('.nav-cart-badge, .mobile-cart-badge').forEach(badge => {
+                        badge.textContent = result.data.total_quantity;
+                        if (result.data.total_quantity > 0) {
+                            badge.classList.remove('d-none');
+                        }
+                    });
+                } else {
+                    const errorMsg = (result.data && result.data.message)
+                        ? result.data.message
+                        : 'Gagal memperbarui kuantitas produk.';
+
+                    if (typeof window.showCartToast === 'function') {
+                        window.showCartToast(errorMsg);
+                    } else {
+                        alert(errorMsg);
+                    }
+
+                    // Kembalikan tombol ke kondisi kuantitas valid sebelumnya
+                    if (btnDec) btnDec.disabled = (currentQty <= 1);
+                    if (btnInc) btnInc.disabled = (stock > 0 && currentQty >= stock);
+                }
+            })
+            .catch(error => {
+                console.error('Error saat update kuantitas keranjang:', error);
+                alert('Terjadi kesalahan koneksi saat memperbarui keranjang.');
+                if (btnDec) btnDec.disabled = (currentQty <= 1);
+                if (btnInc) btnInc.disabled = (stock > 0 && currentQty >= stock);
+            })
+            .finally(() => {
+                updatingCartIds.delete(cartId);
+            });
+        });
+    });
+});
+</script>
+@endpush

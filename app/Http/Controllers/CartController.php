@@ -83,25 +83,103 @@ class CartController extends Controller
     /**
      * Update the quantity of a cart item.
      */
-    public function update(Request $request, Cart $cart): RedirectResponse
+    public function update(Request $request, Cart $cart): RedirectResponse|JsonResponse
     {
         if ($cart->user_id !== Auth::id()) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses tidak diizinkan.',
+                ], 403);
+            }
+
             abort(403, 'Akses tidak diizinkan.');
         }
 
         $validated = $request->validate([
             'quantity' => ['required', 'integer', 'min:1'],
+            'product_id' => ['nullable', 'exists:products,id'],
         ]);
 
         $quantity = (int) $validated['quantity'];
+        $product = $cart->product;
+        $stock = (int) ($product ? $product->stock : 0);
 
-        if ($quantity > $cart->product->stock) {
-            return back()->with('error', 'Jumlah melebihi stok yang tersedia ('.$cart->product->stock.').');
+        if ($quantity > $stock) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jumlah melebihi stok yang tersedia ('.$stock.' unit).',
+                    'available_stock' => $stock,
+                    'current_quantity' => $cart->quantity,
+                ], 422);
+            }
+
+            return back()->with('error', 'Jumlah melebihi stok yang tersedia ('.$stock.').');
         }
 
         $cart->update(['quantity' => $quantity]);
+        $cart->refresh();
+
+        if ($request->expectsJson() || $request->ajax()) {
+            $userCartItems = Cart::with('product')
+                ->where('user_id', Auth::id())
+                ->get();
+
+            $totalPrice = (float) $userCartItems->sum(fn (Cart $item): float => (float) $item->subtotal);
+            $totalQuantity = (int) $userCartItems->sum('quantity');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Kuantitas produk berhasil diperbarui.',
+                'item' => [
+                    'id' => $cart->id,
+                    'product_id' => $cart->product_id,
+                    'quantity' => $cart->quantity,
+                    'stock' => $stock,
+                    'subtotal' => (float) $cart->subtotal,
+                    'formatted_subtotal' => $cart->formatted_subtotal,
+                ],
+                'total_price' => $totalPrice,
+                'formatted_total_price' => 'Rp '.number_format($totalPrice, 0, ',', '.'),
+                'total_quantity' => $totalQuantity,
+                'cart_count' => $totalQuantity,
+            ]);
+        }
 
         return redirect()->route('cart.index')->with('success', 'Jumlah barang berhasil diperbarui.');
+    }
+
+    /**
+     * Update cart quantity by cart_id or product_id via direct request.
+     */
+    public function updateQuantity(Request $request): RedirectResponse|JsonResponse
+    {
+        $validated = $request->validate([
+            'quantity' => ['required', 'integer', 'min:1'],
+            'cart_id' => ['nullable', 'exists:carts,id'],
+            'product_id' => ['nullable', 'exists:products,id'],
+        ]);
+
+        $cart = null;
+        if (! empty($validated['cart_id'])) {
+            $cart = Cart::where('user_id', Auth::id())->where('id', $validated['cart_id'])->first();
+        } elseif (! empty($validated['product_id'])) {
+            $cart = Cart::where('user_id', Auth::id())->where('product_id', $validated['product_id'])->first();
+        }
+
+        if (! $cart) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Item keranjang tidak ditemukan.',
+                ], 404);
+            }
+
+            return back()->with('error', 'Item keranjang tidak ditemukan.');
+        }
+
+        return $this->update($request, $cart);
     }
 
     /**

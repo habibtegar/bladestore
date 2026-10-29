@@ -40,7 +40,8 @@ Route::middleware('auth')->group(function (): void {
     Route::prefix('cart')->name('cart.')->group(function (): void {
         Route::get('/', [CartController::class, 'index'])->name('index');
         Route::post('/', [CartController::class, 'store'])->name('store');
-        Route::patch('/{cart}', [CartController::class, 'update'])->name('update');
+        Route::match(['patch', 'post'], '/{cart}', [CartController::class, 'update'])->name('update');
+        Route::post('/update-quantity', [CartController::class, 'updateQuantity'])->name('update-quantity');
         Route::delete('/{cart}', [CartController::class, 'destroy'])->name('destroy');
     });
 

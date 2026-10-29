@@ -433,4 +433,114 @@ class EcommerceFlowTest extends TestCase
         $successResponse->assertSee('Profil berhasil diperbarui.');
         $successResponse->assertDontSee('showCartToast("Profil berhasil diperbarui.")');
     }
+
+    public function test_user_can_update_cart_quantity_via_ajax_and_receives_json_response(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create([
+            'price' => 100000,
+            'discount_percentage' => 0,
+            'stock' => 20,
+        ]);
+
+        $cart = Cart::create([
+            'user_id' => $user->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+        ]);
+
+        // AJAX update quantity from 2 to 5
+        $response = $this->actingAs($user)->patchJson(route('cart.update', $cart->id), [
+            'quantity' => 5,
+            'product_id' => $product->id,
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'message' => 'Kuantitas produk berhasil diperbarui.',
+            'item' => [
+                'id' => $cart->id,
+                'quantity' => 5,
+                'stock' => 20,
+                'subtotal' => 500000,
+                'formatted_subtotal' => 'Rp 500.000',
+            ],
+            'total_price' => 500000,
+            'formatted_total_price' => 'Rp 500.000',
+            'total_quantity' => 5,
+            'cart_count' => 5,
+        ]);
+
+        $this->assertDatabaseHas('carts', [
+            'id' => $cart->id,
+            'quantity' => 5,
+        ]);
+    }
+
+    public function test_ajax_update_cart_quantity_validates_stock_limit(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create([
+            'stock' => 5,
+        ]);
+
+        $cart = Cart::create([
+            'user_id' => $user->id,
+            'product_id' => $product->id,
+            'quantity' => 3,
+        ]);
+
+        // Try to update quantity to 10 (exceeds stock 5)
+        $response = $this->actingAs($user)->patchJson(route('cart.update', $cart->id), [
+            'quantity' => 10,
+            'product_id' => $product->id,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'success' => false,
+            'available_stock' => 5,
+            'current_quantity' => 3,
+        ]);
+
+        // Database quantity must remain 3
+        $this->assertDatabaseHas('carts', [
+            'id' => $cart->id,
+            'quantity' => 3,
+        ]);
+    }
+
+    public function test_cart_page_renders_ajax_elements_and_realtime_selectors(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create([
+            'name' => 'Kemeja Flannel',
+            'price' => 150000,
+            'stock' => 10,
+        ]);
+
+        Cart::create([
+            'user_id' => $user->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('cart.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('btn-qty-change');
+        $response->assertSee('data-delta="-1"', false);
+        $response->assertSee('data-delta="1"', false);
+        $response->assertSee('id="cart-total-price"', false);
+        $response->assertSee('id="cart-total-quantity"', false);
+        $response->assertSee('id="cart-header-count"', false);
+
+        $html = $response->getContent();
+        $this->assertStringContainsString('marketplace-header', $html);
+        $this->assertTrue(
+            strpos($html, 'marketplace-header') < strpos($html, 'id="cart-header-count"'),
+            'Navbar must appear before cart content'
+        );
+    }
 }
