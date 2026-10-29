@@ -172,70 +172,21 @@
                     </div>
                 </div>
 
-                <!-- Card-like Radio Button Pilihan Metode Pembayaran -->
-                <div class="card border-0 bg-white rounded-3 shadow-sm p-4">
-                    <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-credit-card-2-front-fill text-blue-600" style="color: #2563EB;"></i>
-                        <span>Pilihan Metode Pembayaran</span>
-                    </h5>
-                    
-                    <div class="d-flex flex-column gap-2.5">
-                        <!-- 1. Transfer Bank -->
-                        <label class="payment-card-label m-0">
-                            <input type="radio" name="payment_method" value="Transfer Bank Manual" class="payment-radio-input" checked>
-                            <div class="payment-radio-card">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="payment-card-icon">
-                                        <i class="bi bi-bank2"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-bold text-dark">Transfer Bank Manual</div>
-                                        <div class="text-muted small">BCA, Mandiri, BRI, BNI (Konfirmasi Otomatis/Manual)</div>
-                                    </div>
-                                </div>
-                                <div class="check-indicator">
-                                    <i class="bi bi-check-lg"></i>
-                                </div>
-                            </div>
-                        </label>
+                <!-- Midtrans Automatic Payment Method (Hidden Field) -->
+                <input type="hidden" name="payment_method" value="Midtrans Snap">
 
-                        <!-- 2. QRIS -->
-                        <label class="payment-card-label m-0">
-                            <input type="radio" name="payment_method" value="QRIS Instant" class="payment-radio-input">
-                            <div class="payment-radio-card">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="payment-card-icon">
-                                        <i class="bi bi-qr-code-scan"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-bold text-dark">QRIS Instant</div>
-                                        <div class="text-muted small">Gopay, OVO, Dana, ShopeePay, LinkAja</div>
-                                    </div>
-                                </div>
-                                <div class="check-indicator">
-                                    <i class="bi bi-check-lg"></i>
-                                </div>
-                            </div>
-                        </label>
-
-                        <!-- 3. COD -->
-                        <label class="payment-card-label m-0">
-                            <input type="radio" name="payment_method" value="COD (Bayar di Tempat)" class="payment-radio-input">
-                            <div class="payment-radio-card">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="payment-card-icon">
-                                        <i class="bi bi-cash-stack"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-bold text-dark">COD (Bayar di Tempat)</div>
-                                        <div class="text-muted small">Bayar tunai kepada kurir saat pesanan sampai di rumah</div>
-                                    </div>
-                                </div>
-                                <div class="check-indicator">
-                                    <i class="bi bi-check-lg"></i>
-                                </div>
-                            </div>
-                        </label>
+                <!-- Midtrans Automated Payment Info Banner -->
+                <div class="card border-0 rounded-3 shadow-sm p-3.5" style="background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%); border: 1px solid #DBEAFE !important;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background-color: #DBEAFE; color: #2563EB;">
+                            <i class="bi bi-shield-lock-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <span class="fw-bold text-dark d-block mb-1 small">Sistem Pembayaran Otomatis Midtrans</span>
+                            <span class="text-muted x-small d-block leading-relaxed">
+                                Pilihan pembayaran lengkap (<strong>QRIS Instant, GoPay, ShopeePay, Virtual Account Bank BCA / Mandiri / BRI / BNI</strong>, dan <strong>Kartu Kredit</strong>) akan muncul otomatis di popup Midtrans setelah Anda menekan tombol <em>Bayar Sekarang</em>.
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -282,6 +233,11 @@
                         <span id="pay-button-text">Bayar Sekarang</span>
                         <i class="bi bi-arrow-right fs-5" id="pay-button-icon"></i>
                     </button>
+
+                    <div class="d-flex align-items-center justify-content-center gap-1.5 mt-3 text-muted x-small">
+                        <i class="bi bi-shield-check text-success fs-6"></i>
+                        <span>Pembayaran Aman & Otomatis via Midtrans</span>
+                    </div>
                 </div>
             </div>
 

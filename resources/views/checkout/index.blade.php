@@ -101,79 +101,19 @@
                 </div>
             </div>
 
-            <!-- 2. Payment Method -->
-            <div class="card border-0 bg-white p-4 rounded-3 shadow-sm">
-                <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
-                    <span class="badge bg-primary rounded-circle" style="width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">2</span>
-                    <h5 class="fw-bold text-dark mb-0">Metode Pembayaran Resmi</h5>
-                </div>
-                <p class="text-muted small mb-3">
-                    Pilih salah satu metode pembayaran manual yang tersedia di bawah ini:
-                </p>
+            <!-- Midtrans Automated Payment -->
+            <input type="hidden" name="payment_method" value="Midtrans Snap">
 
-                @error('payment_method')
-                    <div class="alert alert-danger py-2 small rounded-3">{{ $message }}</div>
-                @enderror
-
-                <div class="row g-3">
-                    <!-- Method 1: Transfer Bank Manual -->
-                    <div class="col-12">
-                        <input type="radio"
-                               class="btn-check payment-radio"
-                               name="payment_method"
-                               id="method_transfer"
-                               value="Transfer Bank Manual"
-                               {{ old('payment_method', 'Transfer Bank Manual') === 'Transfer Bank Manual' ? 'checked' : '' }}
-                               required>
-                        <label class="card p-3 payment-option-card w-100 mb-0" for="method_transfer">
-                            <div class="d-flex align-items-start gap-3">
-                                <div class="p-2 text-primary rounded-2 mt-1" style="background-color: var(--primary-subtle);">
-                                    <i class="bi bi-bank fs-4"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <h6 class="fw-bold mb-0 text-dark">Transfer Bank Manual</h6>
-                                        <span class="badge bg-primary">Verifikasi Manual Resmi</span>
-                                    </div>
-                                    <p class="small text-muted mb-2">
-                                        Transfer langsung ke rekening kami (BCA, Mandiri, BRI, BNI). Nomor rekening resmi dan panduan konfirmasi via WhatsApp akan ditampilkan setelah pesanan dibuat.
-                                    </p>
-                                    <div class="d-flex gap-2 flex-wrap">
-                                        <span class="badge bg-white text-dark border x-small">Bank BCA</span>
-                                        <span class="badge bg-white text-dark border x-small">Bank Mandiri</span>
-                                        <span class="badge bg-white text-dark border x-small">Bank BRI</span>
-                                        <span class="badge bg-white text-dark border x-small">Bank BNI</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </label>
+            <div class="card border-0 rounded-3 shadow-sm p-4" style="background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%); border: 1px solid #DBEAFE !important;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background-color: #DBEAFE; color: #2563EB;">
+                        <i class="bi bi-shield-lock-fill fs-5"></i>
                     </div>
-
-                    <!-- Method 2: Cash on Delivery (COD) -->
-                    <div class="col-12">
-                        <input type="radio"
-                               class="btn-check payment-radio"
-                               name="payment_method"
-                               id="method_cod"
-                               value="Cash on Delivery (COD)"
-                               {{ old('payment_method') === 'Cash on Delivery (COD)' ? 'checked' : '' }}
-                               required>
-                        <label class="card p-3 payment-option-card w-100 mb-0" for="method_cod">
-                            <div class="d-flex align-items-start gap-3">
-                                <div class="p-2 text-success rounded-2 mt-1" style="background-color: var(--success-subtle);">
-                                    <i class="bi bi-truck fs-4"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <h6 class="fw-bold mb-0 text-dark">Cash on Delivery (COD)</h6>
-                                        <span class="badge bg-success">Bayar di Tempat</span>
-                                    </div>
-                                    <p class="small text-muted mb-0">
-                                        Bayar tunai kepada kurir saat pesanan sampai di alamat Anda. Harap siapkan uang pas sesuai total tagihan pesanan.
-                                    </p>
-                                </div>
-                            </div>
-                        </label>
+                    <div>
+                        <h6 class="fw-bold text-dark mb-1">Sistem Pembayaran Otomatis Midtrans</h6>
+                        <p class="text-muted small mb-0">
+                            Pilihan metode pembayaran (QRIS, GoPay, ShopeePay, Virtual Account Bank, dan Kartu Kredit) akan muncul otomatis melalui popup Midtrans saat Anda menekan tombol di samping.
+                        </p>
                     </div>
                 </div>
             </div>
