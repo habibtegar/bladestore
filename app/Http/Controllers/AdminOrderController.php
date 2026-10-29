@@ -18,12 +18,25 @@ class AdminOrderController extends Controller
         $search = $request->query('search');
 
         $orders = Order::with(['user', 'items.product'])
-            ->when($status, function ($query, $status): void {
-                $query->where('status', $status);
+            ->when($status && $status !== 'all', function ($query) use ($status): void {
+                if (in_array($status, ['pending', 'belum_bayar'])) {
+                    $query->whereIn('status', ['pending', 'belum_bayar']);
+                } elseif (in_array($status, ['processing', 'dikemas'])) {
+                    $query->whereIn('status', ['processing', 'dikemas']);
+                } elseif (in_array($status, ['shipped', 'dikirim'])) {
+                    $query->whereIn('status', ['shipped', 'dikirim']);
+                } elseif (in_array($status, ['completed', 'selesai'])) {
+                    $query->whereIn('status', ['completed', 'selesai']);
+                } elseif (in_array($status, ['cancelled', 'dibatalkan'])) {
+                    $query->whereIn('status', ['cancelled', 'dibatalkan']);
+                } else {
+                    $query->where('status', $status);
+                }
             })
             ->when($search, function ($query, $search): void {
                 $query->where(function ($q) use ($search): void {
                     $q->where('order_code', 'like', "%{$search}%")
+                        ->orWhere('tracking_number', 'like', "%{$search}%")
                         ->orWhere('customer_phone', 'like', "%{$search}%")
                         ->orWhereHas('user', function ($uq) use ($search): void {
                             $uq->where('name', 'like', "%{$search}%")
@@ -39,13 +52,14 @@ class AdminOrderController extends Controller
         // Count summaries for status badges/tabs
         $statusCounts = [
             'all' => Order::count(),
-            'pending' => Order::where('status', 'pending')->count(),
-            'processing' => Order::where('status', 'processing')->count(),
-            'completed' => Order::where('status', 'completed')->count(),
-            'cancelled' => Order::where('status', 'cancelled')->count(),
+            'pending' => Order::whereIn('status', ['pending', 'belum_bayar'])->count(),
+            'processing' => Order::whereIn('status', ['processing', 'dikemas'])->count(),
+            'shipped' => Order::whereIn('status', ['shipped', 'dikirim'])->count(),
+            'completed' => Order::whereIn('status', ['completed', 'selesai'])->count(),
+            'cancelled' => Order::whereIn('status', ['cancelled', 'dibatalkan'])->count(),
         ];
 
-        $totalRevenue = Order::where('status', 'completed')->sum('total_price');
+        $totalRevenue = Order::whereIn('status', ['completed', 'selesai'])->sum('total_price');
 
         return view('admin.orders.index', compact('orders', 'status', 'search', 'statusCounts', 'totalRevenue'));
     }
@@ -61,27 +75,52 @@ class AdminOrderController extends Controller
     }
 
     /**
-     * Update the status of the specified order.
+     * Update the status and/or tracking number of the specified order.
      */
     public function updateStatus(Request $request, Order $order): RedirectResponse
     {
         $validated = $request->validate([
-            'status' => ['required', 'string', 'in:pending,processing,completed,cancelled'],
+            'status' => ['nullable', 'string', 'in:pending,processing,shipped,completed,cancelled,belum_bayar,dikemas,dikirim,selesai,dibatalkan'],
+            'tracking_number' => ['nullable', 'string', 'max:100'],
         ], [
-            'status.required' => 'Pilih status pesanan terlebih dahulu.',
             'status.in' => 'Status pesanan tidak valid.',
+            'tracking_number.max' => 'Nomor resi maksimal 100 karakter.',
         ]);
 
-        $previousStatus = $order->status;
-        $newStatus = $validated['status'];
+        $newTrackingNumber = $request->filled('tracking_number') ? trim($request->input('tracking_number')) : null;
+        $requestedStatus = $validated['status'] ?? null;
+        $newStatus = $requestedStatus ?: $order->status;
 
-        $order->update([
-            'status' => $newStatus,
-        ]);
+        // Otomatis ubah status pesanan menjadi "Dikirim" (shipped) saat nomor resi dimasukkan
+        if (! empty($newTrackingNumber)) {
+            if (in_array($order->status, ['processing', 'dikemas', 'pending', 'belum_bayar']) || empty($requestedStatus) || in_array($requestedStatus, ['processing', 'dikemas'])) {
+                $newStatus = 'shipped';
+            }
+        }
 
-        return back()->with(
-            'success',
-            "Status pesanan #{$order->order_code} berhasil diperbarui dari '{$previousStatus}' menjadi '{$newStatus}'."
-        );
+        $updateData = ['status' => $newStatus];
+        if ($request->has('tracking_number')) {
+            $updateData['tracking_number'] = $newTrackingNumber;
+        }
+
+        $order->update($updateData);
+        $order->refresh();
+
+        $feedback = "Pesanan #{$order->order_code} berhasil diperbarui.";
+        if ($newTrackingNumber) {
+            $feedback .= " Nomor resi: {$newTrackingNumber} tersimpan dan status menjadi '{$order->status_label}'.";
+        } else {
+            $feedback .= " Status pesanan saat ini: '{$order->status_label}'.";
+        }
+
+        return back()->with('success', $feedback);
+    }
+
+    /**
+     * Dedicated action for updating shipping tracking receipt number.
+     */
+    public function updateTracking(Request $request, Order $order): RedirectResponse
+    {
+        return $this->updateStatus($request, $order);
     }
 }

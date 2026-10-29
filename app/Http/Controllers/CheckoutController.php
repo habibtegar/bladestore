@@ -369,13 +369,13 @@ class CheckoutController extends Controller
             ->latest();
 
         if ($currentStatus && $currentStatus !== 'all') {
-            if ($currentStatus === 'pending') {
-                $query->where('status', 'pending');
-            } elseif ($currentStatus === 'processing') {
+            if ($currentStatus === 'pending' || $currentStatus === 'belum_bayar') {
+                $query->whereIn('status', ['pending', 'belum_bayar']);
+            } elseif ($currentStatus === 'processing' || $currentStatus === 'dikemas') {
                 $query->whereIn('status', ['processing', 'dikemas']);
-            } elseif ($currentStatus === 'shipped') {
+            } elseif ($currentStatus === 'shipped' || $currentStatus === 'dikirim') {
                 $query->whereIn('status', ['shipped', 'dikirim']);
-            } elseif ($currentStatus === 'completed') {
+            } elseif ($currentStatus === 'completed' || $currentStatus === 'selesai') {
                 $query->whereIn('status', ['completed', 'selesai']);
             } else {
                 $query->where('status', $currentStatus);

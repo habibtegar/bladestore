@@ -199,7 +199,119 @@ class AdminOrderManagementTest extends TestCase
         $response->assertSee('081122334455');
         $response->assertSee('Jl. Asia Afrika No. 8, Bandung');
         $response->assertSee('Tolong kirim dengan bubble wrap tebal');
-        $response->assertSee('Simpan Status');
+        $response->assertSee('Simpan Resi dan Status');
+    }
+
+    public function test_admin_can_filter_orders_by_status_and_search_order_id_or_customer(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $user1 = User::factory()->create(['name' => 'Ahmad Dahlan']);
+        $user2 = User::factory()->create(['name' => 'Kartini Putri']);
+
+        $order1 = Order::create([
+            'order_code' => 'ORD-FILTER-111',
+            'user_id' => $user1->id,
+            'total_price' => 120000,
+            'payment_method' => 'Transfer Bank Manual',
+            'status' => 'pending',
+            'shipping_address' => 'Jakarta',
+            'customer_phone' => '08123456789',
+        ]);
+
+        $order2 = Order::create([
+            'order_code' => 'ORD-FILTER-222',
+            'user_id' => $user2->id,
+            'total_price' => 250000,
+            'payment_method' => 'QRIS Instant',
+            'status' => 'processing',
+            'shipping_address' => 'Surabaya',
+            'customer_phone' => '08987654321',
+        ]);
+
+        // Filter by status 'processing' (Dikemas)
+        $response = $this->actingAs($admin)->get(route('admin.orders.index', ['status' => 'processing']));
+        $response->assertStatus(200);
+        $response->assertSee('ORD-FILTER-222');
+        $response->assertDontSee('ORD-FILTER-111');
+
+        // Search by customer name
+        $searchResponse = $this->actingAs($admin)->get(route('admin.orders.index', ['search' => 'Ahmad Dahlan']));
+        $searchResponse->assertStatus(200);
+        $searchResponse->assertSee('ORD-FILTER-111');
+        $searchResponse->assertDontSee('ORD-FILTER-222');
+
+        // Search by order code
+        $searchCodeResponse = $this->actingAs($admin)->get(route('admin.orders.index', ['search' => 'ORD-FILTER-222']));
+        $searchCodeResponse->assertStatus(200);
+        $searchCodeResponse->assertSee('ORD-FILTER-222');
+        $searchCodeResponse->assertDontSee('ORD-FILTER-111');
+    }
+
+    public function test_admin_input_tracking_number_automatically_updates_status_from_processing_to_shipped(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $customer = User::factory()->create(['name' => 'Budi Susanto']);
+
+        $order = Order::create([
+            'order_code' => 'ORD-TRACK-101',
+            'user_id' => $customer->id,
+            'total_price' => 150000,
+            'payment_method' => 'Transfer Bank Manual',
+            'status' => 'processing',
+            'shipping_address' => 'Jl. Pahlawan No. 45, Semarang',
+            'customer_phone' => '081233445566',
+        ]);
+
+        // Admin inputs tracking number
+        $response = $this->actingAs($admin)->patch(route('admin.orders.update-status', $order->id), [
+            'tracking_number' => 'JNE123456789ID',
+        ]);
+
+        $response->assertRedirect();
+        $order->refresh();
+
+        $this->assertEquals('JNE123456789ID', $order->tracking_number);
+        $this->assertEquals('shipped', $order->status);
+        $this->assertEquals('Dikirim', $order->status_label);
+    }
+
+    public function test_customer_can_see_tracking_number_and_shipped_status_in_order_history_and_detail(): void
+    {
+        $customer = User::factory()->create(['name' => 'Pelanggan Setia']);
+        $product = Product::factory()->create(['name' => 'Baju Batik Pria']);
+
+        $order = Order::create([
+            'order_code' => 'ORD-TRACK-202',
+            'user_id' => $customer->id,
+            'total_price' => 200000,
+            'payment_method' => 'Transfer Bank Manual',
+            'status' => 'shipped',
+            'tracking_number' => 'SICEPAT987654321',
+            'shipping_address' => 'Jl. Kebon Jeruk No. 12, Jakarta Barat',
+            'customer_phone' => '081299887766',
+        ]);
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'price' => 200000,
+            'subtotal' => 200000,
+        ]);
+
+        // Customer views order history
+        $historyResponse = $this->actingAs($customer)->get(route('orders.index'));
+        $historyResponse->assertStatus(200);
+        $historyResponse->assertSee('ORD-TRACK-202');
+        $historyResponse->assertSee('SICEPAT987654321');
+        $historyResponse->assertSee('Dikirim');
+
+        // Customer views order detail
+        $detailResponse = $this->actingAs($customer)->get(route('orders.show', $order->id));
+        $detailResponse->assertStatus(200);
+        $detailResponse->assertSee('ORD-TRACK-202');
+        $detailResponse->assertSee('SICEPAT987654321');
+        $detailResponse->assertSee('Paket Sedang Dikirim');
     }
 
     public function test_admin_can_update_order_status(): void

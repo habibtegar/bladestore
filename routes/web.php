@@ -68,6 +68,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::match(['patch', 'put', 'post'], '/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.update-status');
+        Route::match(['patch', 'put', 'post'], '/orders/{order}/tracking', [AdminOrderController::class, 'updateTracking'])->name('orders.update-tracking');
         Route::resource('products', AdminProductController::class)->except(['show']);
     });
 });

@@ -33,6 +33,25 @@
 <div class="row g-4 mb-5">
     <!-- Left Column: Order Items & Customer/Shipping Information -->
     <div class="col-lg-8">
+        @if($order->tracking_number)
+            <div class="card border-0 p-3.5 mb-4 rounded-3 shadow-sm bg-primary-subtle text-primary border-primary-subtle">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px; font-size: 1.25rem;">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <div>
+                            <span class="x-small text-muted d-block text-uppercase fw-bold">Nomor Resi Pengiriman</span>
+                            <span class="fw-bold font-monospace fs-5 text-dark">{{ $order->tracking_number }}</span>
+                        </div>
+                    </div>
+                    <span class="badge bg-primary text-white px-3 py-2 rounded-pill small">
+                        <i class="bi bi-check2-circle me-1"></i> Paket Dalam Pengiriman
+                    </span>
+                </div>
+            </div>
+        @endif
+
         <!-- Rincian Barang yang Dibeli -->
         <div class="card border-0 bg-white p-4 mb-4 rounded-3 shadow-sm">
             <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
@@ -150,32 +169,58 @@
         </div>
     </div>
 
-    <!-- Right Column: Status Update Form -->
+    <!-- Right Column: Status & Tracking Update Form -->
     <div class="col-lg-4">
-        <!-- Form Dropdown Perubahan Status Pesanan -->
+        <!-- Form Dropdown Perubahan Status & Nomor Resi Pesanan -->
         <div class="card border-0 bg-white p-4 mb-4 sticky-top rounded-3 shadow-sm" style="top: 85px;">
             <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                <i class="bi bi-sliders text-primary"></i> Update Status Pesanan
+                <i class="bi bi-truck text-primary"></i> Update Resi & Status
             </h5>
 
-            <form action="{{ route('admin.orders.update-status', $order->id ?? 1) }}" method="POST">
+            <form action="{{ route('admin.orders.update-status', $order->id) }}" method="POST">
                 @csrf
                 @method('PATCH')
 
+                <!-- Nomor Resi Pengiriman -->
                 <div class="mb-3">
-                    <label for="status" class="form-label small fw-semibold text-secondary">Pilih Status Baru:</label>
+                    <label for="tracking_number" class="form-label small fw-semibold text-secondary">
+                        Nomor Resi Pengiriman:
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted"><i class="bi bi-upc-scan"></i></span>
+                        <input type="text"
+                               name="tracking_number"
+                               id="tracking_number"
+                               class="form-control @error('tracking_number') is-invalid @enderror"
+                               placeholder="Contoh: JNE882910291, SICEPAT992"
+                               value="{{ old('tracking_number', $order->tracking_number) }}">
+                    </div>
+                    @error('tracking_number')
+                        <div class="text-danger x-small mt-1">{{ $message }}</div>
+                    @enderror
+                    <div class="text-muted mt-1.5" style="font-size: 0.78rem;">
+                        <i class="bi bi-info-circle me-1 text-primary"></i> Menyimpan nomor resi otomatis mengubah status menjadi <strong>Dikirim</strong>.
+                    </div>
+                </div>
+
+                <!-- Status Pesanan -->
+                <div class="mb-3">
+                    <label for="status" class="form-label small fw-semibold text-secondary">Pilih Status Baru (Manual):</label>
                     <select name="status" id="status" class="form-select @error('status') is-invalid @enderror">
-                        <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>
-                            Pending (Menunggu Bayar)
+                        <option value="pending" {{ in_array($order->status, ['pending', 'belum_bayar']) ? 'selected' : '' }}>
+                            Belum Bayar
                         </option>
-                        <option value="processing" {{ $order->status === 'processing' ? 'selected' : '' }}>
-                            Processing (Sedang Diproses)
+                        <option value="processing" {{ in_array($order->status, ['processing', 'dikemas']) ? 'selected' : '' }}>
+                            Dikemas
                         </option>
-                        <option value="completed" {{ $order->status === 'completed' ? 'selected' : '' }}>
-                            Completed (Pesanan Selesai)
+                        <option value="shipped" {{ in_array($order->status, ['shipped', 'dikirim']) ? 'selected' : '' }}>
+                            Dikirim
                         </option>
-                        <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>
-                            Cancelled (Dibatalkan)
+                        <option value="completed" {{ in_array($order->status, ['completed', 'selesai']) ? 'selected' : '' }}>
+                            Selesai
+                        </option>
+                        <option value="cancelled" {{ in_array($order->status, ['cancelled', 'dibatalkan']) ? 'selected' : '' }}>
+                            Dibatalkan
                         </option>
                     </select>
                     @error('status')
@@ -185,7 +230,7 @@
 
                 <div class="d-grid mb-3">
                     <button type="submit" class="btn btn-primary py-2 fw-semibold d-flex align-items-center justify-content-center gap-2">
-                        <i class="bi bi-check2-circle fs-5"></i> Simpan Status
+                        <i class="bi bi-check2-circle fs-5"></i> Simpan Resi dan Status
                     </button>
                 </div>
             </form>
@@ -201,10 +246,10 @@
             <div class="p-3 bg-light rounded-3 x-small text-muted">
                 <div class="fw-bold text-dark mb-1"><i class="bi bi-info-circle me-1 text-primary"></i> Alur Bisnis Pesanan:</div>
                 <ul class="mb-0 ps-3">
-                    <li><strong>Pending:</strong> Menunggu konfirmasi transfer bank atau persiapan COD.</li>
-                    <li><strong>Processing:</strong> Bukti bayar valid / paket dikemas kurir.</li>
-                    <li><strong>Completed:</strong> Paket diterima pembeli & dana lunas.</li>
-                    <li><strong>Cancelled:</strong> Transaksi dibatalkan.</li>
+                    <li><strong>Belum Bayar:</strong> Menunggu konfirmasi transfer bank / Snap Midtrans.</li>
+                    <li><strong>Dikemas:</strong> Pembayaran valid, barang dalam penyiapan gudang.</li>
+                    <li><strong>Dikirim:</strong> Paket diserahkan ke jasa kurir dengan nomor resi aktif.</li>
+                    <li><strong>Selesai:</strong> Paket diterima pembeli dengan baik.</li>
                 </ul>
             </div>
         </div>

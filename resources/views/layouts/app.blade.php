@@ -804,9 +804,7 @@
                 <!-- Keranjang (Murni Ikon Tanpa Teks: Side Panel Trigger) -->
                 <a href="#cartOffcanvas" data-bs-toggle="offcanvas" role="button" aria-controls="cartOffcanvas" class="nav-cart-btn {{ request()->routeIs('cart.*') ? 'border-primary text-primary' : '' }}" title="Keranjang Belanja" aria-label="Keranjang Belanja">
                     <i class="bi bi-cart3"></i>
-                    @if($cartTotalCount > 0)
-                        <span class="nav-cart-badge">{{ $cartTotalCount }}</span>
-                    @endif
+                    <span id="cart-badge-count" class="nav-cart-badge {{ $cartTotalCount > 0 ? '' : 'd-none' }}" style="{{ $cartTotalCount > 0 ? '' : 'display: none;' }}">{{ $cartTotalCount }}</span>
                 </a>
 
                 <!-- Profil / Akun di Ujung Paling Kanan -->
@@ -887,9 +885,7 @@
                 <!-- Cart Shortcut (Side Panel Trigger) -->
                 <a href="#cartOffcanvas" data-bs-toggle="offcanvas" role="button" aria-controls="cartOffcanvas" class="nav-cart-btn" style="width: 38px; height: 38px; font-size: 1.15rem;" title="Keranjang Belanja" aria-label="Keranjang Belanja">
                     <i class="bi bi-cart3"></i>
-                    @if($cartTotalCount > 0)
-                        <span class="nav-cart-badge">{{ $cartTotalCount }}</span>
-                    @endif
+                    <span id="cart-badge-count-mobile" class="nav-cart-badge mobile-cart-badge {{ $cartTotalCount > 0 ? '' : 'd-none' }}" style="{{ $cartTotalCount > 0 ? '' : 'display: none;' }}">{{ $cartTotalCount }}</span>
                 </a>
 
                 <!-- Hamburger Button to trigger Offcanvas -->
@@ -927,9 +923,7 @@
                         <i class="bi bi-cart3 fs-5 text-primary"></i>
                         <span>Keranjang</span>
                     </div>
-                    @if($cartTotalCount > 0)
-                        <span class="badge bg-danger rounded-pill">{{ $cartTotalCount }}</span>
-                    @endif
+                    <span id="cart-badge-count-drawer" class="badge bg-danger rounded-pill {{ $cartTotalCount > 0 ? '' : 'd-none' }}" style="{{ $cartTotalCount > 0 ? '' : 'display: none;' }}">{{ $cartTotalCount }}</span>
                 </a>
                 <a href="{{ route('orders.index') }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2.5 px-2 border-0 rounded-2 text-dark">
                     <i class="bi bi-receipt fs-5 text-primary"></i>
@@ -1250,14 +1244,34 @@
                             window.showCartToast(result.data.message || 'Berhasil ditambahkan ke keranjang');
                         }
 
-                        // Perbarui indikator angka keranjang di navbar
+                        // Perbarui indikator angka keranjang di navbar (cart badge count)
                         if (typeof result.data.cart_count !== 'undefined') {
-                            document.querySelectorAll('.nav-cart-badge, .mobile-cart-badge').forEach(function(badge) {
-                                badge.textContent = result.data.cart_count;
-                                if (parseInt(result.data.cart_count, 10) > 0) {
+                            const cartCount = parseInt(result.data.cart_count, 10);
+                            const badgeEl = document.getElementById('cart-badge-count');
+                            if (badgeEl) {
+                                badgeEl.innerText = result.data.cart_count;
+                                if (cartCount > 0) {
+                                    badgeEl.classList.remove('d-none');
+                                    badgeEl.style.display = 'inline-flex';
+                                } else {
+                                    badgeEl.classList.add('d-none');
+                                    badgeEl.style.display = 'none';
+                                }
+                            }
+
+                            // Perbarui juga seluruh badge keranjang lainnya (misal tampilan mobile & drawer)
+                            document.querySelectorAll('.nav-cart-badge, .mobile-cart-badge, #cart-badge-count-mobile, #cart-badge-count-drawer').forEach(function(badge) {
+                                badge.innerText = result.data.cart_count;
+                                if (cartCount > 0) {
                                     badge.classList.remove('d-none');
+                                    if (badge.classList.contains('nav-cart-badge')) {
+                                        badge.style.display = 'inline-flex';
+                                    } else {
+                                        badge.style.display = '';
+                                    }
                                 } else {
                                     badge.classList.add('d-none');
+                                    badge.style.display = 'none';
                                 }
                             });
                         }
@@ -1302,12 +1316,31 @@
                             cartOffcanvasEl.innerHTML = data.sidebar_html;
                         }
                         if (data && typeof data.cart_count !== 'undefined') {
-                            document.querySelectorAll('.nav-cart-badge, .mobile-cart-badge').forEach(function(badge) {
-                                badge.textContent = data.cart_count;
-                                if (parseInt(data.cart_count, 10) > 0) {
+                            const cartCount = parseInt(data.cart_count, 10);
+                            const badgeEl = document.getElementById('cart-badge-count');
+                            if (badgeEl) {
+                                badgeEl.innerText = data.cart_count;
+                                if (cartCount > 0) {
+                                    badgeEl.classList.remove('d-none');
+                                    badgeEl.style.display = 'inline-flex';
+                                } else {
+                                    badgeEl.classList.add('d-none');
+                                    badgeEl.style.display = 'none';
+                                }
+                            }
+
+                            document.querySelectorAll('.nav-cart-badge, .mobile-cart-badge, #cart-badge-count-mobile, #cart-badge-count-drawer').forEach(function(badge) {
+                                badge.innerText = data.cart_count;
+                                if (cartCount > 0) {
                                     badge.classList.remove('d-none');
+                                    if (badge.classList.contains('nav-cart-badge')) {
+                                        badge.style.display = 'inline-flex';
+                                    } else {
+                                        badge.style.display = '';
+                                    }
                                 } else {
                                     badge.classList.add('d-none');
+                                    badge.style.display = 'none';
                                 }
                             });
                         }

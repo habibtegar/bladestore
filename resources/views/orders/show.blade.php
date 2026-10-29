@@ -32,6 +32,23 @@
                 </div>
             </div>
 
+            @if($order->tracking_number)
+                <div class="alert alert-primary border-0 shadow-sm d-flex align-items-center justify-content-between p-3 rounded-3 mb-4" style="background-color: #EFF6FF; border: 1px solid #BFDBFE !important;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px; font-size: 1.25rem;">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <div>
+                            <span class="x-small text-muted d-block text-uppercase fw-bold">Nomor Resi Pengiriman</span>
+                            <span class="fw-bold font-monospace fs-5 text-dark">{{ $order->tracking_number }}</span>
+                        </div>
+                    </div>
+                    <span class="badge bg-primary text-white px-3 py-2 rounded-pill small">
+                        <i class="bi bi-box-seam me-1"></i> Paket Sedang Dikirim
+                    </span>
+                </div>
+            @endif
+
             <!-- Items Table -->
             <h5 class="fw-bold text-dark mb-3">Rincian Barang</h5>
             <div class="table-responsive mb-4">
@@ -87,7 +104,7 @@
 
             <!-- Shipping Information -->
             <div class="row g-3 p-3 rounded-3 bg-light border mb-3">
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <h6 class="fw-bold text-dark small mb-1">Alamat Pengiriman:</h6>
                     <p class="text-muted small mb-0">{{ $order->shipping_address }}</p>
                 </div>
@@ -95,9 +112,14 @@
                     <h6 class="fw-bold text-dark small mb-1">Nomor WhatsApp / HP:</h6>
                     <p class="text-muted small mb-0">{{ $order->customer_phone }}</p>
                 </div>
-                <div class="col-md-3">
-                    <h6 class="fw-bold text-dark small mb-1">Catatan Pesanan:</h6>
-                    <p class="text-muted small mb-0">{{ $order->notes ?: '-' }}</p>
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-dark small mb-1">Nomor Resi & Catatan:</h6>
+                    @if($order->tracking_number)
+                        <div class="small fw-semibold text-primary font-monospace mb-1">
+                            <i class="bi bi-upc-scan me-1"></i> Resi: {{ $order->tracking_number }}
+                        </div>
+                    @endif
+                    <p class="text-muted small mb-0">Catatan: {{ $order->notes ?: '-' }}</p>
                 </div>
             </div>
 

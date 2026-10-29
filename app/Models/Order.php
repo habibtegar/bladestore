@@ -25,6 +25,7 @@ class Order extends Model
         'total_price',
         'payment_method',
         'status',
+        'tracking_number',
         'shipping_address',
         'customer_phone',
         'notes',
@@ -60,11 +61,12 @@ class Order extends Model
     {
         return Attribute::make(
             get: fn (): string => match ($this->status) {
-                'pending' => 'bg-warning text-dark',
-                'processing' => 'bg-info text-dark',
-                'completed' => 'bg-success',
-                'cancelled' => 'bg-danger',
-                default => 'bg-secondary',
+                'pending', 'belum_bayar' => 'bg-warning text-dark',
+                'processing', 'dikemas' => 'bg-info text-dark',
+                'shipped', 'dikirim' => 'bg-primary text-white',
+                'completed', 'selesai' => 'bg-success text-white',
+                'cancelled', 'dibatalkan' => 'bg-danger text-white',
+                default => 'bg-secondary text-white',
             }
         );
     }
@@ -76,10 +78,11 @@ class Order extends Model
     {
         return Attribute::make(
             get: fn (): string => match ($this->status) {
-                'pending' => 'Menunggu Pembayaran / Konfirmasi',
-                'processing' => 'Sedang Diproses',
-                'completed' => 'Pesanan Selesai',
-                'cancelled' => 'Dibatalkan',
+                'pending', 'belum_bayar' => 'Belum Bayar',
+                'processing', 'dikemas' => 'Dikemas',
+                'shipped', 'dikirim' => 'Dikirim',
+                'completed', 'selesai' => 'Selesai',
+                'cancelled', 'dibatalkan' => 'Dibatalkan',
                 default => ucfirst((string) $this->status),
             }
         );

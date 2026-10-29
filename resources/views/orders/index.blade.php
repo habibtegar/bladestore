@@ -200,10 +200,16 @@
                                 <span>BladeStore Official Store</span>
                             </span>
                             <span class="text-muted opacity-50">&bull;</span>
-                            <!-- Nomor Resi / Order -->
-                            <span class="font-monospace text-muted x-small bg-light px-2 py-0.5 rounded border" title="Nomor Resi / Order">
+                            <!-- Nomor Pesanan -->
+                            <span class="font-monospace text-muted x-small bg-light px-2 py-0.5 rounded border" title="Nomor Pesanan">
                                 {{ $order->order_code }}
                             </span>
+                            @if($order->tracking_number)
+                                <span class="text-muted opacity-50">&bull;</span>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 x-small fw-semibold" title="Nomor Resi Pengiriman">
+                                    <i class="bi bi-truck me-1"></i> No. Resi: <strong class="font-monospace">{{ $order->tracking_number }}</strong>
+                                </span>
+                            @endif
                             <span class="text-muted opacity-50">&bull;</span>
                             <!-- Tanggal -->
                             <span class="x-small text-muted">
@@ -213,21 +219,21 @@
 
                         <!-- Badge Status Pesanan -->
                         <div>
-                            @if($order->status === 'pending')
+                            @if(in_array($order->status, ['pending', 'belum_bayar']))
                                 <span class="badge px-3 py-1.5 rounded-pill fw-bold x-small" style="background-color: #FEF08A; border: 1px solid #FDE047; color: #854D0E;">
-                                    <i class="bi bi-clock-history me-1"></i> Menunggu Pembayaran
+                                    <i class="bi bi-clock-history me-1"></i> Belum Bayar
                                 </span>
-                            @elseif($order->status === 'processing')
+                            @elseif(in_array($order->status, ['processing', 'dikemas']))
                                 <span class="badge px-3 py-1.5 rounded-pill fw-bold x-small" style="background-color: #BAE6FD; border: 1px solid #7DD3FC; color: #0369A1;">
-                                    <i class="bi bi-box-seam me-1"></i> Sedang Dikemas
+                                    <i class="bi bi-box-seam me-1"></i> Dikemas
                                 </span>
-                            @elseif($order->status === 'shipped')
+                            @elseif(in_array($order->status, ['shipped', 'dikirim']))
                                 <span class="badge px-3 py-1.5 rounded-pill fw-bold x-small" style="background-color: #E0F2FE; border: 1px solid #38BDF8; color: #0284C7;">
-                                    <i class="bi bi-truck me-1"></i> Sedang Dikirim
+                                    <i class="bi bi-truck me-1"></i> Dikirim
                                 </span>
-                            @elseif($order->status === 'completed')
+                            @elseif(in_array($order->status, ['completed', 'selesai']))
                                 <span class="badge px-3 py-1.5 rounded-pill fw-bold x-small" style="background-color: #DCFCE7; border: 1px solid #86EFAC; color: #15803D;">
-                                    <i class="bi bi-check-circle-fill me-1"></i> Pesanan Selesai
+                                    <i class="bi bi-check-circle-fill me-1"></i> Selesai
                                 </span>
                             @else
                                 <span class="badge px-3 py-1.5 rounded-pill fw-bold x-small bg-danger text-white">

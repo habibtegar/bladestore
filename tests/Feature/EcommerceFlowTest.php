@@ -32,6 +32,7 @@ class EcommerceFlowTest extends TestCase
         $response = $this->get(route('products.index'));
         $response->assertStatus(200);
         $response->assertSee('Kemeja Flannel Pria');
+        $response->assertSee('id="cart-badge-count"', false);
 
         $detailResponse = $this->get(route('products.show', $product->slug));
         $detailResponse->assertStatus(200);

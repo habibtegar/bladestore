@@ -419,10 +419,31 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (btnInc) btnInc.disabled = (item.quantity >= item.stock);
 
                     // 7. Perbarui badge keranjang di navbar jika ada
-                    document.querySelectorAll('.nav-cart-badge, .mobile-cart-badge').forEach(badge => {
-                        badge.textContent = result.data.total_quantity;
-                        if (result.data.total_quantity > 0) {
+                    const cartCount = parseInt(result.data.total_quantity, 10);
+                    const navBadge = document.getElementById('cart-badge-count');
+                    if (navBadge) {
+                        navBadge.innerText = cartCount;
+                        if (cartCount > 0) {
+                            navBadge.classList.remove('d-none');
+                            navBadge.style.display = 'inline-flex';
+                        } else {
+                            navBadge.classList.add('d-none');
+                            navBadge.style.display = 'none';
+                        }
+                    }
+
+                    document.querySelectorAll('.nav-cart-badge, .mobile-cart-badge, #cart-badge-count-mobile, #cart-badge-count-drawer').forEach(badge => {
+                        badge.innerText = cartCount;
+                        if (cartCount > 0) {
                             badge.classList.remove('d-none');
+                            if (badge.classList.contains('nav-cart-badge')) {
+                                badge.style.display = 'inline-flex';
+                            } else {
+                                badge.style.display = '';
+                            }
+                        } else {
+                            badge.classList.add('d-none');
+                            badge.style.display = 'none';
                         }
                     });
                 } else {
