@@ -949,4 +949,52 @@ class EcommerceFlowTest extends TestCase
         $this->assertEquals('processing', $order->fresh()->status);
         $this->assertEquals('Dikemas', $order->fresh()->status_label);
     }
+
+    public function test_checkout_success_page_displays_paid_confirmation_and_hides_pay_now_when_order_is_paid(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::create([
+            'order_code' => 'ORD-SUCCESS-PAID',
+            'user_id' => $user->id,
+            'total_price' => 95000,
+            'payment_method' => 'QRIS Instant',
+            'status' => 'processing',
+            'shipping_address' => 'Jl. Merdeka No. 45',
+            'customer_phone' => '081234567890',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('checkout.success', $order->id));
+
+        $response->assertStatus(200);
+        $response->assertSee('Pembayaran Berhasil Diverifikasi');
+        $response->assertSee('Pembayaran Telah Dikonfirmasi (Lunas)');
+        $response->assertSee('Dikemas');
+
+        // Pay now button and payment action card must NOT be present
+        $response->assertDontSee('Selesaikan Pembayaran Sekarang');
+        $response->assertDontSee('btn-pay-now');
+    }
+
+    public function test_checkout_success_page_displays_pending_warning_and_shows_pay_now_when_order_is_unpaid(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::create([
+            'order_code' => 'ORD-SUCCESS-UNPAID',
+            'user_id' => $user->id,
+            'total_price' => 95000,
+            'payment_method' => 'QRIS Instant',
+            'status' => 'pending',
+            'snap_token' => 'active-unpaid-snap-token',
+            'shipping_address' => 'Jl. Merdeka No. 45',
+            'customer_phone' => '081234567890',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('checkout.success', $order->id));
+
+        $response->assertStatus(200);
+        $response->assertSee('Menunggu Pembayaran');
+        $response->assertSee('Selesaikan Pembayaran Sekarang');
+        $response->assertSee('Belum Bayar');
+        $response->assertSee('btn-pay-now');
+    }
 }

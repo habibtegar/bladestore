@@ -347,6 +347,12 @@ class CheckoutController extends Controller
             abort(403, 'Akses tidak diizinkan.');
         }
 
+        // Sinkronkan status pesanan secara real-time dari Midtrans jika status masih pending
+        if (! app()->environment('testing') && in_array($order->status, ['pending', 'belum_bayar']) && ! empty($order->snap_token)) {
+            $this->queryAndSyncOrderWithMidtrans($order);
+            $order->refresh();
+        }
+
         $order->load(['items.product', 'user']);
 
         // Gunakan view checkout-success jika ada, atau fallback ke checkout.success
