@@ -960,6 +960,114 @@ class EcommerceFlowTest extends TestCase
         $this->assertEquals('Dikemas', $order->fresh()->status_label);
     }
 
+    public function test_orders_sync_status_does_not_mark_order_paid_without_backend_midtrans_verification(): void
+    {
+        config(['midtrans.server_key' => 'test-server-key-sync-123']);
+
+        // Midtrans returns pending or error instead of settlement
+        Http::fake([
+            'https://api.sandbox.midtrans.com/v2/ORD-UNVERIFIED-TEST/status' => Http::response([
+                'status_code' => '201',
+                'order_id' => 'ORD-UNVERIFIED-TEST',
+                'transaction_status' => 'pending',
+            ], 200),
+        ]);
+
+        $user = User::factory()->create();
+        $order = Order::create([
+            'order_code' => 'ORD-UNVERIFIED-TEST',
+            'user_id' => $user->id,
+            'total_price' => 125000,
+            'payment_method' => 'Midtrans Snap',
+            'status' => 'pending',
+            'snap_token' => 'unverified-snap-token',
+            'shipping_address' => 'Jl. Kebon Jeruk No. 20',
+            'customer_phone' => '08123456789',
+        ]);
+
+        // Attempt sending spoofed client callback data
+        $response = $this->actingAs($user)->postJson(route('orders.sync-status', $order->id), [
+            'order_id' => 'ORD-UNVERIFIED-TEST',
+            'status_code' => '200',
+            'transaction_status' => 'settlement',
+            'fraud_status' => 'accept',
+        ]);
+
+        $response->assertStatus(200);
+        // Order MUST stay pending because backend Midtrans query returned pending
+        $this->assertEquals('pending', $order->fresh()->status);
+        $this->assertEquals('Belum Bayar', $order->fresh()->status_label);
+    }
+
+    public function test_orders_history_page_filters_orders_by_status_and_displays_tabs(): void
+    {
+        $user = User::factory()->create();
+
+        $pendingOrder = Order::create([
+            'order_code' => 'ORD-HIST-PENDING',
+            'user_id' => $user->id,
+            'total_price' => 50000,
+            'payment_method' => 'Midtrans Snap',
+            'status' => 'pending',
+            'shipping_address' => 'Jl. Sukarno No. 1',
+            'customer_phone' => '08123456789',
+        ]);
+
+        $completedOrder = Order::create([
+            'order_code' => 'ORD-HIST-COMPLETED',
+            'user_id' => $user->id,
+            'total_price' => 75000,
+            'payment_method' => 'Midtrans Snap',
+            'status' => 'completed',
+            'shipping_address' => 'Jl. Sukarno No. 2',
+            'customer_phone' => '08123456789',
+        ]);
+
+        // 1. All tab
+        $responseAll = $this->actingAs($user)->get(route('orders.index'));
+        $responseAll->assertStatus(200);
+        $responseAll->assertSee('ORD-HIST-PENDING');
+        $responseAll->assertSee('ORD-HIST-COMPLETED');
+        $responseAll->assertSee('order-summary-row');
+        $responseAll->assertSee('order-card-actions');
+
+        // 2. Pending filter
+        $responsePending = $this->actingAs($user)->get(route('orders.index', ['status' => 'pending']));
+        $responsePending->assertStatus(200);
+        $responsePending->assertSee('ORD-HIST-PENDING');
+        $responsePending->assertDontSee('ORD-HIST-COMPLETED');
+
+        // 3. Completed filter
+        $responseCompleted = $this->actingAs($user)->get(route('orders.index', ['status' => 'completed']));
+        $responseCompleted->assertStatus(200);
+        $responseCompleted->assertDontSee('ORD-HIST-PENDING');
+        $responseCompleted->assertSee('ORD-HIST-COMPLETED');
+    }
+
+    public function test_orders_history_page_displays_empty_state_for_filter_without_results(): void
+    {
+        $user = User::factory()->create();
+
+        // User has only 1 completed order
+        Order::create([
+            'order_code' => 'ORD-ONLY-COMPLETED',
+            'user_id' => $user->id,
+            'total_price' => 90000,
+            'payment_method' => 'Midtrans Snap',
+            'status' => 'completed',
+            'shipping_address' => 'Jl. Sudirman No. 9',
+            'customer_phone' => '08123456789',
+        ]);
+
+        // Filter by dikemas (processing) which has 0 results
+        $response = $this->actingAs($user)->get(route('orders.index', ['status' => 'processing']));
+        $response->assertStatus(200);
+        $response->assertSee('Tidak Ada Pesanan', false);
+        $response->assertSee('Dikemas', false);
+        $response->assertSee('Lihat Semua Pesanan');
+        $response->assertDontSee('ORD-ONLY-COMPLETED');
+    }
+
     public function test_checkout_success_page_displays_paid_confirmation_and_hides_pay_now_when_order_is_paid(): void
     {
         $user = User::factory()->create();

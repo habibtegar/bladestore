@@ -422,6 +422,8 @@ class CheckoutController extends Controller
                 $query->whereIn('status', ['shipped', 'dikirim']);
             } elseif ($currentStatus === 'completed' || $currentStatus === 'selesai') {
                 $query->whereIn('status', ['completed', 'selesai']);
+            } elseif ($currentStatus === 'cancelled' || $currentStatus === 'dibatalkan') {
+                $query->whereIn('status', ['cancelled', 'dibatalkan']);
             } else {
                 $query->where('status', $currentStatus);
             }
@@ -429,7 +431,21 @@ class CheckoutController extends Controller
 
         $orders = $query->paginate(10)->withQueryString();
 
-        return view('orders.index', compact('orders', 'currentStatus'));
+        $statusCounts = Order::where('user_id', Auth::id())
+            ->selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        $tabCounts = [
+            'all' => (int) $statusCounts->sum(),
+            'pending' => (int) (($statusCounts['pending'] ?? 0) + ($statusCounts['belum_bayar'] ?? 0)),
+            'processing' => (int) (($statusCounts['processing'] ?? 0) + ($statusCounts['dikemas'] ?? 0)),
+            'shipped' => (int) (($statusCounts['shipped'] ?? 0) + ($statusCounts['dikirim'] ?? 0)),
+            'completed' => (int) (($statusCounts['completed'] ?? 0) + ($statusCounts['selesai'] ?? 0)),
+            'cancelled' => (int) (($statusCounts['cancelled'] ?? 0) + ($statusCounts['dibatalkan'] ?? 0)),
+        ];
+
+        return view('orders.index', compact('orders', 'currentStatus', 'tabCounts'));
     }
 
     /**
@@ -529,27 +545,9 @@ class CheckoutController extends Controller
             ], 403);
         }
 
-        $wasUpdated = false;
-
-        // Cek jika client mengirimkan callback payload Snap hasil pembayaran sukses
-        $snapStatus = (string) ($request->input('transaction_status') ?? $request->input('snap_result.transaction_status') ?? '');
-        $snapStatusCode = (string) ($request->input('status_code') ?? $request->input('snap_result.status_code') ?? '');
-        $snapOrderId = (string) ($request->input('order_id') ?? $request->input('snap_result.order_id') ?? '');
-
-        if (! empty($snapOrderId) && $snapOrderId === $order->order_code) {
-            if ($snapStatus === 'settlement' || ($snapStatus === 'capture' && ($request->input('fraud_status') ?? 'accept') === 'accept') || $snapStatusCode === '200') {
-                if (in_array($order->status, ['pending', 'belum_bayar'])) {
-                    $order->update(['status' => 'processing']);
-                    $wasUpdated = true;
-                }
-            }
-        }
-
-        // Sinkronkan juga langsung dengan Midtrans API server-to-server
-        $apiUpdated = $this->queryAndSyncOrderWithMidtrans($order);
-        if ($apiUpdated) {
-            $wasUpdated = true;
-        }
+        // Sinkronkan status pesanan secara server-to-server ke Midtrans API
+        // Mencegah perubahan status menjadi lunas hanya dari callback / parameter frontend
+        $wasUpdated = $this->queryAndSyncOrderWithMidtrans($order);
 
         $order->refresh();
 
@@ -569,6 +567,11 @@ class CheckoutController extends Controller
      */
     public function queryAndSyncOrderWithMidtrans(Order $order): bool
     {
+        // Jangan timpa pesanan yang sudah selesai
+        if (in_array($order->status, ['completed', 'selesai'])) {
+            return false;
+        }
+
         $serverKey = (string) config('midtrans.server_key', '');
         if (empty($serverKey) || $serverKey === 'SB-Mid-server-demo-key') {
             return false;
