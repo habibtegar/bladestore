@@ -16,6 +16,7 @@ class AdminOrderController extends Controller
     {
         $status = $request->query('status');
         $search = $request->query('search');
+        $period = $request->query('period');
 
         $orders = Order::with(['user', 'items.product'])
             ->when($status && $status !== 'all', function ($query) use ($status): void {
@@ -31,6 +32,15 @@ class AdminOrderController extends Controller
                     $query->whereIn('status', ['cancelled', 'dibatalkan']);
                 } else {
                     $query->where('status', $status);
+                }
+            })
+            ->when($period && $period !== 'all', function ($query) use ($period): void {
+                if ($period === 'today') {
+                    $query->whereDate('created_at', today());
+                } elseif ($period === 'week') {
+                    $query->where('created_at', '>=', now()->subDays(7));
+                } elseif ($period === 'month') {
+                    $query->where('created_at', '>=', now()->subDays(30));
                 }
             })
             ->when($search, function ($query, $search): void {
@@ -61,7 +71,7 @@ class AdminOrderController extends Controller
 
         $totalRevenue = Order::whereIn('status', ['completed', 'selesai'])->sum('total_price');
 
-        return view('admin.orders.index', compact('orders', 'status', 'search', 'statusCounts', 'totalRevenue'));
+        return view('admin.orders.index', compact('orders', 'status', 'search', 'period', 'statusCounts', 'totalRevenue'));
     }
 
     /**

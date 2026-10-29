@@ -420,4 +420,58 @@ class AdminOrderManagementTest extends TestCase
         $response->assertSessionHas('error');
         $this->assertEquals('pending', $order->fresh()->status);
     }
+
+    public function test_admin_orders_page_filters_by_period_and_displays_empty_state(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $user = User::factory()->create();
+
+        // Create an older order (10 days ago)
+        $oldOrder = Order::create([
+            'order_code' => 'ORD-10DAYS-AGO',
+            'user_id' => $user->id,
+            'total_price' => 100000,
+            'payment_method' => 'Midtrans Snap',
+            'status' => 'completed',
+            'shipping_address' => 'Surabaya',
+            'customer_phone' => '08123456789',
+        ]);
+        $oldOrder->created_at = now()->subDays(10);
+        $oldOrder->saveQuietly();
+
+        // Filter period 'today' -> should not see 10 days ago order, and show empty state
+        $responseToday = $this->actingAs($admin)->get(route('admin.orders.index', ['period' => 'today']));
+        $responseToday->assertStatus(200);
+        $responseToday->assertDontSee('ORD-10DAYS-AGO');
+        $responseToday->assertSee('Tidak Ada Data Pesanan');
+
+        // Filter period 'month' -> should see 10 days ago order
+        $responseMonth = $this->actingAs($admin)->get(route('admin.orders.index', ['period' => 'month']));
+        $responseMonth->assertStatus(200);
+        $responseMonth->assertSee('ORD-10DAYS-AGO');
+    }
+
+    public function test_admin_orders_page_displays_revenue_and_metric_cards(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $user = User::factory()->create();
+
+        Order::create([
+            'order_code' => 'ORD-REV-1',
+            'user_id' => $user->id,
+            'total_price' => 500000,
+            'payment_method' => 'Midtrans Snap',
+            'status' => 'completed',
+            'shipping_address' => 'Jakarta',
+            'customer_phone' => '08123456789',
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.orders.index'));
+        $response->assertStatus(200);
+        $response->assertSee('Total Omzet');
+        $response->assertSee('Rp 500.000');
+        $response->assertSee('stat-card-compact');
+        $response->assertSee('table-admin-custom');
+        $response->assertSee('Refresh Data');
+    }
 }
