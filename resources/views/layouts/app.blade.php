@@ -260,7 +260,8 @@
 
         /* Global Search Bar (Marketplace Standard) */
         .global-search-form {
-            max-width: 580px;
+            max-width: 480px;
+            width: 100%;
             position: relative;
         }
 
@@ -462,20 +463,71 @@
             width: 100%;
             aspect-ratio: 1 / 1 !important;
             overflow: hidden;
-            background-color: #F8FAFC;
+            background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .product-img {
             width: 100% !important;
             height: 100% !important;
-            object-fit: cover !important;
+            object-fit: contain !important;
             object-position: center !important;
+            padding: 0.65rem;
             display: block;
-            transition: transform 0.3s ease;
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .product-card:hover .product-img {
-            transform: scale(1.04);
+            transform: scale(1.06);
+        }
+
+        /* Global Wishlist Heart Button on Cards */
+        .btn-product-wishlist {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 4;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748B;
+            font-size: 0.925rem;
+            box-shadow: 0 2px 5px rgba(15, 23, 42, 0.08);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .btn-product-wishlist:hover {
+            color: #EF4444;
+            background-color: #FFFFFF;
+            transform: scale(1.12);
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-product-wishlist.active {
+            color: #EF4444 !important;
+            background-color: #FFFFFF !important;
+            border-color: #FCA5A5 !important;
+        }
+
+        .btn-product-wishlist.active i {
+            color: #EF4444 !important;
+            animation: heartPulse 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes heartPulse {
+            0% { transform: scale(0.8); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
         }
 
         .badge-category {
@@ -887,11 +939,12 @@
                 <div class="d-flex align-items-center gap-1.5 gap-sm-2">
                     <!-- Wishlist (Hati) -->
                     <a href="{{ route('products.index') }}#katalog-produk" 
-                       class="nav-icon-btn d-none d-sm-inline-flex" 
+                       class="nav-icon-btn d-none d-sm-inline-flex position-relative" 
                        title="Favorit Saya (Wishlist)" 
                        aria-label="Wishlist" 
-                       onclick="alert('Fitur Wishlist akan segera hadir.'); return false;">
-                        <i class="bi bi-heart"></i>
+                       id="nav-wishlist-trigger">
+                        <i class="bi bi-heart" id="nav-wishlist-icon"></i>
+                        <span class="nav-icon-badge d-none" id="wishlist-badge-count">0</span>
                     </a>
 
                     <!-- Notifikasi (Lonceng) dengan Badge Angka Notifikasi Kecil -->
@@ -1067,9 +1120,12 @@
                     </div>
                     <span class="badge bg-danger rounded-pill">2</span>
                 </a>
-                <a href="{{ route('products.index') }}#katalog-produk" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2.5 px-2 border-0 rounded-2 text-dark">
-                    <i class="bi bi-heart fs-5 text-danger"></i>
-                    <span>Wishlist (Favorit)</span>
+                <a href="{{ route('products.index') }}#katalog-produk" id="mobile-drawer-wishlist-trigger" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between py-2.5 px-2 border-0 rounded-2 text-dark">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-heart fs-5 text-danger"></i>
+                        <span>Wishlist (Favorit)</span>
+                    </div>
+                    <span class="badge bg-danger rounded-pill d-none" id="wishlist-badge-count-drawer">0</span>
                 </a>
                 <a href="{{ route('orders.index') }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2.5 px-2 border-0 rounded-2 text-dark">
                     <i class="bi bi-receipt fs-5 text-primary"></i>
@@ -1361,6 +1417,7 @@
                 if (submitBtn) {
                     originalBtnHtml = submitBtn.innerHTML;
                     submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Menambahkan...';
                 }
 
                 const formData = new FormData(form);
@@ -1390,6 +1447,14 @@
                         if (isCartStore) {
                             // Tampilkan toast di tengah layar
                             window.showCartToast(result.data.message || 'Berhasil ditambahkan ke keranjang');
+                        }
+
+                        if (submitBtn) {
+                            submitBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Ditambahkan!';
+                            setTimeout(function() {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = originalBtnHtml;
+                            }, 1000);
                         }
 
                         // Perbarui indikator angka keranjang di navbar (cart badge count)
@@ -1440,11 +1505,125 @@
                     form.submit();
                 })
                 .finally(function() {
-                    if (submitBtn) {
+                    if (submitBtn && !submitBtn.innerHTML.includes('Ditambahkan')) {
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = originalBtnHtml;
                     }
                 });
+            });
+
+            // 3. Wishlist Management (LocalStorage Reactive Synchronizer)
+            const WISHLIST_STORAGE_KEY = 'bladestore_wishlist_ids';
+            function getWishlistIds() {
+                try {
+                    return JSON.parse(localStorage.getItem(WISHLIST_STORAGE_KEY) || '[]');
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveWishlistIds(ids) {
+                try {
+                    localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(ids));
+                } catch (e) {}
+                updateWishlistBadges();
+            }
+
+            function updateWishlistBadges() {
+                const ids = getWishlistIds();
+                const count = ids.length;
+                document.querySelectorAll('#wishlist-badge-count, #wishlist-badge-count-drawer, .nav-wishlist-badge').forEach(function(badge) {
+                    badge.textContent = count;
+                    if (count > 0) {
+                        badge.classList.remove('d-none');
+                        badge.style.display = 'inline-flex';
+                    } else {
+                        badge.classList.add('d-none');
+                        badge.style.display = 'none';
+                    }
+                });
+            }
+
+            window.syncWishlistCardButtons = function() {
+                const ids = getWishlistIds();
+                document.querySelectorAll('.btn-product-wishlist').forEach(function(btn) {
+                    const pid = parseInt(btn.getAttribute('data-product-id'), 10);
+                    const icon = btn.querySelector('i');
+                    if (ids.includes(pid)) {
+                        btn.classList.add('active');
+                        if (icon) icon.className = 'bi bi-heart-fill text-danger';
+                    } else {
+                        btn.classList.remove('active');
+                        if (icon) icon.className = 'bi bi-heart';
+                    }
+                });
+                updateWishlistBadges();
+            };
+
+            document.addEventListener('DOMContentLoaded', function() {
+                window.syncWishlistCardButtons();
+
+                // Delegated click for wishlist buttons
+                document.addEventListener('click', function(e) {
+                    const btn = e.target.closest('.btn-product-wishlist');
+                    if (!btn) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const pid = parseInt(btn.getAttribute('data-product-id'), 10);
+                    const name = btn.getAttribute('data-product-name') || 'Produk';
+                    let ids = getWishlistIds();
+
+                    if (ids.includes(pid)) {
+                        ids = ids.filter(item => item !== pid);
+                        saveWishlistIds(ids);
+                        window.syncWishlistCardButtons();
+                        window.showCartToast(name + ' dihapus dari Favorit');
+                    } else {
+                        ids.push(pid);
+                        saveWishlistIds(ids);
+                        window.syncWishlistCardButtons();
+                        window.showCartToast(name + ' ditambahkan ke Favorit');
+                    }
+                });
+
+                // Navbar & Drawer Wishlist Icon Click: filter catalog to show only wishlisted items
+                const navWishlistTrigger = document.getElementById('nav-wishlist-trigger');
+                const drawerWishlistTrigger = document.getElementById('mobile-drawer-wishlist-trigger');
+                
+                function handleWishlistNavClick(e) {
+                    const catalogEl = document.getElementById('katalog-produk');
+                    if (catalogEl) {
+                        e.preventDefault();
+                        catalogEl.scrollIntoView({ behavior: 'smooth' });
+                        const ids = getWishlistIds();
+                        const cols = document.querySelectorAll('.product-grid-col');
+                        if (cols.length > 0) {
+                            if (ids.length === 0) {
+                                window.showCartToast('Wishlist Anda masih kosong. Klik ikon hati pada produk.');
+                                return;
+                            }
+                            let activeCount = 0;
+                            cols.forEach(function(col) {
+                                const pid = parseInt(col.getAttribute('data-product-id'), 10);
+                                if (ids.includes(pid)) {
+                                    col.style.display = '';
+                                    activeCount++;
+                                } else {
+                                    col.style.display = 'none';
+                                }
+                            });
+                            window.showCartToast('Menampilkan ' + activeCount + ' produk favorit di katalog');
+                        }
+                    }
+                }
+
+                if (navWishlistTrigger) {
+                    navWishlistTrigger.addEventListener('click', handleWishlistNavClick);
+                }
+                if (drawerWishlistTrigger) {
+                    drawerWishlistTrigger.addEventListener('click', handleWishlistNavClick);
+                }
             });
 
             // 3. Sinkronisasi sidebar saat dibuka

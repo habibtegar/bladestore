@@ -29,7 +29,7 @@
             <div class="position-relative" style="aspect-ratio: 1 / 1; overflow: hidden; background-color: #F8FAFC;">
                 <img src="{{ $product->image ?: $svgFallback }}"
                      alt="{{ $product->name }}"
-                     class="w-100 h-100 object-fit-cover"
+                     class="w-100 h-100 object-fit-contain p-3 p-md-4"
                      onerror="this.onerror=null; this.src='{{ $svgFallback }}';">
                 
                 <!-- Category Badge Top-Left -->
@@ -182,9 +182,18 @@
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2 d-sm-flex">
+                        <div class="d-grid gap-2 d-sm-flex align-items-center">
                             <button type="submit" class="btn btn-primary btn-lg flex-grow-1 py-3 fw-bold">
                                 <i class="bi bi-bag-plus fs-5"></i> Tambah ke Keranjang
+                            </button>
+                            <button type="button" 
+                                    class="btn btn-outline-danger btn-lg px-3.5 py-3 btn-product-wishlist position-static" 
+                                    data-product-id="{{ $product->id }}" 
+                                    data-product-name="{{ $product->name }}" 
+                                    title="Tambah ke Favorit"
+                                    aria-label="Wishlist"
+                                    style="width: 48px; height: 48px; border-radius: 8px;">
+                                <i class="bi bi-heart fs-5"></i>
                             </button>
                             <a href="{{ route('products.index') }}" class="btn btn-outline-secondary btn-lg px-4">
                                 Katalog Lainnya
@@ -255,21 +264,28 @@
                 <div class="col-6 col-md-3">
                     <div class="card h-100 product-card d-flex flex-column">
                         <div class="product-img-box">
-                            <a href="{{ route('products.show', $related->slug) }}" class="d-block w-100 h-100">
+                            <a href="{{ route('products.show', $related->slug) }}" class="d-block w-100 h-100" title="{{ $related->name }}">
                                 <img src="{{ $related->image ?: $svgFallback }}"
                                      class="product-img"
                                      alt="{{ $related->name }}"
                                      loading="lazy"
                                      onerror="this.onerror=null; this.src='{{ $svgFallback }}';">
                             </a>
-                            <div class="position-absolute top-0 start-0 m-2 z-2">
+                            <!-- Wishlist button -->
+                            <button type="button" 
+                                    class="btn-product-wishlist" 
+                                    data-product-id="{{ $related->id }}" 
+                                    data-product-name="{{ $related->name }}"
+                                    title="Tambah ke Favorit"
+                                    aria-label="Wishlist">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                            <div class="position-absolute top-0 start-0 m-2 z-2 d-flex flex-column gap-1 align-items-start pointer-events-none">
+                                @if($related->discount_percentage > 0)
+                                    <span class="badge-discount">-{{ $related->discount_percentage }}%</span>
+                                @endif
                                 <span class="badge-category">{{ $related->category ?? 'Umum' }}</span>
                             </div>
-                            @if($related->discount_percentage > 0)
-                                <div class="position-absolute top-0 end-0 m-2 z-2">
-                                    <span class="badge-discount">-{{ $related->discount_percentage }}%</span>
-                                </div>
-                            @endif
                         </div>
                         <div class="card-body p-2 p-md-3 d-flex flex-column">
                             <h6 class="fw-bold mb-1 text-truncate" style="font-size: 0.85rem;">

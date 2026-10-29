@@ -1223,4 +1223,64 @@ class EcommerceFlowTest extends TestCase
         $adminResponse->assertSee('Dashboard Admin');
         $adminResponse->assertSee(route('admin.orders.index'));
     }
+
+    public function test_user_can_filter_products_by_price_range(): void
+    {
+        $affordable = Product::factory()->create([
+            'name' => 'Produk Terjangkau 50k',
+            'price' => 50000,
+        ]);
+
+        $premium = Product::factory()->create([
+            'name' => 'Produk Premium 500k',
+            'price' => 500000,
+        ]);
+
+        $response = $this->get(route('products.index', [
+            'min_price' => '30000',
+            'max_price' => '100000',
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Produk Terjangkau 50k');
+        $response->assertDontSee('Produk Premium 500k');
+    }
+
+    public function test_user_can_filter_products_by_in_stock_only(): void
+    {
+        $inStock = Product::factory()->create([
+            'name' => 'Produk Ready Stock',
+            'stock' => 10,
+        ]);
+
+        $outOfStock = Product::factory()->create([
+            'name' => 'Produk Habis Total',
+            'stock' => 0,
+        ]);
+
+        $response = $this->get(route('products.index', ['in_stock' => '1']));
+
+        $response->assertStatus(200);
+        $response->assertSee('Produk Ready Stock');
+        $response->assertDontSee('Produk Habis Total');
+    }
+
+    public function test_catalog_renders_wishlist_buttons_and_compact_add_to_cart(): void
+    {
+        $product = Product::factory()->create([
+            'name' => 'Tas Ransel Laptop Modern',
+            'category' => 'Fashion',
+            'stock' => 5,
+        ]);
+
+        $response = $this->get(route('products.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('btn-product-wishlist', false);
+        $response->assertSee('btn-add-cart-compact', false);
+        $response->assertSee('+ Keranjang');
+        $response->assertSee('data-product-id="'.$product->id.'"', false);
+        $response->assertSee('id="nav-wishlist-trigger"', false);
+        $response->assertSee('id="wishlist-badge-count"', false);
+    }
 }
