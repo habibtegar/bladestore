@@ -71,13 +71,20 @@ class CheckoutController extends Controller
             'payment_method.required' => 'Metode pembayaran wajib dipilih.',
         ]);
 
-        // Ambil data keranjang milik user yang sedang login
-        $cartItems = Cart::with('product')
-            ->where('user_id', Auth::id())
-            ->get();
+        // Ambil data keranjang milik user yang sedang login (saring berdasarkan produk terpilih jika ada)
+        $selectedCartIds = $request->input('cart_ids') ?? $request->input('selected_cart_ids');
+        if (is_string($selectedCartIds)) {
+            $selectedCartIds = array_filter(explode(',', $selectedCartIds));
+        }
+
+        $cartQuery = Cart::with('product')->where('user_id', Auth::id());
+        if (! empty($selectedCartIds) && is_array($selectedCartIds)) {
+            $cartQuery->whereIn('id', $selectedCartIds);
+        }
+        $cartItems = $cartQuery->get();
 
         if ($cartItems->isEmpty()) {
-            return redirect()->route('cart.index')->with('error', 'Keranjang belanja Anda masih kosong.');
+            return redirect()->route('cart.index')->with('error', 'Silakan pilih minimal satu produk di keranjang untuk checkout.');
         }
 
         // Validasi ketersediaan stok produk sebelum checkout
@@ -126,8 +133,9 @@ class CheckoutController extends Controller
                 $item->product->decrement('stock', $item->quantity);
             }
 
-            // 6. Hapus semua data keranjang milik user tersebut di tabel carts
-            Cart::where('user_id', Auth::id())->delete();
+            // 6. Hapus hanya produk yang di-checkout dari tabel carts
+            $checkoutItemIds = $cartItems->pluck('id')->all();
+            Cart::where('user_id', Auth::id())->whereIn('id', $checkoutItemIds)->delete();
 
             return $order;
         });
@@ -165,6 +173,7 @@ class CheckoutController extends Controller
             'shipping_address' => ['required', 'string', 'min:5'],
             'payment_method' => ['required', 'string'],
             'notes' => ['nullable', 'string', 'max:500'],
+            'cart_ids' => ['nullable'],
         ], [
             'customer_phone.required' => 'Nomor telepon wajib diisi.',
             'customer_phone.min' => 'Nomor telepon minimal 8 karakter.',
@@ -173,14 +182,22 @@ class CheckoutController extends Controller
             'payment_method.required' => 'Metode pembayaran wajib dipilih.',
         ]);
 
-        $cartItems = Cart::with('product')
-            ->where('user_id', Auth::id())
-            ->get();
+        // Ambil data keranjang milik user yang sedang login (saring berdasarkan produk terpilih jika ada)
+        $selectedCartIds = $request->input('cart_ids') ?? $request->input('selected_cart_ids');
+        if (is_string($selectedCartIds)) {
+            $selectedCartIds = array_filter(explode(',', $selectedCartIds));
+        }
+
+        $cartQuery = Cart::with('product')->where('user_id', Auth::id());
+        if (! empty($selectedCartIds) && is_array($selectedCartIds)) {
+            $cartQuery->whereIn('id', $selectedCartIds);
+        }
+        $cartItems = $cartQuery->get();
 
         if ($cartItems->isEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Keranjang belanja Anda masih kosong.',
+                'message' => 'Silakan pilih minimal satu produk di keranjang untuk checkout.',
             ], 422);
         }
 
@@ -223,7 +240,9 @@ class CheckoutController extends Controller
                 $item->product->decrement('stock', $item->quantity);
             }
 
-            Cart::where('user_id', Auth::id())->delete();
+            // 6. Hapus hanya produk yang di-checkout dari tabel carts
+            $checkoutItemIds = $cartItems->pluck('id')->all();
+            Cart::where('user_id', Auth::id())->whereIn('id', $checkoutItemIds)->delete();
 
             return $order;
         });

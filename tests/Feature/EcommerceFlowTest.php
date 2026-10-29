@@ -1000,4 +1000,154 @@ class EcommerceFlowTest extends TestCase
         $response->assertSee('Belum Bayar');
         $response->assertSee('btn-pay-now');
     }
+
+    public function test_cart_page_renders_product_checkboxes_and_check_all_header(): void
+    {
+        $user = User::factory()->create();
+        $product1 = Product::factory()->create(['price' => 50000, 'stock' => 10]);
+        $product2 = Product::factory()->create(['price' => 75000, 'stock' => 10]);
+
+        $item1 = Cart::create([
+            'user_id' => $user->id,
+            'product_id' => $product1->id,
+            'quantity' => 1,
+        ]);
+        $item2 = Cart::create([
+            'user_id' => $user->id,
+            'product_id' => $product2->id,
+            'quantity' => 2,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('cart.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('id="check-all-items"', false);
+        $response->assertSee('cart-item-checkbox', false);
+        $response->assertSee('name="cart_ids[]"', false);
+        $response->assertSee('value="'.$item1->id.'"', false);
+        $response->assertSee('value="'.$item2->id.'"', false);
+        $response->assertSee('data-price="50000"', false);
+        $response->assertSee('data-price="75000"', false);
+    }
+
+    public function test_checkout_processes_only_selected_cart_items_and_retains_unselected_items_in_cart(): void
+    {
+        $user = User::factory()->create();
+        $product1 = Product::factory()->create(['price' => 50000, 'stock' => 10, 'discount_percentage' => 0]);
+        $product2 = Product::factory()->create(['price' => 100000, 'stock' => 10, 'discount_percentage' => 0]);
+
+        $item1 = Cart::create([
+            'user_id' => $user->id,
+            'product_id' => $product1->id,
+            'quantity' => 1,
+        ]);
+        $item2 = Cart::create([
+            'user_id' => $user->id,
+            'product_id' => $product2->id,
+            'quantity' => 2,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('checkout.process'), [
+            'customer_phone' => '081234567890',
+            'shipping_address' => 'Jl. Merdeka No. 12',
+            'payment_method' => 'Midtrans Snap',
+            'cart_ids' => [$item1->id],
+        ]);
+
+        $response->assertRedirect();
+
+        // Verifikasi Order dibuat hanya dengan item1
+        $this->assertDatabaseHas('orders', [
+            'user_id' => $user->id,
+            'total_price' => 50000,
+        ]);
+
+        $order = Order::where('user_id', $user->id)->first();
+        $this->assertCount(1, $order->items);
+        $this->assertEquals($product1->id, $order->items->first()->product_id);
+
+        // Verifikasi item1 terhapus dari tabel carts, sedangkan item2 tetap tersimpan
+        $this->assertDatabaseMissing('carts', ['id' => $item1->id]);
+        $this->assertDatabaseHas('carts', [
+            'id' => $item2->id,
+            'user_id' => $user->id,
+            'quantity' => 2,
+        ]);
+    }
+
+    public function test_checkout_snap_token_processes_only_selected_cart_items_and_retains_unselected(): void
+    {
+        Http::fake([
+            config('midtrans.api_url') => Http::response([
+                'token' => 'mock-selective-snap-token',
+                'redirect_url' => 'https://app.sandbox.midtrans.com/snap/v2/vtweb/mock-selective-snap-token',
+            ], 201),
+        ]);
+
+        $user = User::factory()->create();
+        $product1 = Product::factory()->create(['price' => 40000, 'stock' => 10, 'discount_percentage' => 0]);
+        $product2 = Product::factory()->create(['price' => 60000, 'stock' => 10, 'discount_percentage' => 0]);
+
+        $item1 = Cart::create([
+            'user_id' => $user->id,
+            'product_id' => $product1->id,
+            'quantity' => 1,
+        ]);
+        $item2 = Cart::create([
+            'user_id' => $user->id,
+            'product_id' => $product2->id,
+            'quantity' => 3,
+        ]);
+
+        // Checkout hanya memilih item2 (3 x 60.000 = 180.000)
+        $response = $this->actingAs($user)->postJson(route('checkout.snap-token'), [
+            'customer_phone' => '081234567890',
+            'shipping_address' => 'Jl. Sudirman No. 8',
+            'payment_method' => 'Midtrans Snap',
+            'cart_ids' => [$item2->id],
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'snap_token' => 'mock-selective-snap-token',
+        ]);
+
+        $order = Order::where('user_id', $user->id)->first();
+        $this->assertEquals(180000, $order->total_price);
+        $this->assertCount(1, $order->items);
+        $this->assertEquals($product2->id, $order->items->first()->product_id);
+
+        // Hanya item2 yang terhapus dari keranjang, item1 masih ada
+        $this->assertDatabaseMissing('carts', ['id' => $item2->id]);
+        $this->assertDatabaseHas('carts', [
+            'id' => $item1->id,
+            'user_id' => $user->id,
+            'quantity' => 1,
+        ]);
+    }
+
+    public function test_checkout_snap_token_fails_when_selected_cart_is_empty_or_invalid(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create(['price' => 50000, 'stock' => 10]);
+        Cart::create([
+            'user_id' => $user->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+        ]);
+
+        $response = $this->actingAs($user)->postJson(route('checkout.snap-token'), [
+            'customer_phone' => '081234567890',
+            'shipping_address' => 'Jl. Sudirman No. 8',
+            'payment_method' => 'Midtrans Snap',
+            'cart_ids' => [99999], // non-existent ID
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'success' => false,
+            'message' => 'Silakan pilih minimal satu produk di keranjang untuk checkout.',
+        ]);
+    }
 }

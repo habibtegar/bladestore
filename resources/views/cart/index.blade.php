@@ -50,7 +50,12 @@
                         <table class="table align-middle mb-0">
                             <thead class="table-light text-secondary small text-uppercase">
                                 <tr>
-                                    <th scope="col" style="min-width: 250px;" class="ps-4">Produk</th>
+                                    <th scope="col" style="width: 46px;" class="ps-3 pe-0 text-center">
+                                        <div class="form-check d-flex justify-content-center m-0">
+                                            <input class="form-check-input" type="checkbox" id="check-all-items" checked title="Pilih Semua Produk" style="cursor: pointer; width: 1.15rem; height: 1.15rem;">
+                                        </div>
+                                    </th>
+                                    <th scope="col" style="min-width: 240px;" class="ps-3">Produk</th>
                                     <th scope="col" class="text-center">Harga</th>
                                     <th scope="col" class="text-center" style="width: 160px;">Kuantitas</th>
                                     <th scope="col" class="text-end">Subtotal</th>
@@ -59,9 +64,24 @@
                             </thead>
                             <tbody class="divide-y">
                                 @foreach($cartItems as $item)
-                                    <tr id="cart-row-{{ $item->id }}">
+                                    <tr id="cart-row-{{ $item->id }}" data-cart-id="{{ $item->id }}" data-price="{{ (float) $item->product->final_price }}">
+                                        <!-- Checkbox Pilihan Produk -->
+                                        <td class="ps-3 pe-0 text-center" style="width: 46px;">
+                                            <div class="form-check d-flex justify-content-center m-0">
+                                                <input class="form-check-input cart-item-checkbox" 
+                                                       type="checkbox" 
+                                                       name="cart_ids[]" 
+                                                       value="{{ $item->id }}" 
+                                                       id="cart-check-{{ $item->id }}" 
+                                                       data-cart-id="{{ $item->id }}"
+                                                       checked
+                                                       title="Pilih produk ini"
+                                                       style="cursor: pointer; width: 1.15rem; height: 1.15rem;">
+                                            </div>
+                                        </td>
+
                                         <!-- Product Info -->
-                                        <td class="ps-4 py-3">
+                                        <td class="ps-3 py-3">
                                             <div class="d-flex align-items-center gap-3">
                                                 <div style="width: 58px; height: 58px; flex-shrink: 0; background-color: #F8FAFC; border-radius: 8px; overflow: hidden;" class="border">
                                                     <img src="{{ $item->product->image_url }}"
@@ -264,6 +284,97 @@ document.addEventListener('DOMContentLoaded', function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
         || document.querySelector('input[name="_token"]')?.value;
 
+    const checkAllInput = document.getElementById('check-all-items');
+    const itemCheckboxes = document.querySelectorAll('.cart-item-checkbox');
+    const payButton = document.getElementById('pay-button');
+    const payText = document.getElementById('pay-button-text');
+    const payIcon = document.getElementById('pay-button-icon');
+    const totalPriceEl = document.getElementById('cart-total-price');
+    const totalQtyEl = document.getElementById('cart-total-quantity');
+    const headerCountEl = document.getElementById('cart-header-count');
+
+    function formatRupiah(number) {
+        return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(number));
+    }
+
+    // ==========================================
+    // KALKULASI DINAMIS CHECKBOX & RINGKASAN
+    // ==========================================
+    function updateOrderSummary() {
+        let selectedCount = 0;
+        let totalSelectedQty = 0;
+        let totalSelectedPrice = 0;
+
+        const currentCheckboxes = document.querySelectorAll('.cart-item-checkbox');
+        currentCheckboxes.forEach(cb => {
+            if (cb.checked) {
+                selectedCount++;
+                const cartId = cb.value;
+                const row = document.getElementById(`cart-row-${cartId}`);
+                if (row) {
+                    const qtySpan = document.getElementById(`qty-val-${cartId}`);
+                    const qty = parseInt(qtySpan ? qtySpan.textContent.trim() : '1', 10) || 1;
+                    const price = parseFloat(row.getAttribute('data-price')) || 0;
+                    totalSelectedQty += qty;
+                    totalSelectedPrice += (qty * price);
+                }
+            }
+        });
+
+        // 1. Perbarui teks Total Kuantitas & Pembayaran
+        if (totalQtyEl) {
+            totalQtyEl.textContent = `${totalSelectedQty} unit`;
+        }
+        if (totalPriceEl) {
+            totalPriceEl.textContent = formatRupiah(totalSelectedPrice);
+        }
+        if (headerCountEl) {
+            headerCountEl.textContent = `Daftar Produk Terpilih (${totalSelectedQty} Item)`;
+        }
+
+        // 2. Kontrol Tombol Bayar Sekarang (Disable jika 0 produk dicentang)
+        if (payButton) {
+            if (selectedCount === 0) {
+                payButton.disabled = true;
+                payButton.classList.add('opacity-50');
+                payButton.style.cursor = 'not-allowed';
+                if (payText) payText.textContent = 'Pilih Produk Dulu';
+            } else {
+                payButton.disabled = false;
+                payButton.classList.remove('opacity-50');
+                payButton.style.cursor = 'pointer';
+                if (payText) payText.textContent = 'Bayar Sekarang';
+            }
+        }
+
+        // 3. Sinkronkan status checkbox 'Pilih Semua'
+        if (checkAllInput && currentCheckboxes.length > 0) {
+            checkAllInput.checked = (selectedCount === currentCheckboxes.length);
+            checkAllInput.indeterminate = (selectedCount > 0 && selectedCount < currentCheckboxes.length);
+        }
+    }
+
+    // Listener Checkbox Pilih Semua
+    if (checkAllInput) {
+        checkAllInput.addEventListener('change', function () {
+            const isChecked = this.checked;
+            document.querySelectorAll('.cart-item-checkbox').forEach(cb => {
+                cb.checked = isChecked;
+            });
+            updateOrderSummary();
+        });
+    }
+
+    // Listener Checkbox Tiap Item Produk
+    itemCheckboxes.forEach(cb => {
+        cb.addEventListener('change', function () {
+            updateOrderSummary();
+        });
+    });
+
+    // Jalankan kalkulasi awal saat halaman dimuat
+    updateOrderSummary();
+
     const updatingCartIds = new Set();
     const qtyButtons = document.querySelectorAll('.btn-qty-change');
 
@@ -352,29 +463,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         subtotalEl.textContent = item.formatted_subtotal;
                     }
 
-                    // 3. Perbarui Total Pembayaran di Ringkasan Pesanan
-                    const totalPriceEl = document.getElementById('cart-total-price');
-                    if (totalPriceEl) {
-                        totalPriceEl.textContent = result.data.formatted_total_price;
-                    }
+                    // 3. Sinkronkan Ringkasan Pesanan (hanya produk yang sedang dicentang)
+                    updateOrderSummary();
 
-                    // 4. Perbarui Total Kuantitas di Ringkasan Pesanan
-                    const totalQtyEl = document.getElementById('cart-total-quantity');
-                    if (totalQtyEl) {
-                        totalQtyEl.textContent = `${result.data.total_quantity} unit`;
-                    }
-
-                    // 5. Perbarui Header Total Item
-                    const headerCountEl = document.getElementById('cart-header-count');
-                    if (headerCountEl) {
-                        headerCountEl.textContent = `Daftar Produk Terpilih (${result.data.total_quantity} Item)`;
-                    }
-
-                    // 6. Atur status tombol disable sesuai kuantitas terbaru & stok
+                    // 4. Atur status tombol disable sesuai kuantitas terbaru & stok
                     if (btnDec) btnDec.disabled = (item.quantity <= 1);
                     if (btnInc) btnInc.disabled = (item.quantity >= item.stock);
 
-                    // 7. Perbarui badge keranjang di navbar jika ada
+                    // 5. Perbarui badge keranjang di navbar jika ada (total seluruh isi keranjang)
                     const cartCount = parseInt(result.data.total_quantity, 10);
                     const navBadge = document.getElementById('cart-badge-count');
                     if (navBadge) {
@@ -434,15 +530,19 @@ document.addEventListener('DOMContentLoaded', function () {
     // MIDTRANS SNAP POPUP CHECKOUT
     // ==========================================
     const checkoutForm = document.getElementById('cart-checkout-form');
-    const payButton = document.getElementById('pay-button');
-    const payText = document.getElementById('pay-button-text');
-    const payIcon = document.getElementById('pay-button-icon');
 
     if (checkoutForm && payButton) {
         checkoutForm.addEventListener('submit', function (e) {
             e.preventDefault();
 
-            // Validasi cepat field kontak & alamat di sisi frontend
+            // Validasi minimal 1 produk terpilih untuk di-checkout
+            const selectedCheckboxes = checkoutForm.querySelectorAll('.cart-item-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                alert('Silakan pilih minimal satu produk di keranjang belanja Anda untuk melanjutkan checkout.');
+                return;
+            }
+
+            // Validasi field kontak & alamat di sisi frontend
             const phoneInput = checkoutForm.querySelector('input[name="customer_phone"]');
             const addressInput = checkoutForm.querySelector('input[name="shipping_address"]');
 
@@ -467,6 +567,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 payButton.disabled = false;
                 if (payText) payText.textContent = originalText;
                 if (payIcon) payIcon.className = 'bi bi-arrow-right fs-5';
+                updateOrderSummary();
             }
 
             const formData = new FormData(checkoutForm);
