@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class EcommerceFlowTest extends TestCase
@@ -111,6 +112,66 @@ class EcommerceFlowTest extends TestCase
         $deleteResponse = $this->actingAs($user)->delete(route('cart.destroy', $cart->id));
         $deleteResponse->assertRedirect(route('cart.index'));
         $this->assertDatabaseMissing('carts', ['id' => $cart->id]);
+    }
+
+    public function test_user_can_add_product_to_cart_via_ajax_and_receives_sidebar_html(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create([
+            'name' => 'Kemeja Flannel Pria Unik',
+            'stock' => 10,
+            'price' => 120000,
+        ]);
+
+        $response = $this->actingAs($user)->postJson(route('cart.store'), [
+            'product_id' => $product->id,
+            'quantity' => 1,
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'cart_count' => 1,
+        ]);
+
+        $responseData = $response->json();
+        $this->assertArrayHasKey('sidebar_html', $responseData);
+        $this->assertStringContainsString('Kemeja Flannel Pria Unik', $responseData['sidebar_html']);
+    }
+
+    public function test_guest_cannot_add_product_to_cart_via_ajax(): void
+    {
+        $product = Product::factory()->create(['stock' => 10]);
+
+        $response = $this->postJson(route('cart.store'), [
+            'product_id' => $product->id,
+            'quantity' => 1,
+        ]);
+
+        $response->assertStatus(401);
+    }
+
+    public function test_user_can_fetch_sidebar_html(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create([
+            'name' => 'Sepatu Sneakers Kasual',
+            'stock' => 10,
+        ]);
+        Cart::create([
+            'user_id' => $user->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+        ]);
+
+        $response = $this->actingAs($user)->getJson(route('cart.sidebar'));
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'cart_count' => 2,
+        ]);
+        $response->assertSee('Sepatu Sneakers Kasual');
     }
 
     public function test_user_can_checkout_with_manual_bank_transfer(): void
@@ -542,5 +603,134 @@ class EcommerceFlowTest extends TestCase
             strpos($html, 'marketplace-header') < strpos($html, 'id="cart-header-count"'),
             'Navbar must appear before cart content'
         );
+    }
+
+    public function test_checkout_can_generate_snap_token_from_cart(): void
+    {
+        Http::fake([
+            config('midtrans.api_url') => Http::response([
+                'token' => 'mock-midtrans-snap-token-777',
+                'redirect_url' => 'https://app.sandbox.midtrans.com/snap/v2/vtweb/mock-midtrans-snap-token-777',
+            ], 201),
+        ]);
+
+        $user = User::factory()->create();
+        $product = Product::factory()->create([
+            'price' => 200000,
+            'discount_percentage' => 0,
+            'stock' => 10,
+        ]);
+
+        Cart::create([
+            'user_id' => $user->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+        ]);
+
+        $response = $this->actingAs($user)->postJson(route('checkout.snap-token'), [
+            'customer_phone' => '081234567890',
+            'shipping_address' => 'Jl. Gatot Subroto No. 12, Jakarta',
+            'payment_method' => 'Midtrans Snap',
+            'notes' => 'Tolong bungkus rapi',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'snap_token' => 'mock-midtrans-snap-token-777',
+        ]);
+
+        // Verify order created with pending status and snap_token
+        $this->assertDatabaseHas('orders', [
+            'user_id' => $user->id,
+            'total_price' => 400000,
+            'status' => 'pending',
+            'snap_token' => 'mock-midtrans-snap-token-777',
+        ]);
+
+        // Verify cart is emptied
+        $this->assertDatabaseMissing('carts', [
+            'user_id' => $user->id,
+        ]);
+
+        // Verify product stock decremented
+        $this->assertEquals(8, $product->fresh()->stock);
+    }
+
+    public function test_midtrans_webhook_callback_updates_order_status_to_processing_on_settlement(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::create([
+            'order_code' => 'ORD-20261029-TEST01',
+            'user_id' => $user->id,
+            'total_price' => 150000,
+            'payment_method' => 'Midtrans Snap',
+            'status' => 'pending',
+            'shipping_address' => 'Jl. Sudirman No. 1',
+            'customer_phone' => '081299998888',
+        ]);
+
+        $response = $this->postJson('/api/midtrans/callback', [
+            'order_id' => $order->order_code,
+            'status_code' => '200',
+            'gross_amount' => '150000.00',
+            'transaction_status' => 'settlement',
+            'fraud_status' => 'accept',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'status' => 'processing',
+        ]);
+
+        $this->assertEquals('processing', $order->fresh()->status);
+    }
+
+    public function test_midtrans_webhook_callback_updates_order_status_to_cancelled_on_deny_or_expire(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::create([
+            'order_code' => 'ORD-20261029-TEST02',
+            'user_id' => $user->id,
+            'total_price' => 250000,
+            'payment_method' => 'Midtrans Snap',
+            'status' => 'pending',
+            'shipping_address' => 'Jl. Thamrin No. 2',
+            'customer_phone' => '081299997777',
+        ]);
+
+        $response = $this->postJson('/api/midtrans/callback', [
+            'order_id' => $order->order_code,
+            'status_code' => '202',
+            'gross_amount' => '250000.00',
+            'transaction_status' => 'expire',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'status' => 'cancelled',
+        ]);
+
+        $this->assertEquals('cancelled', $order->fresh()->status);
+    }
+
+    public function test_cart_page_renders_midtrans_snap_sdk_script_and_pay_button(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create();
+        Cart::create([
+            'user_id' => $user->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('cart.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('snap.js');
+        $response->assertSee('cart-checkout-form');
+        $response->assertSee('pay-button');
     }
 }

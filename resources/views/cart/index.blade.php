@@ -35,7 +35,7 @@
         </div>
     </div>
 @else
-    <form action="{{ route('checkout.process') }}" method="POST">
+    <form id="cart-checkout-form" action="{{ route('checkout.process') }}" method="POST">
         @csrf
         <div class="row g-4 lg:grid lg:grid-cols-12 lg:gap-6">
             
@@ -277,10 +277,10 @@
                         </span>
                     </div>
 
-                    <!-- Tombol Bayar Sekarang Solid Biru -->
-                    <button type="submit" class="btn btn-primary bg-blue-600 border-blue-600 w-100 py-3 d-flex align-items-center justify-content-center gap-2 fw-bold shadow-sm rounded-3 hover:bg-blue-700">
-                        <span>Bayar Sekarang</span>
-                        <i class="bi bi-arrow-right fs-5"></i>
+                    <!-- Tombol Bayar Sekarang Solid Biru (Midtrans Snap Trigger) -->
+                    <button type="submit" id="pay-button" class="btn btn-primary bg-blue-600 border-blue-600 w-100 py-3 d-flex align-items-center justify-content-center gap-2 fw-bold shadow-sm rounded-3 hover:bg-blue-700">
+                        <span id="pay-button-text">Bayar Sekarang</span>
+                        <i class="bi bi-arrow-right fs-5" id="pay-button-icon"></i>
                     </button>
                 </div>
             </div>
@@ -300,6 +300,9 @@
 @endsection
 
 @push('scripts')
+<!-- Midtrans Snap.js SDK -->
+<script src="{{ config('midtrans.snap_url', 'https://app.sandbox.midtrans.com/snap/snap.js') }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
@@ -449,6 +452,118 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     });
+
+    // ==========================================
+    // MIDTRANS SNAP POPUP CHECKOUT
+    // ==========================================
+    const checkoutForm = document.getElementById('cart-checkout-form');
+    const payButton = document.getElementById('pay-button');
+    const payText = document.getElementById('pay-button-text');
+    const payIcon = document.getElementById('pay-button-icon');
+
+    if (checkoutForm && payButton) {
+        checkoutForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Validasi cepat field kontak & alamat di sisi frontend
+            const phoneInput = checkoutForm.querySelector('input[name="customer_phone"]');
+            const addressInput = checkoutForm.querySelector('input[name="shipping_address"]');
+
+            if (!phoneInput || !phoneInput.value.trim()) {
+                alert('Silakan isi nomor telepon/WhatsApp terlebih dahulu.');
+                phoneInput?.focus();
+                return;
+            }
+
+            if (!addressInput || !addressInput.value.trim()) {
+                alert('Silakan isi alamat pengiriman lengkap terlebih dahulu.');
+                addressInput?.focus();
+                return;
+            }
+
+            const originalText = payText ? payText.textContent : 'Bayar Sekarang';
+            payButton.disabled = true;
+            if (payText) payText.textContent = 'Menghubungkan Midtrans...';
+            if (payIcon) payIcon.className = 'spinner-border spinner-border-sm';
+
+            function resetPayButton() {
+                payButton.disabled = false;
+                if (payText) payText.textContent = originalText;
+                if (payIcon) payIcon.className = 'bi bi-arrow-right fs-5';
+            }
+
+            const formData = new FormData(checkoutForm);
+
+            fetch('{{ route("checkout.snap-token") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(res => {
+                if (res.status === 401) {
+                    window.location.href = '{{ route("login") }}';
+                    return null;
+                }
+                return res.json().then(data => ({
+                    ok: res.ok,
+                    status: res.status,
+                    data: data
+                }));
+            })
+            .then(result => {
+                if (!result) return;
+
+                if (result.ok && result.data && result.data.snap_token) {
+                    // Panggil popup Snap Midtrans
+                    if (typeof window.snap !== 'undefined' && typeof window.snap.pay === 'function') {
+                        window.snap.pay(result.data.snap_token, {
+                            onSuccess: function (res) {
+                                window.location.href = result.data.redirect_url;
+                            },
+                            onPending: function (res) {
+                                window.location.href = result.data.redirect_url;
+                            },
+                            onError: function (res) {
+                                alert('Pembayaran gagal atau dibatalkan.');
+                                resetPayButton();
+                            },
+                            onClose: function () {
+                                alert('Anda menutup popup sebelum menyelesaikan pembayaran.');
+                                if (result.data.redirect_url) {
+                                    window.location.href = result.data.redirect_url;
+                                } else {
+                                    resetPayButton();
+                                }
+                            }
+                        });
+                    } else {
+                        // Fallback jika Snap SDK gagal termuat (misal kendala jaringan/adblock)
+                        if (result.data.redirect_url) {
+                            window.location.href = result.data.redirect_url;
+                        } else {
+                            alert('Snap SDK Midtrans belum siap dimuat. Silakan muat ulang halaman.');
+                            resetPayButton();
+                        }
+                    }
+                } else {
+                    const message = (result.data && result.data.message)
+                        ? result.data.message
+                        : 'Gagal membuat transaksi pembayaran Midtrans.';
+                    alert(message);
+                    resetPayButton();
+                }
+            })
+            .catch(err => {
+                console.error('Midtrans checkout error:', err);
+                alert('Terjadi kesalahan koneksi saat memproses checkout.');
+                resetPayButton();
+            });
+        });
+    }
 });
 </script>
 @endpush

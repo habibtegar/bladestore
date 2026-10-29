@@ -42,6 +42,7 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/', [CartController::class, 'store'])->name('store');
         Route::match(['patch', 'post'], '/{cart}', [CartController::class, 'update'])->name('update');
         Route::post('/update-quantity', [CartController::class, 'updateQuantity'])->name('update-quantity');
+        Route::get('/sidebar', [CartController::class, 'sidebarHtml'])->name('sidebar');
         Route::delete('/{cart}', [CartController::class, 'destroy'])->name('destroy');
     });
 
@@ -50,6 +51,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/', [CheckoutController::class, 'index'])->name('index');
         Route::post('/', [CheckoutController::class, 'process'])->name('process');
         Route::post('/process', [CheckoutController::class, 'process']);
+        Route::post('/snap-token', [CheckoutController::class, 'createSnapToken'])->name('snap-token');
         Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
     });
     Route::get('/checkout-success/{order}', [CheckoutController::class, 'success']);

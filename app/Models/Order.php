@@ -28,6 +28,7 @@ class Order extends Model
         'shipping_address',
         'customer_phone',
         'notes',
+        'snap_token',
     ];
 
     /**

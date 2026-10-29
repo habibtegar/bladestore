@@ -31,6 +31,18 @@ class CartController extends Controller
      */
     public function store(Request $request): RedirectResponse|JsonResponse
     {
+        if (! Auth::check()) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Silakan masuk terlebih dahulu untuk menambahkan produk ke keranjang.',
+                    'redirect' => route('login'),
+                ], 401);
+            }
+
+            return redirect()->guest(route('login'));
+        }
+
         $validated = $request->validate([
             'product_id' => ['required', 'exists:products,id'],
             'quantity' => ['required', 'integer', 'min:1'],
@@ -68,12 +80,19 @@ class CartController extends Controller
         }
 
         if ($request->expectsJson() || $request->ajax()) {
-            $totalCount = (int) Cart::where('user_id', Auth::id())->sum('quantity');
+            $navCartItems = Cart::with('product')
+                ->where('user_id', Auth::id())
+                ->get();
+            $cartTotalCount = (int) $navCartItems->sum('quantity');
+            $navCartTotal = (float) $navCartItems->sum(fn (Cart $item): float => (float) $item->subtotal);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil ditambahkan ke keranjang',
-                'cart_count' => $totalCount,
+                'cart_count' => $cartTotalCount,
+                'total_price' => $navCartTotal,
+                'formatted_cart_total' => 'Rp '.number_format($navCartTotal, 0, ',', '.'),
+                'sidebar_html' => view('cart.partials.offcanvas', compact('navCartItems', 'cartTotalCount', 'navCartTotal'))->render(),
             ]);
         }
 
@@ -185,14 +204,58 @@ class CartController extends Controller
     /**
      * Remove an item from the shopping cart.
      */
-    public function destroy(Cart $cart): RedirectResponse
+    public function destroy(Request $request, Cart $cart): RedirectResponse|JsonResponse
     {
         if ($cart->user_id !== Auth::id()) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses tidak diizinkan.',
+                ], 403);
+            }
+
             abort(403, 'Akses tidak diizinkan.');
         }
 
         $cart->delete();
 
+        if ($request->expectsJson() || $request->ajax()) {
+            $navCartItems = Cart::with('product')
+                ->where('user_id', Auth::id())
+                ->get();
+            $cartTotalCount = (int) $navCartItems->sum('quantity');
+            $navCartTotal = (float) $navCartItems->sum(fn (Cart $item): float => (float) $item->subtotal);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Barang berhasil dihapus dari keranjang.',
+                'cart_count' => $cartTotalCount,
+                'total_price' => $navCartTotal,
+                'formatted_cart_total' => 'Rp '.number_format($navCartTotal, 0, ',', '.'),
+                'sidebar_html' => view('cart.partials.offcanvas', compact('navCartItems', 'cartTotalCount', 'navCartTotal'))->render(),
+            ]);
+        }
+
         return redirect()->route('cart.index')->with('success', 'Barang berhasil dihapus dari keranjang.');
+    }
+
+    /**
+     * Get updated sidebar HTML.
+     */
+    public function sidebarHtml(Request $request): JsonResponse
+    {
+        $navCartItems = Cart::with('product')
+            ->where('user_id', Auth::id())
+            ->get();
+        $cartTotalCount = (int) $navCartItems->sum('quantity');
+        $navCartTotal = (float) $navCartItems->sum(fn (Cart $item): float => (float) $item->subtotal);
+
+        return response()->json([
+            'success' => true,
+            'cart_count' => $cartTotalCount,
+            'total_price' => $navCartTotal,
+            'formatted_cart_total' => 'Rp '.number_format($navCartTotal, 0, ',', '.'),
+            'sidebar_html' => view('cart.partials.offcanvas', compact('navCartItems', 'cartTotalCount', 'navCartTotal'))->render(),
+        ]);
     }
 }
