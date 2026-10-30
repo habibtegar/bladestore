@@ -80,8 +80,15 @@ class MidtransCallbackController extends Controller
 
         // Jangan mengubah pesanan yang sudah berstatus 'completed'
         if ($order->status !== 'completed') {
+            $paymentStatus = match ($newStatus) {
+                'processing', 'dikemas', 'shipped', 'dikirim' => 'paid',
+                'cancelled', 'dibatalkan' => 'cancelled',
+                default => 'unpaid',
+            };
+
             $order->update([
                 'status' => $newStatus,
+                'payment_status' => $paymentStatus,
             ]);
         }
 

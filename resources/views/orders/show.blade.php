@@ -22,17 +22,66 @@
                     <h3 class="fw-bold text-dark font-monospace mb-1">{{ $order->order_code }}</h3>
                     <p class="text-muted small mb-0">Dipesan pada {{ $order->created_at->format('d F Y, H:i') }} WIB</p>
                 </div>
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center flex-wrap gap-2">
                     <span class="badge bg-light text-dark border small">
                         Metode: {{ $order->payment_method }}
                     </span>
                     <span class="badge {{ $order->status_badge_class }} px-3 py-2 small">
-                        {{ $order->status_label }}
+                        Status: {{ $order->status_label }}
+                    </span>
+                    <span class="badge {{ $order->payment_status_badge_class }} px-3 py-2 small">
+                        Pembayaran: {{ $order->payment_status_label }}
                     </span>
                 </div>
             </div>
 
-            @if(in_array($order->status, ['processing', 'dikemas', 'shipped', 'dikirim', 'completed', 'selesai']))
+            @if($order->isCod())
+                @if(in_array($order->status, ['completed', 'selesai']))
+                    <div class="alert alert-success border-0 shadow-sm d-flex align-items-center gap-3 p-3.5 rounded-3 mb-4" style="background-color: #DCFCE7; border: 1px solid #86EFAC !important;">
+                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <div>
+                            <span class="x-small text-success text-uppercase fw-bold d-block">Pesanan Selesai — Pembayaran COD Diterima (Lunas)</span>
+                            <span class="fw-bold fs-6 text-dark">Paket pesanan telah tiba dan pembayaran tunai telah diserahkan kepada kurir</span>
+                            <div class="x-small text-muted">Metode: {{ $order->payment_method }} &bull; Total: {{ $order->formatted_total_price }}</div>
+                        </div>
+                    </div>
+                @elseif(in_array($order->status, ['shipped', 'dikirim']))
+                    <div class="alert alert-primary border-0 shadow-sm d-flex align-items-center gap-3 p-3.5 rounded-3 mb-4" style="background-color: #EFF6FF; border: 1px solid #BFDBFE !important;">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <div>
+                            <span class="x-small text-primary text-uppercase fw-bold d-block">Metode Cash on Delivery (COD) — Dalam Pengiriman</span>
+                            <span class="fw-bold fs-6 text-dark">Mohon siapkan uang tunai pas sebesar {{ $order->formatted_total_price }} saat kurir tiba</span>
+                            <div class="x-small text-muted">Kurir akan mengonfirmasi via WhatsApp/telepon ke {{ $order->customer_phone }}.</div>
+                        </div>
+                    </div>
+                @elseif(in_array($order->status, ['processing', 'dikemas']))
+                    <div class="alert alert-info border-0 shadow-sm d-flex align-items-center gap-3 p-3.5 rounded-3 mb-4" style="background-color: #E0F2FE; border: 1px solid #BAE6FD !important;">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                        <div>
+                            <span class="x-small text-primary text-uppercase fw-bold d-block">Metode Cash on Delivery (COD) — Sedang Dikemas</span>
+                            <span class="fw-bold fs-6 text-dark">Pesanan sedang dipersiapkan di gudang toko (Belum Dibayar)</span>
+                            <div class="x-small text-muted">Pembayaran tunai sebesar {{ $order->formatted_total_price }} dilakukan langsung saat barang tiba.</div>
+                        </div>
+                    </div>
+                @elseif(in_array($order->status, ['pending', 'belum_bayar']))
+                    <div class="alert alert-info border-0 shadow-sm d-flex align-items-center gap-3 p-3.5 rounded-3 mb-4" style="background-color: #E0F2FE; border: 1px solid #BAE6FD !important;">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                        <div>
+                            <span class="x-small text-primary text-uppercase fw-bold d-block">Metode Cash on Delivery (COD) — Menunggu Diproses</span>
+                            <span class="fw-bold fs-6 text-dark">Pesanan berhasil dibuat, toko sedang memverifikasi rincian pesanan Anda</span>
+                            <div class="x-small text-muted">Pembayaran tunai sebesar {{ $order->formatted_total_price }} dilakukan langsung kepada kurir saat barang tiba.</div>
+                        </div>
+                    </div>
+                @endif
+            @elseif(in_array($order->status, ['processing', 'dikemas', 'shipped', 'dikirim', 'completed', 'selesai']))
                 <div class="alert alert-success border-0 shadow-sm d-flex align-items-center gap-3 p-3.5 rounded-3 mb-4" style="background-color: #DCFCE7; border: 1px solid #86EFAC !important;">
                     <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.3rem;">
                         <i class="bi bi-shield-check"></i>
@@ -41,17 +90,6 @@
                         <span class="x-small text-success text-uppercase fw-bold d-block">Pembayaran Telah Diverifikasi (Lunas)</span>
                         <span class="fw-bold fs-6 text-dark">Pesanan Anda saat ini sedang dikemas dan dipersiapkan oleh toko</span>
                         <div class="x-small text-muted">Metode: {{ $order->payment_method }} &bull; Total: {{ $order->formatted_total_price }}</div>
-                    </div>
-                </div>
-            @elseif($order->isCod() && in_array($order->status, ['pending', 'belum_bayar']))
-                <div class="alert alert-info border-0 shadow-sm d-flex align-items-center gap-3 p-3.5 rounded-3 mb-4" style="background-color: #E0F2FE; border: 1px solid #BAE6FD !important;">
-                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.3rem;">
-                        <i class="bi bi-cash-coin"></i>
-                    </div>
-                    <div>
-                        <span class="x-small text-primary text-uppercase fw-bold d-block">Metode Cash on Delivery (COD)</span>
-                        <span class="fw-bold fs-6 text-dark">Pembayaran tunai sebesar {{ $order->formatted_total_price }} dilakukan saat barang tiba</span>
-                        <div class="x-small text-muted">Kurir akan mengonfirmasi ke {{ $order->customer_phone }} sebelum pengantaran.</div>
                     </div>
                 </div>
             @elseif($order->canBePaid())

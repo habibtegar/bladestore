@@ -26,6 +26,7 @@ class Order extends Model
         'total_price',
         'payment_method',
         'status',
+        'payment_status',
         'tracking_number',
         'shipping_address',
         'customer_phone',
@@ -62,7 +63,7 @@ class Order extends Model
     {
         return Attribute::make(
             get: fn (): string => match ($this->status) {
-                'pending', 'belum_bayar' => 'bg-warning text-dark',
+                'pending', 'belum_bayar' => $this->isCod() ? 'bg-primary text-white' : 'bg-warning text-dark',
                 'processing', 'dikemas' => 'bg-info text-dark',
                 'shipped', 'dikirim' => 'bg-primary text-white',
                 'completed', 'selesai' => 'bg-success text-white',
@@ -78,13 +79,64 @@ class Order extends Model
     protected function statusLabel(): Attribute
     {
         return Attribute::make(
-            get: fn (): string => match ($this->status) {
-                'pending', 'belum_bayar' => $this->isExpired() ? 'Dibatalkan (Kadaluarsa)' : 'Belum Bayar',
-                'processing', 'dikemas' => 'Dikemas',
-                'shipped', 'dikirim' => 'Dikirim',
-                'completed', 'selesai' => 'Selesai',
-                'cancelled', 'dibatalkan' => 'Dibatalkan',
-                default => ucfirst((string) $this->status),
+            get: function (): string {
+                if ($this->isCod()) {
+                    return match ($this->status) {
+                        'pending', 'belum_bayar' => 'Menunggu Diproses',
+                        'processing', 'dikemas' => 'Dikemas',
+                        'shipped', 'dikirim' => 'Dikirim',
+                        'completed', 'selesai' => 'Selesai',
+                        'cancelled', 'dibatalkan' => 'Dibatalkan',
+                        default => ucfirst((string) $this->status),
+                    };
+                }
+
+                return match ($this->status) {
+                    'pending', 'belum_bayar' => $this->isExpired() ? 'Dibatalkan (Kadaluarsa)' : 'Belum Bayar',
+                    'processing', 'dikemas' => 'Dikemas',
+                    'shipped', 'dikirim' => 'Dikirim',
+                    'completed', 'selesai' => 'Selesai',
+                    'cancelled', 'dibatalkan' => 'Dibatalkan',
+                    default => ucfirst((string) $this->status),
+                };
+            }
+        );
+    }
+
+    /**
+     * Get the human-readable Indonesian label for payment status.
+     */
+    protected function paymentStatusLabel(): Attribute
+    {
+        return Attribute::make(
+            get: function (): string {
+                if ($this->isCod()) {
+                    return match ($this->payment_status) {
+                        'paid' => 'Sudah Dibayar (COD)',
+                        'cancelled' => 'Dibatalkan',
+                        default => 'Belum Dibayar (COD)',
+                    };
+                }
+
+                return match ($this->payment_status) {
+                    'paid' => 'Sudah Dibayar',
+                    'cancelled' => 'Dibatalkan',
+                    default => 'Belum Dibayar',
+                };
+            }
+        );
+    }
+
+    /**
+     * Get the Bootstrap badge class for the payment status.
+     */
+    protected function paymentStatusBadgeClass(): Attribute
+    {
+        return Attribute::make(
+            get: fn (): string => match ($this->payment_status) {
+                'paid' => 'bg-success text-white',
+                'cancelled' => 'bg-danger text-white',
+                default => $this->isCod() ? 'bg-warning text-dark' : 'bg-warning text-dark',
             }
         );
     }
@@ -94,6 +146,10 @@ class Order extends Model
      */
     public function isExpired(): bool
     {
+        if ($this->isCod()) {
+            return false;
+        }
+
         if (in_array($this->status, ['cancelled', 'dibatalkan'])) {
             return true;
         }
@@ -136,15 +192,18 @@ class Order extends Model
     public function scopePaid($query)
     {
         return $query->where(function ($q): void {
-            $q->whereIn('status', ['completed', 'selesai'])
-                ->orWhere(function ($sub): void {
-                    $sub->whereIn('status', ['processing', 'dikemas', 'shipped', 'dikirim'])
-                        ->where(function ($m): void {
-                            $m->whereNull('payment_method')
-                                ->orWhere(function ($p): void {
-                                    $p->whereRaw('LOWER(payment_method) NOT LIKE ?', ['%cod%'])
-                                        ->whereRaw('LOWER(payment_method) NOT LIKE ?', ['%cash on delivery%'])
-                                        ->whereRaw('LOWER(payment_method) NOT LIKE ?', ['%bayar di tempat%']);
+            $q->where('payment_status', 'paid')
+                ->orWhere(function ($fallback): void {
+                    $fallback->whereIn('status', ['completed', 'selesai'])
+                        ->orWhere(function ($sub): void {
+                            $sub->whereIn('status', ['processing', 'dikemas', 'shipped', 'dikirim'])
+                                ->where(function ($m): void {
+                                    $m->whereNull('payment_method')
+                                        ->orWhere(function ($p): void {
+                                            $p->whereRaw('LOWER(payment_method) NOT LIKE ?', ['%cod%'])
+                                                ->whereRaw('LOWER(payment_method) NOT LIKE ?', ['%cash on delivery%'])
+                                                ->whereRaw('LOWER(payment_method) NOT LIKE ?', ['%bayar di tempat%']);
+                                        });
                                 });
                         });
                 });
@@ -156,6 +215,10 @@ class Order extends Model
      */
     public function isPaid(): bool
     {
+        if ($this->payment_status === 'paid') {
+            return true;
+        }
+
         if (in_array($this->status, ['completed', 'selesai'], true)) {
             return true;
         }

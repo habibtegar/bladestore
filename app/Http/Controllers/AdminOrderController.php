@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AdminOrderController extends Controller
@@ -97,39 +98,76 @@ class AdminOrderController extends Controller
             'tracking_number.max' => 'Nomor resi maksimal 100 karakter.',
         ]);
 
-        $newTrackingNumber = $request->filled('tracking_number') ? trim($request->input('tracking_number')) : null;
+        $newTrackingNumber = $request->filled('tracking_number') ? trim((string) $request->input('tracking_number')) : null;
         $requestedStatus = $validated['status'] ?? null;
         $newStatus = $requestedStatus ?: $order->status;
 
-        // Pembatasan: Matikan input nomor resi dan pengiriman jika pesanan masih 'Belum Bayar'
-        if (in_array($order->status, ['pending', 'belum_bayar'])) {
-            if (! empty($newTrackingNumber)) {
-                return back()->with('error', 'Nomor resi tidak dapat diinput karena pesanan masih berstatus Belum Bayar. Input nomor resi hanya diizinkan setelah pembayaran diterima (status Dikemas).');
-            }
+        // Validasi Alur Transisi Status & Resi
+        if (! $order->isCod()) {
+            // Untuk pesanan online (Non-COD):
+            // Tidak boleh input resi atau ubah status ke 'Dikirim' jika belum bayar
+            if (in_array($order->status, ['pending', 'belum_bayar'])) {
+                if (! empty($newTrackingNumber)) {
+                    return back()->with('error', 'Nomor resi tidak dapat diinput karena pesanan online masih berstatus Belum Bayar. Pembayaran harus lunas terlebih dahulu.');
+                }
 
-            if (in_array($newStatus, ['shipped', 'dikirim'])) {
-                return back()->with('error', 'Status pesanan tidak dapat diubah menjadi Dikirim karena pesanan belum dibayar.');
+                if (in_array($newStatus, ['shipped', 'dikirim'])) {
+                    return back()->with('error', 'Status pesanan tidak dapat diubah menjadi Dikirim karena pembayaran online belum lunas.');
+                }
+            }
+        } else {
+            // Untuk pesanan COD:
+            // Alur yang jelas: Menunggu Diproses -> Dikemas -> Dikirim -> Selesai
+            // Jika masih 'pending' (Menunggu Diproses), tidak boleh langsung lompat ke 'Dikirim' tanpa dikemas terlebih dahulu
+            if (in_array($order->status, ['pending', 'belum_bayar']) && in_array($newStatus, ['shipped', 'dikirim'])) {
+                return back()->with('error', 'Pesanan COD harus diproses ke status Dikemas terlebih dahulu sebelum diubah menjadi Dikirim.');
             }
         }
 
-        // Otomatis ubah status pesanan menjadi "Dikirim" (shipped) saat nomor resi dimasukkan pada pesanan yang sudah dikemas
+        // Jika nomor resi diinput manual oleh admin pada pesanan yang sedang dikemas, otomatis ubah status menjadi "Dikirim"
         if (! empty($newTrackingNumber)) {
             if (in_array($order->status, ['processing', 'dikemas']) || in_array($requestedStatus, ['processing', 'dikemas']) || empty($requestedStatus)) {
                 $newStatus = 'shipped';
             }
         }
 
+        // Ketentuan: Nomor resi simulasi hanya dibuat ketika pesanan benar-benar diubah menjadi Dikirim
+        if (in_array($newStatus, ['shipped', 'dikirim'])) {
+            if (empty($newTrackingNumber) && empty($order->tracking_number)) {
+                $newTrackingNumber = 'BLADE-'.date('Ymd').'-'.strtoupper(Str::random(6));
+            }
+        }
+
         $updateData = ['status' => $newStatus];
-        if ($request->has('tracking_number')) {
+        if ($newTrackingNumber !== null) {
             $updateData['tracking_number'] = $newTrackingNumber;
+        } elseif ($request->has('tracking_number') && empty($newTrackingNumber) && ! in_array($newStatus, ['shipped', 'dikirim'])) {
+            $updateData['tracking_number'] = null;
+        }
+
+        // Sinkronisasi status pembayaran berdasarkan alur:
+        if (in_array($newStatus, ['completed', 'selesai'])) {
+            // 7. Ketika pesanan selesai diterima dan pembayaran COD sudah dilakukan, ubah status pembayaran menjadi Sudah Dibayar
+            $updateData['payment_status'] = 'paid';
+        } elseif (in_array($newStatus, ['cancelled', 'dibatalkan'])) {
+            // 8. Pesanan COD yang dibatalkan tidak boleh dianggap lunas
+            $updateData['payment_status'] = 'cancelled';
+        } elseif ($order->isCod()) {
+            // Pesanan COD selama pending, processing, shipped belum dibayar
+            $updateData['payment_status'] = 'unpaid';
+        } elseif (in_array($newStatus, ['processing', 'dikemas', 'shipped', 'dikirim'])) {
+            // Pesanan online yang sudah diproses berarti sudah bayar
+            $updateData['payment_status'] = 'paid';
+        } else {
+            $updateData['payment_status'] = 'unpaid';
         }
 
         $order->update($updateData);
         $order->refresh();
 
         $feedback = "Pesanan #{$order->order_code} berhasil diperbarui.";
-        if ($newTrackingNumber) {
-            $feedback .= " Nomor resi: {$newTrackingNumber} tersimpan dan status menjadi '{$order->status_label}'.";
+        if (! empty($order->tracking_number)) {
+            $feedback .= " Nomor resi: {$order->tracking_number} tersimpan dan status menjadi '{$order->status_label}'.";
         } else {
             $feedback .= " Status pesanan saat ini: '{$order->status_label}'.";
         }

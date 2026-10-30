@@ -104,17 +104,20 @@ class CheckoutController extends Controller
 
         if ($isCod) {
             $paymentMethod = 'Cash on Delivery (COD)';
-            $initialStatus = 'processing';
+            $initialStatus = 'pending';
+            $initialPaymentStatus = 'unpaid';
         } elseif (str_contains(strtolower($rawPayment), 'transfer bank')) {
             $paymentMethod = 'Transfer Bank Manual';
             $initialStatus = 'pending';
+            $initialPaymentStatus = 'unpaid';
         } else {
             $paymentMethod = 'Midtrans Snap';
             $initialStatus = 'pending';
+            $initialPaymentStatus = 'unpaid';
         }
 
         // 2. Gunakan DB::transaction untuk menjamin integritas data
-        $order = DB::transaction(function () use ($cartItems, $validated, $paymentMethod, $initialStatus): Order {
+        $order = DB::transaction(function () use ($cartItems, $validated, $paymentMethod, $initialStatus, $initialPaymentStatus): Order {
             // Generate nomor pesanan unik
             do {
                 $orderCode = 'ORD-'.date('Ymd').'-'.strtoupper(Str::random(6));
@@ -123,13 +126,14 @@ class CheckoutController extends Controller
             // Hitung total harga
             $totalPrice = $cartItems->sum(fn (Cart $item): float => (float) $item->subtotal);
 
-            // 3. Buat record baru di tabel orders dengan status pending atau processing (COD)
+            // 3. Buat record baru di tabel orders (COD: status pending, payment_status unpaid)
             $order = Order::create([
                 'order_code' => $orderCode,
                 'user_id' => Auth::id(),
                 'total_price' => $totalPrice,
                 'payment_method' => $paymentMethod,
                 'status' => $initialStatus,
+                'payment_status' => $initialPaymentStatus,
                 'shipping_address' => $validated['shipping_address'],
                 'customer_phone' => $validated['customer_phone'],
                 'notes' => $validated['notes'] ?? null,
@@ -238,9 +242,10 @@ class CheckoutController extends Controller
             || str_contains(strtolower($rawPayment), 'cash on delivery');
 
         $paymentMethod = $isCod ? 'Cash on Delivery (COD)' : 'Midtrans Snap';
-        $initialStatus = $isCod ? 'processing' : 'pending';
+        $initialStatus = 'pending';
+        $initialPaymentStatus = 'unpaid';
 
-        $order = DB::transaction(function () use ($cartItems, $validated, $paymentMethod, $initialStatus): Order {
+        $order = DB::transaction(function () use ($cartItems, $validated, $paymentMethod, $initialStatus, $initialPaymentStatus): Order {
             do {
                 $orderCode = 'ORD-'.date('Ymd').'-'.strtoupper(Str::random(6));
             } while (Order::where('order_code', $orderCode)->exists());
@@ -253,6 +258,7 @@ class CheckoutController extends Controller
                 'total_price' => $totalPrice,
                 'payment_method' => $paymentMethod,
                 'status' => $initialStatus,
+                'payment_status' => $initialPaymentStatus,
                 'shipping_address' => $validated['shipping_address'],
                 'customer_phone' => $validated['customer_phone'],
                 'notes' => $validated['notes'] ?? null,
@@ -432,11 +438,22 @@ class CheckoutController extends Controller
      */
     public function orders(Request $request): View
     {
-        // Otomatis batalkan pesanan pending yang melebihi 24 jam (kadaluarsa)
+        // Otomatis batalkan pesanan pending yang melebihi 24 jam (kadaluarsa) - Khusus pesanan online/transfer
         Order::where('user_id', Auth::id())
             ->whereIn('status', ['pending', 'belum_bayar'])
+            ->where(function ($q): void {
+                $q->whereNull('payment_method')
+                    ->orWhere(function ($m): void {
+                        $m->whereRaw('LOWER(payment_method) NOT LIKE ?', ['%cod%'])
+                            ->whereRaw('LOWER(payment_method) NOT LIKE ?', ['%cash on delivery%'])
+                            ->whereRaw('LOWER(payment_method) NOT LIKE ?', ['%bayar di tempat%']);
+                    });
+            })
             ->where('created_at', '<=', now()->subHours(24))
-            ->update(['status' => 'cancelled']);
+            ->update([
+                'status' => 'cancelled',
+                'payment_status' => 'cancelled',
+            ]);
 
         // Sinkronkan status pesanan pending aktif secara real-time dari Midtrans API
         if (! app()->environment('testing')) {
@@ -515,7 +532,10 @@ class CheckoutController extends Controller
         // Cek apakah pesanan sudah kadaluarsa (lebih dari 24 jam)
         if ($order->isExpired()) {
             if (! in_array($order->status, ['cancelled', 'dibatalkan'])) {
-                $order->update(['status' => 'cancelled']);
+                $order->update([
+                    'status' => 'cancelled',
+                    'payment_status' => 'cancelled',
+                ]);
             }
 
             return response()->json([
@@ -569,9 +589,12 @@ class CheckoutController extends Controller
             abort(403, 'Akses tidak diizinkan.');
         }
 
-        // Otomatis batalkan pesanan pending yang melebihi 24 jam
-        if (in_array($order->status, ['pending', 'belum_bayar']) && $order->created_at->diffInHours(now()) >= 24) {
-            $order->update(['status' => 'cancelled']);
+        // Otomatis batalkan pesanan pending yang melebihi 24 jam (tidak berlaku untuk COD)
+        if (! $order->isCod() && in_array($order->status, ['pending', 'belum_bayar']) && $order->created_at->diffInHours(now()) >= 24) {
+            $order->update([
+                'status' => 'cancelled',
+                'payment_status' => 'cancelled',
+            ]);
         }
 
         // Sinkronkan status pesanan aktif jika masih pending
@@ -667,7 +690,16 @@ class CheckoutController extends Controller
                 }
 
                 if ($newStatus !== $order->status) {
-                    $order->update(['status' => $newStatus]);
+                    $paymentStatus = match ($newStatus) {
+                        'processing', 'dikemas', 'shipped', 'dikirim' => 'paid',
+                        'cancelled', 'dibatalkan' => 'cancelled',
+                        default => 'unpaid',
+                    };
+
+                    $order->update([
+                        'status' => $newStatus,
+                        'payment_status' => $paymentStatus,
+                    ]);
 
                     return true;
                 }

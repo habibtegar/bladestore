@@ -140,16 +140,56 @@
              1. SUCCESS / STATUS HERO BANNER
              ========================================== -->
         <div class="card border-0 bg-white p-4 p-md-5 text-center mb-4 rounded-4 shadow-sm">
-            @if($order->isCod() && ! in_array($order->status, ['completed', 'selesai']))
-                <div class="mb-3">
-                    <span class="p-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background-color: #E0F2FE; color: #0284C7;">
-                        <i class="bi bi-cash-coin display-5 text-primary"></i>
-                    </span>
-                </div>
-                <h3 class="fw-bold text-dark mb-1">Pesanan Dibuat — Menunggu Pengiriman (COD)</h3>
-                <p class="text-muted small mb-3 mx-auto" style="max-width: 580px;">
-                    Pesanan Anda telah dicatat dengan metode <strong class="text-primary">Cash on Delivery (Bayar di Tempat)</strong>. Pembayaran tunai sebesar <strong>{{ $order->formatted_total_price }}</strong> dilakukan kepada kurir saat barang tiba di alamat Anda.
-                </p>
+            @if($order->isCod())
+                @if(in_array($order->status, ['completed', 'selesai']))
+                    <div class="mb-3">
+                        <span class="p-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background-color: #DCFCE7; color: #15803D;">
+                            <i class="bi bi-check-circle-fill display-5 text-success"></i>
+                        </span>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">Pesanan Selesai — Pembayaran COD Diterima</h3>
+                    <p class="text-muted small mb-3 mx-auto" style="max-width: 580px;">
+                        Terima kasih! Pesanan COD Anda telah diterima dan pembayaran tunai sebesar <strong>{{ $order->formatted_total_price }}</strong> telah diselesaikan kepada kurir.
+                    </p>
+                @elseif(in_array($order->status, ['shipped', 'dikirim']))
+                    <div class="mb-3">
+                        <span class="p-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background-color: #E0F2FE; color: #0284C7;">
+                            <i class="bi bi-truck display-5 text-primary"></i>
+                        </span>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">Pesanan Sedang Dikirim ke Alamat Anda</h3>
+                    <p class="text-muted small mb-3 mx-auto" style="max-width: 580px;">
+                        Paket Anda telah diserahkan ke kurir pengiriman. Mohon siapkan uang tunai pas sebesar <strong>{{ $order->formatted_total_price }}</strong> saat kurir mengantarkan paket.
+                    </p>
+                @elseif(in_array($order->status, ['processing', 'dikemas']))
+                    <div class="mb-3">
+                        <span class="p-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background-color: #EFF6FF; color: #0866FF;">
+                            <i class="bi bi-box-seam display-5 text-primary"></i>
+                        </span>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">Pesanan Sedang Dikemas Toko</h3>
+                    <p class="text-muted small mb-3 mx-auto" style="max-width: 580px;">
+                        Toko sedang menyiapkan barang Anda. Pembayaran tunai sebesar <strong>{{ $order->formatted_total_price }}</strong> dilakukan saat kurir mengantarkan paket ke rumah Anda.
+                    </p>
+                @elseif(in_array($order->status, ['cancelled', 'dibatalkan']))
+                    <div class="mb-3">
+                        <span class="p-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background-color: #FEE2E2; color: #DC2626;">
+                            <i class="bi bi-x-circle-fill display-5 text-danger"></i>
+                        </span>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">Pesanan COD Dibatalkan</h3>
+                    <p class="text-muted small mb-3">Pesanan COD ini telah dibatalkan.</p>
+                @else
+                    <div class="mb-3">
+                        <span class="p-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background-color: #E0F2FE; color: #0284C7;">
+                            <i class="bi bi-hourglass-split display-5 text-primary"></i>
+                        </span>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">Pesanan Dibuat — Menunggu Diproses (COD)</h3>
+                    <p class="text-muted small mb-3 mx-auto" style="max-width: 580px;">
+                        Pesanan Anda berhasil dibuat dengan metode <strong class="text-primary">Cash on Delivery (Bayar di Tempat)</strong>. Toko kami sedang memeriksa pesanan Anda. Siapkan uang tunai pas sebesar <strong>{{ $order->formatted_total_price }}</strong> saat barang tiba.
+                    </p>
+                @endif
             @elseif(in_array($order->status, ['processing', 'dikemas', 'shipped', 'dikirim', 'completed', 'selesai']))
                 <div class="mb-3">
                     <span class="p-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background-color: #DCFCE7; color: #15803D;">
@@ -158,7 +198,7 @@
                 </div>
                 <h3 class="fw-bold text-dark mb-1">Pembayaran Berhasil Diverifikasi</h3>
                 <p class="text-muted small mb-3 mx-auto" style="max-width: 580px;">
-                    Terima kasih! Pembayaran Anda sebesar <strong>{{ $order->formatted_total_price }}</strong> telah diverifikasi secara resmi. Pesanan Anda saat ini sedang dikemas oleh toko.
+                    Terima kasih! Pembayaran Anda sebesar <strong>{{ $order->formatted_total_price }}</strong> telah diverifikasi secara resmi. Pesanan Anda saat ini sedang dipersiapkan oleh toko.
                 </p>
             @elseif(in_array($order->status, ['pending', 'belum_bayar']))
                 <div class="mb-3">
@@ -189,10 +229,13 @@
                 </button>
             </div>
 
-            <!-- Status Badge -->
-            <div class="d-flex justify-content-center">
+            <!-- Status Badges -->
+            <div class="d-flex justify-content-center flex-wrap gap-2">
                 <span class="badge {{ $order->status_badge_class }} px-3.5 py-2 fs-6 rounded-pill">
-                    {{ $order->status_label }}
+                    Status: {{ $order->status_label }}
+                </span>
+                <span class="badge {{ $order->payment_status_badge_class }} px-3.5 py-2 fs-6 rounded-pill">
+                    Pembayaran: {{ $order->payment_status_label }}
                 </span>
             </div>
         </div>
@@ -226,7 +269,122 @@
                         <div class="x-small mt-0.5">Pesanan ini telah dibatalkan karena melewati batas waktu pembayaran 24 jam atau dibatalkan oleh pengguna/admin.</div>
                     </div>
                 </div>
+            @elseif($order->isCod())
+                {{-- Stepper Khusus COD --}}
+                <ul class="order-stepper">
+                    <!-- Step 1: Pesanan Dibuat -->
+                    <li class="order-step completed">
+                        <div class="order-step-icon-wrap">
+                            <i class="bi bi-check-lg"></i>
+                        </div>
+                        <div>
+                            <div class="order-step-title">Pesanan Dibuat</div>
+                            <div class="order-step-desc">{{ $order->created_at->format('d M, H:i') }} WIB</div>
+                        </div>
+                    </li>
+
+                    <!-- Step 2: Menunggu Diproses -->
+                    @php
+                        $isCodStep2Completed = in_array($order->status, ['processing', 'dikemas', 'shipped', 'dikirim', 'completed', 'selesai']);
+                        $isCodStep2Active = in_array($order->status, ['pending', 'belum_bayar']);
+                    @endphp
+                    <li class="order-step {{ $isCodStep2Completed ? 'completed' : ($isCodStep2Active ? 'active' : '') }}">
+                        <div class="order-step-icon-wrap">
+                            @if($isCodStep2Completed)
+                                <i class="bi bi-check-lg"></i>
+                            @else
+                                <i class="bi bi-hourglass-split"></i>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="order-step-title">Menunggu Diproses</div>
+                            <div class="order-step-desc">
+                                @if($isCodStep2Completed)
+                                    <span class="text-success fw-semibold">Pesanan Dikonfirmasi</span>
+                                @else
+                                    <span class="text-primary fw-semibold">Menunggu Konfirmasi</span>
+                                @endif
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- Step 3: Pengemasan Toko -->
+                    @php
+                        $isCodStep3Completed = in_array($order->status, ['shipped', 'dikirim', 'completed', 'selesai']);
+                        $isCodStep3Active = in_array($order->status, ['processing', 'dikemas']);
+                    @endphp
+                    <li class="order-step {{ $isCodStep3Completed ? 'completed' : ($isCodStep3Active ? 'active' : '') }}">
+                        <div class="order-step-icon-wrap">
+                            @if($isCodStep3Completed)
+                                <i class="bi bi-check-lg"></i>
+                            @else
+                                <i class="bi bi-box-seam"></i>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="order-step-title">Pengemasan Toko</div>
+                            <div class="order-step-desc">
+                                @if($isCodStep3Completed)
+                                    <span class="text-success fw-semibold">Selesai Dikemas</span>
+                                @elseif($isCodStep3Active)
+                                    <span class="text-primary fw-semibold">Sedang Dikemas</span>
+                                @else
+                                    <span>Menunggu</span>
+                                @endif
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- Step 4: Pengiriman Kurir -->
+                    @php
+                        $isCodStep4Completed = in_array($order->status, ['completed', 'selesai']);
+                        $isCodStep4Active = in_array($order->status, ['shipped', 'dikirim']);
+                    @endphp
+                    <li class="order-step {{ $isCodStep4Completed ? 'completed' : ($isCodStep4Active ? 'active' : '') }}">
+                        <div class="order-step-icon-wrap">
+                            @if($isCodStep4Completed)
+                                <i class="bi bi-check-lg"></i>
+                            @else
+                                <i class="bi bi-truck"></i>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="order-step-title">Pengiriman Kurir</div>
+                            <div class="order-step-desc">
+                                @if($isCodStep4Completed)
+                                    <span class="text-success fw-semibold">Telah Tiba</span>
+                                @elseif($isCodStep4Active)
+                                    <span class="text-primary fw-semibold">Dalam Perjalanan</span>
+                                @else
+                                    <span>Menunggu</span>
+                                @endif
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- Step 5: Selesai & Bayar di Tempat -->
+                    <li class="order-step {{ $isCompleted ? 'completed' : '' }}">
+                        <div class="order-step-icon-wrap">
+                            @if($isCompleted)
+                                <i class="bi bi-patch-check"></i>
+                            @else
+                                <i class="bi bi-cash-coin"></i>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="order-step-title">Selesai & Bayar COD</div>
+                            <div class="order-step-desc">
+                                @if($isCompleted)
+                                    <span class="text-success fw-semibold">Lunas & Diterima</span>
+                                @else
+                                    <span>Bayar Tunai ke Kurir</span>
+                                @endif
+                            </div>
+                        </div>
+                    </li>
+                </ul>
             @else
+                <!-- Stepper Alur Pembayaran Online / Non-COD -->
                 <ul class="order-stepper">
                     <!-- Step 1: Pesanan Dibuat -->
                     <li class="order-step completed">
@@ -240,12 +398,10 @@
                     </li>
 
                     <!-- Step 2: Pembayaran -->
-                    <li class="order-step {{ ($isPaidOrBeyond || $isCodPaid) ? 'completed' : ($order->isCod() ? 'active' : ($isUnpaid ? 'active-warning' : '')) }}">
+                    <li class="order-step {{ $isPaidOrBeyond ? 'completed' : ($isUnpaid ? 'active-warning' : '') }}">
                         <div class="order-step-icon-wrap">
-                            @if($isPaidOrBeyond || $isCodPaid)
+                            @if($isPaidOrBeyond)
                                 <i class="bi bi-check-lg"></i>
-                            @elseif($order->isCod())
-                                <i class="bi bi-cash-coin"></i>
                             @elseif($isUnpaid)
                                 <i class="bi bi-credit-card"></i>
                             @else
@@ -255,10 +411,8 @@
                         <div>
                             <div class="order-step-title">Verifikasi Pembayaran</div>
                             <div class="order-step-desc">
-                                @if($isPaidOrBeyond || $isCodPaid)
+                                @if($isPaidOrBeyond)
                                     <span class="text-success fw-semibold">Lunas Terverifikasi</span>
-                                @elseif($order->isCod())
-                                    <span class="text-primary fw-semibold">Bayar saat COD</span>
                                 @elseif($isUnpaid)
                                     <span class="text-warning fw-semibold">Menunggu Pembayaran</span>
                                 @else

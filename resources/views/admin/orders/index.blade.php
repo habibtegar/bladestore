@@ -364,7 +364,7 @@
                             @if(in_array($order->status, ['pending', 'belum_bayar']))
                                 @if($order->isCod())
                                     <span class="badge px-2.5 py-1.5 rounded-pill fw-bold x-small" style="background-color: #E0F2FE; border: 1px solid #BAE6FD; color: #0369A1;">
-                                        <i class="bi bi-cash-coin me-1"></i> COD (Bayar di Tempat)
+                                        <i class="bi bi-clock-history me-1"></i> Menunggu Diproses (COD)
                                     </span>
                                 @elseif($order->isExpired())
                                     <span class="badge px-2.5 py-1.5 rounded-pill fw-bold x-small" style="background-color: #FEE2E2; border: 1px solid #FCA5A5; color: #991B1B;">
@@ -414,9 +414,15 @@
                                     <i class="bi bi-check2 me-0.5"></i> Resi Aktif
                                 </span>
                             @elseif(in_array($order->status, ['pending', 'belum_bayar']))
-                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle x-small">
-                                    <i class="bi bi-lock me-1"></i> Menunggu Bayar
-                                </span>
+                                @if($order->isCod())
+                                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle x-small">
+                                        <i class="bi bi-hourglass-split me-1"></i> Menunggu Proses
+                                    </span>
+                                @else
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle x-small">
+                                        <i class="bi bi-lock me-1"></i> Menunggu Bayar
+                                    </span>
+                                @endif
                             @else
                                 <span class="text-muted fst-italic x-small d-inline-flex align-items-center gap-1">
                                     <i class="bi bi-dash-circle"></i>

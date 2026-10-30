@@ -20,9 +20,12 @@
         </div>
         <p class="text-muted small mb-0">Dibuat pada {{ $order->created_at->format('d F Y, H:i') }} WIB</p>
     </div>
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center flex-wrap gap-2">
         <span class="badge {{ $order->status_badge_class }} px-3 py-2 small">
-            {{ $order->status_label }}
+            Status: {{ $order->status_label }}
+        </span>
+        <span class="badge {{ $order->payment_status_badge_class }} px-3 py-2 small">
+            Pembayaran: {{ $order->payment_status_label }}
         </span>
         <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar
@@ -177,11 +180,25 @@
                 <i class="bi bi-truck text-primary"></i> Update Resi & Status
             </h5>
 
-            @if(in_array($order->status, ['pending', 'belum_bayar']))
-                <div class="alert alert-warning py-2.5 px-3 small border-0 mb-3 d-flex align-items-center gap-2 rounded-2">
-                    <i class="bi bi-exclamation-triangle-fill text-warning fs-6 flex-shrink-0"></i>
-                    <span style="font-size: 0.82rem;">Pesanan masih <strong>Belum Bayar</strong>. Form input resi dinonaktifkan hingga status berubah menjadi Dikemas (pembayaran diverifikasi).</span>
-                </div>
+            @if($order->isCod())
+                @if(in_array($order->status, ['pending', 'belum_bayar']))
+                    <div class="alert alert-info py-2.5 px-3 small border-0 mb-3 d-flex align-items-center gap-2 rounded-2">
+                        <i class="bi bi-info-circle-fill text-primary fs-6 flex-shrink-0"></i>
+                        <span style="font-size: 0.82rem;">Pesanan COD baru berstatus <strong>Menunggu Diproses</strong>. Ubah status menjadi <strong>Dikemas</strong> untuk menyiapkan pesanan.</span>
+                    </div>
+                @elseif(in_array($order->status, ['processing', 'dikemas']))
+                    <div class="alert alert-primary py-2.5 px-3 small border-0 mb-3 d-flex align-items-center gap-2 rounded-2">
+                        <i class="bi bi-box-seam text-primary fs-6 flex-shrink-0"></i>
+                        <span style="font-size: 0.82rem;">Pesanan COD sedang <strong>Dikemas</strong>. Ubah status menjadi <strong>Dikirim</strong> saat menyerahkan paket ke kurir.</span>
+                    </div>
+                @endif
+            @else
+                @if(in_array($order->status, ['pending', 'belum_bayar']))
+                    <div class="alert alert-warning py-2.5 px-3 small border-0 mb-3 d-flex align-items-center gap-2 rounded-2">
+                        <i class="bi bi-exclamation-triangle-fill text-warning fs-6 flex-shrink-0"></i>
+                        <span style="font-size: 0.82rem;">Pesanan masih <strong>Belum Bayar</strong>. Form input resi dinonaktifkan hingga status berubah menjadi Dikemas (pembayaran diverifikasi).</span>
+                    </div>
+                @endif
             @endif
 
             <form action="{{ route('admin.orders.update-status', $order->id) }}" method="POST">
@@ -199,7 +216,7 @@
                                name="tracking_number"
                                id="tracking_number"
                                class="form-control @error('tracking_number') is-invalid @enderror"
-                               placeholder="{{ in_array($order->status, ['pending', 'belum_bayar']) ? 'Menunggu pembayaran selesai...' : 'Contoh: JNE882910291, SICEPAT992' }}"
+                               placeholder="{{ in_array($order->status, ['pending', 'belum_bayar']) ? ($order->isCod() ? 'Ubah status ke Dikemas terlebih dahulu...' : 'Menunggu pembayaran selesai...') : 'Contoh: BLADE-20261030-ABC123, JNE882910' }}"
                                value="{{ old('tracking_number', $order->tracking_number) }}"
                                {{ in_array($order->status, ['pending', 'belum_bayar']) ? 'disabled' : '' }}>
                     </div>
@@ -207,10 +224,18 @@
                         <div class="text-danger x-small mt-1">{{ $message }}</div>
                     @enderror
                     <div class="text-muted mt-1.5" style="font-size: 0.78rem;">
-                        @if(in_array($order->status, ['pending', 'belum_bayar']))
-                            <span class="text-warning fw-semibold"><i class="bi bi-lock me-1"></i> Resi hanya dapat diinput setelah status Dikemas.</span>
+                        @if($order->isCod())
+                            @if(in_array($order->status, ['pending', 'belum_bayar']))
+                                <span class="text-info fw-semibold"><i class="bi bi-lock me-1"></i> Resi dapat dimasukkan atau dibuat simulasi otomatis setelah status Dikemas.</span>
+                            @else
+                                <i class="bi bi-info-circle me-1 text-primary"></i> Pada pesanan COD, jika nomor resi dikosongkan saat memilih <strong>Dikirim</strong>, resi simulasi otomatis dibuat.
+                            @endif
                         @else
-                            <i class="bi bi-info-circle me-1 text-primary"></i> Menyimpan nomor resi otomatis mengubah status menjadi <strong>Dikirim</strong>.
+                            @if(in_array($order->status, ['pending', 'belum_bayar']))
+                                <span class="text-warning fw-semibold"><i class="bi bi-lock me-1"></i> Resi hanya dapat diinput setelah status Dikemas.</span>
+                            @else
+                                <i class="bi bi-info-circle me-1 text-primary"></i> Menyimpan nomor resi otomatis mengubah status menjadi <strong>Dikirim</strong>.
+                            @endif
                         @endif
                     </div>
                 </div>
@@ -219,23 +244,43 @@
                 <div class="mb-3">
                     <label for="status" class="form-label small fw-semibold text-secondary">Pilih Status Baru (Manual):</label>
                     <select name="status" id="status" class="form-select @error('status') is-invalid @enderror">
-                        <option value="pending" {{ in_array($order->status, ['pending', 'belum_bayar']) ? 'selected' : '' }}>
-                            Belum Bayar
-                        </option>
-                        <option value="processing" {{ in_array($order->status, ['processing', 'dikemas']) ? 'selected' : '' }}>
-                            Dikemas (Sudah Dibayar)
-                        </option>
-                        @if(!in_array($order->status, ['pending', 'belum_bayar']))
-                            <option value="shipped" {{ in_array($order->status, ['shipped', 'dikirim']) ? 'selected' : '' }}>
-                                Dikirim
+                        @if($order->isCod())
+                            <option value="pending" {{ in_array($order->status, ['pending', 'belum_bayar']) ? 'selected' : '' }}>
+                                Menunggu Diproses
+                            </option>
+                            <option value="processing" {{ in_array($order->status, ['processing', 'dikemas']) ? 'selected' : '' }}>
+                                Dikemas
+                            </option>
+                            @if(!in_array($order->status, ['pending', 'belum_bayar']))
+                                <option value="shipped" {{ in_array($order->status, ['shipped', 'dikirim']) ? 'selected' : '' }}>
+                                    Dikirim
+                                </option>
+                            @endif
+                            <option value="completed" {{ in_array($order->status, ['completed', 'selesai']) ? 'selected' : '' }}>
+                                Selesai (COD Diterima & Lunas)
+                            </option>
+                            <option value="cancelled" {{ in_array($order->status, ['cancelled', 'dibatalkan']) ? 'selected' : '' }}>
+                                Dibatalkan
+                            </option>
+                        @else
+                            <option value="pending" {{ in_array($order->status, ['pending', 'belum_bayar']) ? 'selected' : '' }}>
+                                Belum Bayar
+                            </option>
+                            <option value="processing" {{ in_array($order->status, ['processing', 'dikemas']) ? 'selected' : '' }}>
+                                Dikemas (Sudah Dibayar)
+                            </option>
+                            @if(!in_array($order->status, ['pending', 'belum_bayar']))
+                                <option value="shipped" {{ in_array($order->status, ['shipped', 'dikirim']) ? 'selected' : '' }}>
+                                    Dikirim
+                                </option>
+                            @endif
+                            <option value="completed" {{ in_array($order->status, ['completed', 'selesai']) ? 'selected' : '' }}>
+                                Selesai
+                            </option>
+                            <option value="cancelled" {{ in_array($order->status, ['cancelled', 'dibatalkan']) ? 'selected' : '' }}>
+                                Dibatalkan
                             </option>
                         @endif
-                        <option value="completed" {{ in_array($order->status, ['completed', 'selesai']) ? 'selected' : '' }}>
-                            Selesai
-                        </option>
-                        <option value="cancelled" {{ in_array($order->status, ['cancelled', 'dibatalkan']) ? 'selected' : '' }}>
-                            Dibatalkan
-                        </option>
                     </select>
                     @error('status')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -251,20 +296,35 @@
 
             <hr class="my-3">
 
-            <!-- Detail Metode Pembayaran -->
-            <div class="mb-3">
+            <!-- Detail Metode & Status Pembayaran -->
+            <div class="mb-2">
                 <span class="x-small text-muted d-block">Metode Pembayaran:</span>
                 <span class="fw-bold text-dark small">{{ $order->payment_method }}</span>
             </div>
+            <div class="mb-3">
+                <span class="x-small text-muted d-block">Status Pembayaran:</span>
+                <span class="badge {{ $order->payment_status_badge_class }} px-2.5 py-1">
+                    {{ $order->payment_status_label }}
+                </span>
+            </div>
 
             <div class="p-3 bg-light rounded-3 x-small text-muted">
-                <div class="fw-bold text-dark mb-1"><i class="bi bi-info-circle me-1 text-primary"></i> Alur Bisnis Pesanan:</div>
-                <ul class="mb-0 ps-3">
-                    <li><strong>Belum Bayar:</strong> Menunggu konfirmasi transfer bank / Snap Midtrans.</li>
-                    <li><strong>Dikemas:</strong> Pembayaran valid, barang dalam penyiapan gudang.</li>
-                    <li><strong>Dikirim:</strong> Paket diserahkan ke jasa kurir dengan nomor resi aktif.</li>
-                    <li><strong>Selesai:</strong> Paket diterima pembeli dengan baik.</li>
-                </ul>
+                <div class="fw-bold text-dark mb-1"><i class="bi bi-info-circle me-1 text-primary"></i> Alur Bisnis Pesanan ({{ $order->isCod() ? 'COD' : 'Online' }}):</div>
+                @if($order->isCod())
+                    <ul class="mb-0 ps-3">
+                        <li><strong>Menunggu Diproses:</strong> Pesanan COD baru masuk, status belum dibayar.</li>
+                        <li><strong>Dikemas:</strong> Toko mengonfirmasi pesanan dan menyiapkan barang.</li>
+                        <li><strong>Dikirim:</strong> Paket diserahkan ke kurir (resi simulasi otomatis dibuat).</li>
+                        <li><strong>Selesai:</strong> Kurir menerima uang tunai & status otomatis lunas.</li>
+                    </ul>
+                @else
+                    <ul class="mb-0 ps-3">
+                        <li><strong>Belum Bayar:</strong> Menunggu konfirmasi transfer bank / Snap Midtrans.</li>
+                        <li><strong>Dikemas:</strong> Pembayaran valid, barang dalam penyiapan gudang.</li>
+                        <li><strong>Dikirim:</strong> Paket diserahkan ke kurir dengan nomor resi aktif.</li>
+                        <li><strong>Selesai:</strong> Paket diterima pembeli dengan baik.</li>
+                    </ul>
+                @endif
             </div>
         </div>
     </div>

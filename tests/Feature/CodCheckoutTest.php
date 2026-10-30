@@ -90,10 +90,14 @@ class CodCheckoutTest extends TestCase
         // Verifikasi tidak ada panggilan jaringan ke Midtrans API
         Http::assertNothingSent();
 
-        // Verifikasi pesanan tersimpan di database dengan status processing (dikemas) dan tanpa snap_token
+        // Verifikasi pesanan tersimpan di database dengan status pending (menunggu diproses), payment_status unpaid, dan tanpa snap_token
         $order = Order::where('user_id', $user->id)->first();
         $this->assertNotNull($order);
-        $this->assertEquals('processing', $order->status);
+        $this->assertEquals('pending', $order->status);
+        $this->assertEquals('unpaid', $order->payment_status);
+        $this->assertEquals('Menunggu Diproses', $order->status_label);
+        $this->assertEquals('Belum Dibayar (COD)', $order->payment_status_label);
+        $this->assertNull($order->tracking_number);
         $this->assertEquals('Cash on Delivery (COD)', $order->payment_method);
         $this->assertNull($order->snap_token);
         $this->assertEquals(300000, (int) $order->total_price);
@@ -168,13 +172,20 @@ class CodCheckoutTest extends TestCase
             'user_id' => $user->id,
             'total_price' => 175000,
             'payment_method' => 'Cash on Delivery (COD)',
-            'status' => 'processing',
+            'status' => 'pending',
+            'payment_status' => 'unpaid',
             'shipping_address' => 'Jl. Melati No. 8',
             'customer_phone' => '081234567899',
         ]);
 
-        // Status processing (dikemas) -> Belum Lunas
+        // Status pending (menunggu diproses) -> Belum Lunas
         $this->assertFalse($order->isPaid());
+        $this->assertEquals('Belum Dibayar (COD)', $order->payment_status_label);
+        $this->assertEquals(0, Order::paid()->where('id', $order->id)->count());
+
+        // Status processing (dikemas) -> Belum Lunas
+        $order->update(['status' => 'processing']);
+        $this->assertFalse($order->fresh()->isPaid());
         $this->assertEquals(0, Order::paid()->where('id', $order->id)->count());
 
         // Status shipped (dikirim) -> Masih Belum Lunas
@@ -183,8 +194,9 @@ class CodCheckoutTest extends TestCase
         $this->assertEquals(0, Order::paid()->where('id', $order->id)->count());
 
         // Status completed (selesai / uang diterima kurir) -> Lunas!
-        $order->update(['status' => 'completed']);
+        $order->update(['status' => 'completed', 'payment_status' => 'paid']);
         $this->assertTrue($order->fresh()->isPaid());
+        $this->assertEquals('Sudah Dibayar (COD)', $order->fresh()->payment_status_label);
         $this->assertEquals(1, Order::paid()->where('id', $order->id)->count());
     }
 
@@ -196,7 +208,8 @@ class CodCheckoutTest extends TestCase
             'user_id' => $user->id,
             'total_price' => 150000,
             'payment_method' => 'Cash on Delivery (COD)',
-            'status' => 'processing',
+            'status' => 'pending',
+            'payment_status' => 'unpaid',
             'shipping_address' => 'Jl. Diponegoro No. 11',
             'customer_phone' => '081234567890',
         ]);
@@ -205,13 +218,16 @@ class CodCheckoutTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Cash on Delivery (Bayar di Tempat)');
-        $response->assertSee('Bayar saat COD');
-        $response->assertSee('Menunggu Pengiriman (COD)');
+        $response->assertSee('Menunggu Diproses (COD)');
+        $response->assertSee('Belum Dibayar (COD)');
+        $response->assertSee('Menunggu Diproses');
+        $response->assertSee('Bayar Tunai ke Kurir');
         $response->assertDontSee('Bayar Sekarang');
         $response->assertDontSee('Pembayaran Berhasil Diverifikasi');
+        $response->assertDontSee('Verifikasi Pembayaran');
     }
 
-    public function test_order_history_displays_cod_order_under_dikemas_tab_without_bayar_sekarang(): void
+    public function test_order_history_displays_cod_order_under_pending_tab(): void
     {
         $user = User::factory()->create();
         $order = Order::create([
@@ -219,16 +235,17 @@ class CodCheckoutTest extends TestCase
             'user_id' => $user->id,
             'total_price' => 150000,
             'payment_method' => 'Cash on Delivery (COD)',
-            'status' => 'processing',
+            'status' => 'pending',
+            'payment_status' => 'unpaid',
             'shipping_address' => 'Jl. Diponegoro No. 11',
             'customer_phone' => '081234567890',
         ]);
 
-        $response = $this->actingAs($user)->get(route('orders.index', ['status' => 'processing']));
+        $response = $this->actingAs($user)->get(route('orders.index', ['status' => 'pending']));
 
         $response->assertStatus(200);
         $response->assertSee('ORD-COD-HISTORY-TEST');
-        $response->assertSee('Dikemas');
+        $response->assertSee('Menunggu Diproses (COD)');
         $response->assertSee('Detail Pesanan');
         $response->assertDontSee('Bayar Sekarang');
     }
@@ -301,11 +318,89 @@ class CodCheckoutTest extends TestCase
 
         $order = Order::where('user_id', $user->id)->first();
         $this->assertNotNull($order);
-        $this->assertEquals('processing', $order->status);
+        $this->assertEquals('pending', $order->status);
+        $this->assertEquals('unpaid', $order->payment_status);
         $this->assertEquals('Cash on Delivery (COD)', $order->payment_method);
         $this->assertNull($order->snap_token);
+        $this->assertNull($order->tracking_number);
 
         $response->assertRedirect(route('checkout.success', $order->id));
         $response->assertSessionHas('success');
+    }
+
+    public function test_admin_cod_order_workflow_progression_and_simulation_tracking(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = User::factory()->create();
+
+        $order = Order::create([
+            'order_code' => 'ORD-COD-ADMIN-TEST',
+            'user_id' => $customer->id,
+            'total_price' => 200000,
+            'payment_method' => 'Cash on Delivery (COD)',
+            'status' => 'pending',
+            'payment_status' => 'unpaid',
+            'shipping_address' => 'Jl. Kebon Jeruk No. 5',
+            'customer_phone' => '081234567890',
+        ]);
+
+        // 1. Admin tidak boleh lompat langsung dari pending ke shipped pada pesanan COD
+        $invalidShippedResponse = $this->actingAs($admin)->patch(route('admin.orders.update-status', $order->id), [
+            'status' => 'shipped',
+        ]);
+        $invalidShippedResponse->assertSessionHas('error');
+        $this->assertEquals('pending', $order->fresh()->status);
+
+        // 2. Admin ubah status COD ke 'processing' (Dikemas)
+        $processResponse = $this->actingAs($admin)->patch(route('admin.orders.update-status', $order->id), [
+            'status' => 'processing',
+        ]);
+        $processResponse->assertSessionHas('success');
+        $order->refresh();
+        $this->assertEquals('processing', $order->status);
+        $this->assertEquals('unpaid', $order->payment_status); // Tetap unpaid selama dikemas
+        $this->assertNull($order->tracking_number);
+
+        // 3. Admin ubah status COD ke 'shipped' (Dikirim) tanpa resi manual -> auto-generate simulasi resi
+        $shippedResponse = $this->actingAs($admin)->patch(route('admin.orders.update-status', $order->id), [
+            'status' => 'shipped',
+        ]);
+        $shippedResponse->assertSessionHas('success');
+        $order->refresh();
+        $this->assertEquals('shipped', $order->status);
+        $this->assertEquals('unpaid', $order->payment_status); // Tetap unpaid selama dikirim
+        $this->assertNotNull($order->tracking_number);
+        $this->assertStringStartsWith('BLADE-', $order->tracking_number);
+
+        // 4. Admin ubah status ke 'completed' (Selesai & Lunas COD)
+        $completeResponse = $this->actingAs($admin)->patch(route('admin.orders.update-status', $order->id), [
+            'status' => 'completed',
+        ]);
+        $completeResponse->assertSessionHas('success');
+        $order->refresh();
+        $this->assertEquals('completed', $order->status);
+        $this->assertEquals('paid', $order->payment_status); // Otomatis lunas
+        $this->assertTrue($order->isPaid());
+
+        // 5. Verifikasi pesanan COD dibatalkan tidak dianggap lunas
+        $orderCancelled = Order::create([
+            'order_code' => 'ORD-COD-CANCELLED-TEST',
+            'user_id' => $customer->id,
+            'total_price' => 150000,
+            'payment_method' => 'Cash on Delivery (COD)',
+            'status' => 'pending',
+            'payment_status' => 'unpaid',
+            'shipping_address' => 'Jl. Kebon Jeruk No. 5',
+            'customer_phone' => '081234567890',
+        ]);
+
+        $cancelResponse = $this->actingAs($admin)->patch(route('admin.orders.update-status', $orderCancelled->id), [
+            'status' => 'cancelled',
+        ]);
+        $cancelResponse->assertSessionHas('success');
+        $orderCancelled->refresh();
+        $this->assertEquals('cancelled', $orderCancelled->status);
+        $this->assertEquals('cancelled', $orderCancelled->payment_status);
+        $this->assertFalse($orderCancelled->isPaid());
     }
 }
