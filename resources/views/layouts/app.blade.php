@@ -1136,7 +1136,7 @@
                             <!-- 2. Menu Navigasi -->
                             <div class="d-flex flex-column gap-1 my-1">
                                 <!-- My Profile / Profil Saya -->
-                                <a class="dark-dropdown-item" href="#" onclick="alert('Fitur Pengaturan Akun akan segera hadir.'); return false;">
+                                <a class="dark-dropdown-item {{ request()->routeIs('profile.*') ? 'active text-primary' : '' }}" href="{{ route('profile.index') }}">
                                     <i class="bi bi-person"></i>
                                     <span>My Profile</span>
                                     <span class="visually-hidden">Pengaturan Akun</span>
@@ -1250,7 +1250,7 @@
                     <span>Pesanan Saya</span>
                 </a>
                 @auth
-                    <a href="#" onclick="alert('Fitur Pengaturan Akun akan segera hadir.'); return false;" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2.5 px-2 border-0 rounded-2 text-dark">
+                    <a href="{{ route('profile.index') }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2.5 px-2 border-0 rounded-2 {{ request()->routeIs('profile.*') ? 'bg-primary-subtle text-primary fw-bold' : 'text-dark' }}">
                         <i class="bi bi-gear fs-5 text-secondary"></i>
                         <span>Pengaturan Akun</span>
                     </a>

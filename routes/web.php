@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\AdminProductController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -57,6 +59,20 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
     });
     Route::get('/checkout-success/{order}', [CheckoutController::class, 'success']);
+
+    // Customer Profile & Address Management
+    Route::prefix('profile')->name('profile.')->group(function (): void {
+        Route::get('/', [ProfileController::class, 'index'])->name('index');
+        Route::match(['put', 'patch'], '/', [ProfileController::class, 'update'])->name('update');
+        Route::match(['put', 'patch'], '/password', [ProfileController::class, 'updatePassword'])->name('password.update');
+    });
+
+    Route::prefix('addresses')->name('addresses.')->group(function (): void {
+        Route::post('/', [AddressController::class, 'store'])->name('store');
+        Route::match(['put', 'patch'], '/{address}', [AddressController::class, 'update'])->name('update');
+        Route::delete('/{address}', [AddressController::class, 'destroy'])->name('destroy');
+        Route::match(['post', 'patch'], '/{address}/primary', [AddressController::class, 'setPrimary'])->name('set-primary');
+    });
 
     // Order History & Details (Customer)
     Route::prefix('orders')->name('orders.')->group(function (): void {

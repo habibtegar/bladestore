@@ -45,10 +45,42 @@
         <div class="col-lg-8">
             <!-- 1. Customer & Shipping Info -->
             <div class="card border-0 bg-white p-4 mb-4 rounded-3 shadow-sm">
-                <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
-                    <span class="badge bg-primary rounded-circle" style="width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">1</span>
-                    <h5 class="fw-bold text-dark mb-0">Data Penerima & Alamat Pengiriman</h5>
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-primary rounded-circle" style="width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">1</span>
+                        <h5 class="fw-bold text-dark mb-0">Data Penerima & Alamat Pengiriman</h5>
+                    </div>
+                    @auth
+                        <a href="{{ route('profile.index', ['tab' => 'addresses']) }}" target="_blank" class="small text-primary text-decoration-none fw-semibold">
+                            <i class="bi bi-geo-alt me-1"></i>Buku Alamat Saya
+                        </a>
+                    @endauth
                 </div>
+
+                @php
+                    $userSavedAddresses = auth()->user()?->addresses()->orderByDesc('is_primary')->latest()->get() ?? collect();
+                    $defaultSavedAddress = $userSavedAddresses->firstWhere('is_primary', true) ?? $userSavedAddresses->first();
+                @endphp
+
+                @if($userSavedAddresses->count() > 0)
+                    <div class="mb-3 p-2.5 rounded-3 border bg-light">
+                        <label class="form-label small fw-semibold text-secondary mb-1.5 d-flex align-items-center gap-1.5">
+                            <i class="bi bi-bookmark-check text-primary"></i>
+                            <span>Pilih dari Alamat Tersimpan:</span>
+                        </label>
+                        <select class="form-select form-select-sm" id="selectSavedAddress" onchange="applySavedAddress(this);">
+                            <option value="">-- Pilih Alamat Tersimpan --</option>
+                            @foreach($userSavedAddresses as $addr)
+                                <option value="{{ $addr->id }}" 
+                                        data-phone="{{ $addr->phone }}" 
+                                        data-address="{{ $addr->full_address }}{{ $addr->city ? ', '.$addr->city : '' }}{{ $addr->postal_code ? ' '.$addr->postal_code : '' }}"
+                                        {{ $addr->is_primary ? 'selected' : '' }}>
+                                    {{ $addr->label }} - {{ $addr->recipient_name }} ({{ $addr->phone }}) {{ $addr->is_primary ? '[Alamat Utama]' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
 
                 <div class="row g-3">
                     <div class="col-md-6">
@@ -65,7 +97,7 @@
                                id="customer_phone"
                                class="form-control @error('customer_phone') is-invalid @enderror"
                                placeholder="Contoh: 081234567890"
-                               value="{{ old('customer_phone') }}"
+                               value="{{ old('customer_phone', auth()->user()?->phone ?? $defaultSavedAddress?->phone) }}"
                                required>
                         @error('customer_phone')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -81,7 +113,7 @@
                                   rows="3"
                                   class="form-control @error('shipping_address') is-invalid @enderror"
                                   placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, kecamatan, kota/kabupaten, dan kode pos tujuan..."
-                                  required>{{ old('shipping_address') }}</textarea>
+                                  required>{{ old('shipping_address', $defaultSavedAddress ? ($defaultSavedAddress->full_address . ($defaultSavedAddress->city ? ', ' . $defaultSavedAddress->city : '') . ($defaultSavedAddress->postal_code ? ' ' . $defaultSavedAddress->postal_code : '')) : '') }}</textarea>
                         @error('shipping_address')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -225,3 +257,25 @@
     </div>
 </form>
 @endsection
+
+@push('scripts')
+<script>
+    function applySavedAddress(selectEl) {
+        const selectedOpt = selectEl.options[selectEl.selectedIndex];
+        if (!selectedOpt || !selectedOpt.value) return;
+
+        const phone = selectedOpt.getAttribute('data-phone');
+        const address = selectedOpt.getAttribute('data-address');
+
+        if (phone) {
+            const phoneInput = document.getElementById('customer_phone');
+            if (phoneInput) phoneInput.value = phone;
+        }
+
+        if (address) {
+            const addressInput = document.getElementById('shipping_address');
+            if (addressInput) addressInput.value = address;
+        }
+    }
+</script>
+@endpush
