@@ -27,10 +27,10 @@ class ProfileController extends Controller
 
         $ordersCount = $user->orders()->count();
         $activeOrdersCount = $user->orders()
-            ->whereIn('status', ['menunggu_pembayaran', 'diproses', 'dikirim'])
+            ->whereIn('status', ['menunggu_pembayaran', 'diproses', 'dikirim', 'pending', 'belum_bayar', 'processing', 'dikemas', 'shipped'])
             ->count();
         $completedOrdersCount = $user->orders()
-            ->where('status', 'selesai')
+            ->whereIn('status', ['selesai', 'completed'])
             ->count();
 
         $recentOrders = $user->orders()
